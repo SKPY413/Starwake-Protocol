@@ -1162,6 +1162,28 @@ button:disabled {
 .audio-debug-actions button { width:auto; min-width:0; padding:7px 5px; font-size:11px; }
 
 
+
+
+/* Touch-menu scrolling contract:
+   Menus must own vertical gestures. Virtual sticks only capture gestures that begin
+   inside their explicit stick zones while the gameplay overlay is active. */
+#startMenu,
+#upgradeMenu,
+#pauseOverlay,
+#gameOverMenu,
+#splashScreen {
+    touch-action: pan-y;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+}
+
+.menu-card,
+#upgradeCard,
+.pause-card,
+.splash-card {
+    touch-action: pan-y;
+}
+
 /* -------------------------------------------------------------------------
    Touch + gamepad controls
    -------------------------------------------------------------------------
@@ -1250,7 +1272,9 @@ button:disabled {
     pointer-events: none;
 }
 @media (pointer: coarse), (max-width: 900px) {
-    .touch-controls.available { display: block; }
+    /* Only show the full-screen touch overlay while gameplay is actively accepting stick input.
+       Showing `.available` by itself leaves an invisible touch-action:none layer over menus. */
+    .touch-controls.available.active { display: block; }
     .input-status { bottom: 4px; left: 50%; right: auto; transform: translateX(-50%); }
 }
 @media (max-width: 520px), (max-height: 520px) {

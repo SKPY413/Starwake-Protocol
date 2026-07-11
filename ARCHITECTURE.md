@@ -168,3 +168,10 @@ this contract is functioning.
 - Virtual controls must be hidden during splash, main menu, pause, upgrade protocol, game over, and wave-clear transitions.
 - Touch controls may update the shared analog input state, but gameplay remains authoritative inside updatePlayer() and shootPlayerWeapon().
 - Do not create a second player movement implementation for mobile or controllers. All devices must feed the unified input state.
+
+
+## Touch-menu scrolling contract
+- The full-screen `.touch-controls` overlay may only be displayed when both `available` and `active` are present.
+- Never display the overlay from `.available` alone; its `touch-action: none` would block native menu scrolling.
+- Menu surfaces use `touch-action: pan-y` so vertical swipes remain browser-native.
+- Virtual-stick listeners may call `preventDefault()` only for pointers that begin inside a stick zone.

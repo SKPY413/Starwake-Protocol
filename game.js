@@ -5775,6 +5775,9 @@
         touchControls.classList.toggle("available", touchCapable);
         touchControls.classList.toggle("active", visible);
         touchControls.setAttribute("aria-hidden", String(!visible));
+
+        // CSS only displays `.available.active`; inactive overlays therefore cannot
+        // intercept menu swipes or impose touch-action:none over the viewport.
     }
 
     function bindVirtualStick(zone, kind) {
