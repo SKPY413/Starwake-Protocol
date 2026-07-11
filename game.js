@@ -201,6 +201,9 @@
     const chance = probability => Math.random() < probability;
     const getDifficulty = () => DIFFICULTY_DATA[state.difficulty] || DIFFICULTY_DATA.medium;
 
+    const savedCursorColor = safeStorage.get("starwakeCursorColor") || "#7cffd4";
+    const savedAudioVolume = clamp(Number(safeStorage.get("starwakeMasterVolume") ?? 78), 0, 100);
+    const savedAudioEnabled = safeStorage.get("starwakeAudioEnabled") !== "false";
 
     // -------------------------------------------------------------------------
     // Procedural music and redesigned sound effects
@@ -872,9 +875,6 @@
     const camera = { x: 0, y: 0 };
     const keysHeld = {};
     const mouse = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
-    const savedCursorColor = safeStorage.get("starwakeCursorColor") || "#7cffd4";
-    const savedAudioVolume = clamp(Number(safeStorage.get("starwakeMasterVolume") ?? 78), 0, 100);
-    const savedAudioEnabled = safeStorage.get("starwakeAudioEnabled") !== "false";
     let cursorFrameRequest = 0;
     let cursorPendingX = 0;
     let cursorPendingY = 0;
