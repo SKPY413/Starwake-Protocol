@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Starwake Protocol</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<canvas id="game"></canvas>
+<div id="customCursor" aria-hidden="true"><div class="cursor-dot"></div></div>
+<div id="damageOverlay"></div>
+<div id="speedBoostOverlay"></div>
+<div id="slowStatusOverlay"></div>
+<div id="waveClearOverlay"></div>
+<div id="waveClearMessage">
+    <div id="waveClearTitle">WAVE CLEARED</div>
+    <div id="waveClearSubtext">Next wave in 4...</div>
+</div>
+
+<div id="topLeftStats" aria-label="Score and upgrade points">
+    <div>Score: <span id="score">0</span></div>
+    <div class="divider"></div>
+    <div>Points: <span id="points">0</span></div>
+</div>
+
+
+<div id="topWaveCounter">Wave <span id="wave">1</span></div>
+
+<div id="debugPanel" aria-label="Debug controls">
+    <button id="debugAddPointsButton" type="button">+1000 Points</button>
+    <button id="debugSkipWaveButton" type="button">Skip Wave</button>
+</div>
+
+<!-- Hidden compatibility sink for values still maintained by the game code. -->
+<div id="ui" aria-hidden="true">
+    <button id="hudToggleButton" type="button">HUD Hidden</button>
+    <span id="health">100 / 100</span>
+    <span id="weapon">Basic</span>
+    <span id="bulletSpeed">9.0</span>
+    <span id="explosiveLevel">0</span>
+    <span id="speedBoostInfo">None</span>
+    <span id="slowInfo">None</span>
+    <span id="magnetInfo">95 px</span>
+    <span id="bossInfo">Every 10 waves</span>
+    <span id="mapInfo">3600 x 2400</span>
+    <div id="audioControls">
+        <button id="audioToggleButton">Sound: On</button>
+        <label>Vol <input id="audioVolume" type="range" min="0" max="100" value="78"></label>
+        <span id="audioStatus">Music ready</span>
+    </div>
+</div>
+
+<div id="playerHealthBarWrap">
+    <div id="playerHealthBar"></div>
+    <div id="regenHealthTick"></div>
+    <div id="playerHealthText">100 / 100</div>
+</div>
+
+<div id="pauseOverlay">
+    <div class="pause-card">
+        <div class="pause-title">PAUSED</div>
+        <p class="pause-subtitle">Press P or Resume to return to the protocol.</p>
+        <div class="cursor-settings" aria-label="Pause cursor color settings">
+            <div class="cursor-settings-title">Cursor Color</div>
+            <div class="cursor-settings-row">
+                <input class="cursor-color-picker" id="pauseCursorColor" type="color" value="#7cffd4" aria-label="Custom cursor color while paused">
+                <button class="cursor-preset" data-cursor-color="#7cffd4" style="--preset-color:#7cffd4" type="button" aria-label="Cyan cursor"></button>
+                <button class="cursor-preset" data-cursor-color="#6aa9ff" style="--preset-color:#6aa9ff" type="button" aria-label="Blue cursor"></button>
+                <button class="cursor-preset" data-cursor-color="#ff5c5c" style="--preset-color:#ff5c5c" type="button" aria-label="Red cursor"></button>
+                <button class="cursor-preset" data-cursor-color="#ffb347" style="--preset-color:#ffb347" type="button" aria-label="Orange cursor"></button>
+                <button class="cursor-preset" data-cursor-color="#b86bff" style="--preset-color:#b86bff" type="button" aria-label="Purple cursor"></button>
+            </div>
+        </div>
+        <div class="volume-settings" aria-label="Pause audio volume settings">
+            <div class="volume-settings-title">Master Volume</div>
+            <div class="volume-settings-row">
+                <button id="pauseAudioToggleButton" class="volume-mute-button" type="button">Sound: On</button>
+                <input id="pauseVolume" class="volume-slider" type="range" min="0" max="100" value="78" aria-label="Pause menu master volume">
+                <span id="pauseVolumeValue" class="volume-value">78%</span>
+            </div>
+        </div>
+        <button id="resumeButton" type="button">Resume</button>
+    </div>
+</div>
+
+<div id="minimapWrap">
+    <div id="minimapTitle">MINIMAP</div>
+    <canvas id="minimap" width="204" height="136"></canvas>
+</div>
+
+<div id="splashScreen">
+    <div class="splash-card">
+        <div class="splash-kicker">AI-Collaborative Arcade Study</div>
+        <h1 class="splash-title">Starwake<br>Protocol</h1>
+        <p class="splash-tagline">A Human–AI Collaborative Experiment in Emergent Game Design</p>
+        <p class="splash-credit">Designed in collaboration with <strong>GPT-5.5 Thinking</strong></p>
+        <button id="continueFromSplashButton" type="button">Continue</button>
+    </div>
+</div>
+
+<div id="startMenu">
+    <div class="menu-card">
+        <h1 class="menu-title">Starwake Protocol</h1>
+        <p class="menu-tagline">A Human–AI Collaborative Experiment in Emergent Game Design</p>
+        <p class="menu-subtitle">A neon survival arena about human direction, machine iteration, and the strange future of creative work. Survive escalating waves, collect point orbs, upgrade your ship, and prepare for bosses every 10 waves. WASD / Arrow Keys move, mouse aims, shooting is automatic, P pauses.</p>
+
+        <div class="difficulty-grid" aria-label="Difficulty select">
+            <button class="difficulty-card selected" data-difficulty="easy" type="button">
+                <h3>Easy</h3>
+                <p>Baby-town frolics: gentle opening waves, delayed elites, generous rewards, and cheaper upgrades.</p>
+            </button>
+            <button class="difficulty-card" data-difficulty="medium" type="button">
+                <h3>Medium</h3>
+                <p>A smoother learning curve with balanced pressure, rewards, and enemy introductions.</p>
+            </button>
+            <button class="difficulty-card" data-difficulty="hard" type="button">
+                <h3>Hard</h3>
+                <p>A firm challenge with faster scaling, earlier pressure, and a standard upgrade economy.</p>
+            </button>
+            <button class="difficulty-card" data-difficulty="impossible" type="button">
+                <h3>Impossible</h3>
+                <p>Pattern mastery required: aggressive scaling, early elites, punishing damage, and relentless pressure. Git gud.</p>
+            </button>
+        </div>
+
+
+        <div class="cursor-settings" aria-label="Cursor color settings">
+            <div class="cursor-settings-title">Cursor Color</div>
+            <div class="cursor-settings-row">
+                <input class="cursor-color-picker" id="menuCursorColor" type="color" value="#7cffd4" aria-label="Custom cursor color">
+                <button class="cursor-preset" data-cursor-color="#7cffd4" style="--preset-color:#7cffd4" type="button" aria-label="Cyan cursor"></button>
+                <button class="cursor-preset" data-cursor-color="#6aa9ff" style="--preset-color:#6aa9ff" type="button" aria-label="Blue cursor"></button>
+                <button class="cursor-preset" data-cursor-color="#ff5c5c" style="--preset-color:#ff5c5c" type="button" aria-label="Red cursor"></button>
+                <button class="cursor-preset" data-cursor-color="#ffb347" style="--preset-color:#ffb347" type="button" aria-label="Orange cursor"></button>
+                <button class="cursor-preset" data-cursor-color="#b86bff" style="--preset-color:#b86bff" type="button" aria-label="Purple cursor"></button>
+            </div>
+        </div>
+
+        <div class="volume-settings" aria-label="Main menu audio volume settings">
+            <div class="volume-settings-title">Master Volume</div>
+            <div class="volume-settings-row">
+                <button id="menuAudioToggleButton" class="volume-mute-button" type="button">Sound: On</button>
+                <input id="menuVolume" class="volume-slider" type="range" min="0" max="100" value="78" aria-label="Main menu master volume">
+                <span id="menuVolumeValue" class="volume-value">78%</span>
+            </div>
+        </div>
+
+        <p class="small">Selected difficulty: <strong id="selectedDifficultyLabel">Easy</strong></p>
+        <div class="menu-controls">
+            <button id="startButton" type="button">Launch Protocol</button>
+            <div id="startupStatus" hidden role="alert" style="margin-top:10px;color:#ffb0b0;font-size:13px;line-height:1.35;"></div>
+        </div>
+    </div>
+</div>
+
+<div id="upgradeMenu">
+    <div id="upgradeCard">
+        <div class="upgrade-header">
+            <div>
+                <h1>Upgrade Protocol</h1>
+                <p>Refit your ship, inspect the next benefit, or continue to the next wave.</p>
+            </div>
+            <div class="upgrade-points-panel">AVAILABLE POINTS<strong id="menuPoints">0</strong></div>
+        </div>
+
+        <div id="upgradeGrid">
+            <button data-upgrade="multiShot"></button>
+            <button data-upgrade="damage"></button>
+            <button data-upgrade="fireRate"></button>
+            <button data-upgrade="bulletVelocity"></button>
+            <button data-upgrade="explosive"></button>
+            <button data-upgrade="speed"></button>
+            <button data-upgrade="magnet"></button>
+            <button data-upgrade="autoMissile"></button>
+            <button data-upgrade="damageAura"></button>
+            <button data-upgrade="healthRegen"></button>
+            <button data-upgrade="lifeSteal"></button>
+            <button data-upgrade="maxHealth"></button>
+            <button id="skipUpgradeButton">Skip / Next Wave</button>
+        </div>
+    </div>
+</div>
+
+<div id="gameOverMenu">
+    <h1>Protocol Failed</h1>
+    <p>Final Signal Score: <span id="finalScore">0</span></p>
+    <p>Reached Wave: <span id="finalWave">1</span></p>
+    <button id="restartButton">Restart</button>
+</div>
+
+<script>
+/* Cursor fallback runs independently of every game subsystem. */
+(() => {
+    const cursor = document.getElementById("customCursor");
+    if (!cursor) return;
+    const move = (event) => {
+        cursor.style.transform = `translate3d(${event.clientX}px, ${event.clientY}px, 0) translate(-50%, -50%)`;
+        cursor.style.visibility = "visible";
+    };
+    window.addEventListener("pointermove", move, { passive: true, capture: true });
+    window.addEventListener("mousemove", move, { passive: true, capture: true });
+
+    // Splash navigation is deliberately independent from game.js so the player
+    // can always reach the main menu even if another subsystem fails to start.
+    const continueButton = document.getElementById("continueFromSplashButton");
+    const splashScreen = document.getElementById("splashScreen");
+    const startMenu = document.getElementById("startMenu");
+    if (continueButton && splashScreen && startMenu) {
+        const openMainMenu = (event) => {
+            event?.preventDefault?.();
+            event?.stopPropagation?.();
+            splashScreen.style.display = "none";
+            startMenu.style.display = "flex";
+        };
+        continueButton.addEventListener("click", openMainMenu);
+        continueButton.addEventListener("pointerup", openMainMenu);
+        continueButton.addEventListener("touchend", openMainMenu, { passive: false });
+    }
+})();
+</script>
+
+
+
+<script src="musicEngine.js"></script>
+<script src="game.js"></script>
+<script>
+window.addEventListener("load", () => {
+    const button = document.getElementById("startButton");
+    const status = document.getElementById("startupStatus");
+    if (typeof window.StarwakeLaunchProtocol !== "function") {
+        if (status) {
+            status.hidden = false;
+            status.textContent = "game.js did not initialize. Keep index.html, game.js, musicEngine.js, and styles.css together in the extracted folder.";
+        }
+        if (button) button.textContent = "Game files not loaded";
+    }
+});
+</script>
+
+</body>
+</html>
