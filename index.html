@@ -8,6 +8,7 @@
 </head>
 <body>
 
+<!-- Main render surface. Keep this first so UI overlays stack above it. -->
 <canvas id="game"></canvas>
 <div id="customCursor" aria-hidden="true"><div class="cursor-dot"></div></div>
 <div id="damageOverlay"></div>
@@ -31,7 +32,26 @@
 <div id="debugPanel" aria-label="Debug controls">
     <button id="debugAddPointsButton" type="button">+1000 Points</button>
     <button id="debugSkipWaveButton" type="button">Skip Wave</button>
+    <label class="debug-wave-jump" for="debugWaveInput">
+        <span>Wave</span>
+        <input id="debugWaveInput" type="number" min="1" max="999" step="1" value="10" inputmode="numeric">
+    </label>
+    <button id="debugGoToWaveButton" type="button">Go</button>
+    <button id="audioDebugToggleButton" type="button">Audio Debug</button>
 </div>
+
+<aside id="audioDebugConsole" class="audio-debug-console" hidden aria-label="Audio diagnostics">
+    <div class="audio-debug-header">
+        <strong>AUDIO DIAGNOSTICS</strong>
+        <button id="audioDebugCloseButton" type="button" aria-label="Close audio diagnostics">×</button>
+    </div>
+    <div id="audioDebugReadout" class="audio-debug-readout">Waiting for audio engine…</div>
+    <div class="audio-debug-actions">
+        <button id="audioDebugKillButton" type="button">Kill Voices</button>
+        <button id="audioDebugRestartButton" type="button">Restart Audio</button>
+        <button id="audioDebugExportButton" type="button">Export Log</button>
+    </div>
+</aside>
 
 <!-- Hidden compatibility sink for values still maintained by the game code. -->
 <div id="ui" aria-hidden="true">
@@ -73,12 +93,23 @@
                 <button class="cursor-preset" data-cursor-color="#b86bff" style="--preset-color:#b86bff" type="button" aria-label="Purple cursor"></button>
             </div>
         </div>
-        <div class="volume-settings" aria-label="Pause audio volume settings">
-            <div class="volume-settings-title">Master Volume</div>
-            <div class="volume-settings-row">
+        <div class="volume-settings" aria-label="Pause audio mixer settings">
+            <div class="volume-settings-title">Audio Mixer</div>
+            <div class="volume-settings-row volume-settings-row-master">
                 <button id="pauseAudioToggleButton" class="volume-mute-button" type="button">Sound: On</button>
+                <span class="volume-label">Master</span>
                 <input id="pauseVolume" class="volume-slider" type="range" min="0" max="100" value="78" aria-label="Pause menu master volume">
                 <span id="pauseVolumeValue" class="volume-value">78%</span>
+            </div>
+            <div class="volume-settings-row">
+                <span class="volume-label">Music</span>
+                <input id="pauseMusicVolume" class="volume-slider" type="range" min="0" max="100" value="82" aria-label="Pause menu music volume">
+                <span id="pauseMusicVolumeValue" class="volume-value">82%</span>
+            </div>
+            <div class="volume-settings-row">
+                <span class="volume-label">SFX</span>
+                <input id="pauseSfxVolume" class="volume-slider" type="range" min="0" max="100" value="92" aria-label="Pause menu sound effects volume">
+                <span id="pauseSfxVolumeValue" class="volume-value">92%</span>
             </div>
         </div>
         <button id="resumeButton" type="button">Resume</button>
@@ -90,6 +121,7 @@
     <canvas id="minimap" width="204" height="136"></canvas>
 </div>
 
+<!-- Boot splash: its Continue handler is intentionally fail-safe and independent of game.js. -->
 <div id="splashScreen">
     <div class="splash-card">
         <div class="splash-kicker">AI-Collaborative Arcade Study</div>
@@ -100,6 +132,7 @@
     </div>
 </div>
 
+<!-- Main menu: difficulty and global audio settings are configured before launch. -->
 <div id="startMenu">
     <div class="menu-card">
         <h1 class="menu-title">Starwake Protocol</h1>
@@ -138,12 +171,23 @@
             </div>
         </div>
 
-        <div class="volume-settings" aria-label="Main menu audio volume settings">
-            <div class="volume-settings-title">Master Volume</div>
-            <div class="volume-settings-row">
+        <div class="volume-settings" aria-label="Main menu audio mixer settings">
+            <div class="volume-settings-title">Audio Mixer</div>
+            <div class="volume-settings-row volume-settings-row-master">
                 <button id="menuAudioToggleButton" class="volume-mute-button" type="button">Sound: On</button>
+                <span class="volume-label">Master</span>
                 <input id="menuVolume" class="volume-slider" type="range" min="0" max="100" value="78" aria-label="Main menu master volume">
                 <span id="menuVolumeValue" class="volume-value">78%</span>
+            </div>
+            <div class="volume-settings-row">
+                <span class="volume-label">Music</span>
+                <input id="menuMusicVolume" class="volume-slider" type="range" min="0" max="100" value="82" aria-label="Main menu music volume">
+                <span id="menuMusicVolumeValue" class="volume-value">82%</span>
+            </div>
+            <div class="volume-settings-row">
+                <span class="volume-label">SFX</span>
+                <input id="menuSfxVolume" class="volume-slider" type="range" min="0" max="100" value="92" aria-label="Main menu sound effects volume">
+                <span id="menuSfxVolumeValue" class="volume-value">92%</span>
             </div>
         </div>
 
@@ -155,6 +199,7 @@
     </div>
 </div>
 
+<!-- Upgrade Protocol: gameplay is paused while this overlay owns pointer input. -->
 <div id="upgradeMenu">
     <div id="upgradeCard">
         <div class="upgrade-header">
@@ -182,6 +227,21 @@
         </div>
     </div>
 </div>
+
+
+<!-- Mobile/gamepad controls. Hidden automatically while menus are open. -->
+<div id="touchControls" class="touch-controls" aria-hidden="true">
+    <div class="touch-stick-zone touch-stick-left" data-stick="move" aria-label="Movement joystick">
+        <div class="touch-stick-base"><div class="touch-stick-knob"></div></div>
+        <span class="touch-stick-label">MOVE</span>
+    </div>
+    <button id="touchPauseButton" class="touch-pause-button" type="button" aria-label="Pause game">Ⅱ</button>
+    <div class="touch-stick-zone touch-stick-right" data-stick="aim" aria-label="Aim joystick">
+        <div class="touch-stick-base"><div class="touch-stick-knob"></div></div>
+        <span class="touch-stick-label">AIM</span>
+    </div>
+</div>
+<div id="inputStatus" class="input-status" aria-live="polite">Keyboard + Mouse</div>
 
 <div id="gameOverMenu">
     <h1>Protocol Failed</h1>
@@ -223,7 +283,9 @@
 
 
 
+<!-- Script order matters: the optional music API is exposed before game.js attempts to use it. -->
 <script src="musicEngine.js"></script>
+<!-- game.js owns the authoritative game state and must remain able to boot without music. -->
 <script src="game.js"></script>
 <script>
 window.addEventListener("load", () => {

@@ -1,0 +1,10 @@
+STARWAKE PROTOCOL - PICKUP SYNTH UPDATE
+
+- Added reusable PickupSynth system.
+- Added a speed pickup crescendo/woosh with rising filtered air, tonal saw acceleration, low-mid body, and stereo travel.
+- Added a warm ascending health pickup identity.
+- Added an inward, descending slow pickup identity.
+- Added a corrupted, detuned harmful pickup identity.
+- Added capped rapid-collection stacking so repeat pickups evolve instead of creating uncontrolled duplicate voices.
+- Preserved the generic point-orb reward sound separately.
+- Added architecture maintenance notes for pickup audio scalability.

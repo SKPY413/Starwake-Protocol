@@ -1,0 +1,3 @@
+STARWAKE PROTOCOL - AUDIO DIAGNOSTICS
+
+Added live source-node tracking, scheduler monitoring, compressor reduction display, dropped-event counters, active gameplay-object counts, voice kill, full audio restart, and downloadable debug logs.

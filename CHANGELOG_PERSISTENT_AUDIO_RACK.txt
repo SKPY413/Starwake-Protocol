@@ -1,0 +1,10 @@
+STARWAKE PROTOCOL — PERSISTENT AUDIO RACK
+
+- Converted physical pickup sounds to one persistent tonal/noise instrument.
+- Added three reusable enemy-explosion voices.
+- Added four reusable enemy-weapon voices.
+- Added a reusable UI cue instrument for point pickups, upgrades, and wave clear.
+- Persistent sources are protected from voice stealing and excluded from transient voice pressure.
+- Audio diagnostics now report total and transient source counts separately.
+- Kill Voices and Restart Audio rebuild the complete rack.
+- Existing music, gameplay logic, visual effects, and persistent player-fire synth remain intact.

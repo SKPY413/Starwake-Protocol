@@ -1,0 +1,8 @@
+STARWAKE PROTOCOL - PROTECTED FIRE CADENCE
+
+- Player shoot SFX is now priority-protected.
+- Shoot event interval reduced from 52 ms to 28 ms.
+- Added a lightweight one-source cadence pulse.
+- Full layered pew plays during normal audio load.
+- Cadence pulse automatically takes over near the soft voice ceiling.
+- Decorative enemy/impact voices remain the first sounds discarded under pressure.

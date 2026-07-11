@@ -1,0 +1,9 @@
+STARWAKE PROTOCOL — AUDIO VOICE GUARD
+
+- Added a 52-source soft ceiling and 68-source hard ceiling.
+- Drops low-priority SFX before creating Web Audio graphs.
+- Protects music, player damage, pickups, upgrades, bosses, wave clear, and game over cues.
+- Tags created SFX sources with semantic category and priority.
+- Steals the oldest expendable voice at the hard ceiling when a protected cue needs room.
+- Reduced enemy-shot, hit, explosion, and explosive-impact event rates.
+- Added diagnostic counters for pressure drops and voice stealing.
