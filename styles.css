@@ -1947,3 +1947,121 @@ html.mobile-performance body:not(.mobile-gameplay-hud) #topRightHud > .touch-pau
         height: 73px !important;
     }
 }
+
+/* =========================================================================
+   FINAL MOBILE HUD CANONICAL RULES
+   =========================================================================
+   These rules intentionally sit last in the stylesheet and supersede every
+   historical minimap/pause/health-bar rule above.
+
+   Structural contract:
+   - #topRightHud owns BOTH #touchPauseButton and #minimapWrap.
+   - Mobile HUD is hidden unless body.mobile-gameplay-hud is present.
+   - The desktop bottom health bar is never rendered on touch/mobile layouts.
+   - No child may use fixed/absolute positioning inside the shared HUD row.
+*/
+@media (pointer: coarse), (max-width: 900px) {
+    #topRightHud {
+        display: none !important;
+        position: fixed !important;
+        top: max(12px, env(safe-area-inset-top)) !important;
+        right: max(12px, env(safe-area-inset-right)) !important;
+        left: auto !important;
+        bottom: auto !important;
+        width: auto !important;
+        height: auto !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        transform: none !important;
+        align-items: flex-start !important;
+        justify-content: flex-end !important;
+        flex-direction: row !important;
+        gap: 10px !important;
+        pointer-events: none !important;
+        z-index: 80 !important;
+    }
+
+    body.mobile-gameplay-hud #topRightHud {
+        display: flex !important;
+    }
+
+    #topRightHud > #touchPauseButton {
+        display: grid !important;
+        position: static !important;
+        inset: auto !important;
+        top: auto !important;
+        right: auto !important;
+        bottom: auto !important;
+        left: auto !important;
+        width: 48px !important;
+        min-width: 48px !important;
+        height: 48px !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        transform: none !important;
+        flex: 0 0 48px !important;
+        pointer-events: auto !important;
+        z-index: auto !important;
+    }
+
+    #topRightHud > #minimapWrap {
+        display: block !important;
+        position: static !important;
+        inset: auto !important;
+        top: auto !important;
+        right: auto !important;
+        bottom: auto !important;
+        left: auto !important;
+        width: 132px !important;
+        height: auto !important;
+        margin: 0 !important;
+        padding: 5px !important;
+        transform: none !important;
+        flex: 0 0 132px !important;
+        pointer-events: none !important;
+        z-index: auto !important;
+    }
+
+    #topRightHud > #minimapWrap #minimap {
+        display: block !important;
+        width: 120px !important;
+        height: 80px !important;
+        max-width: none !important;
+        margin: 0 !important;
+        transform: none !important;
+    }
+
+    /* The long top-right line reported on mobile was the desktop health bar. */
+    #playerHealthBarWrap {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+    }
+
+    /* Defensive: no gameplay HUD is allowed on splash or modal menus. */
+    body:not(.mobile-gameplay-hud) #topRightHud,
+    body:not(.mobile-gameplay-hud) #topRightHud > #touchPauseButton,
+    body:not(.mobile-gameplay-hud) #topRightHud > #minimapWrap {
+        display: none !important;
+    }
+}
+
+@media (pointer: coarse) and (max-width: 520px) {
+    #topRightHud {
+        top: max(10px, env(safe-area-inset-top)) !important;
+        right: max(10px, env(safe-area-inset-right)) !important;
+        gap: 8px !important;
+    }
+
+    #topRightHud > #minimapWrap {
+        width: 120px !important;
+        flex-basis: 120px !important;
+        padding: 4px !important;
+    }
+
+    #topRightHud > #minimapWrap #minimap {
+        width: 110px !important;
+        height: 73px !important;
+    }
+}

@@ -252,3 +252,18 @@ rendered directly above the ship.
 - Never position those children independently on mobile. Position only `#topRightHud`.
 - Mobile visibility is controlled exclusively by `body.mobile-gameplay-hud`.
 - Do not add a second mobile minimap or move the pause button back into the full-screen touch overlay.
+
+## Canonical mobile top-right HUD contract
+
+The pause button and minimap must both be direct children of `#topRightHud`.
+Do not place the pause button back inside `#touchControls`; doing so separates
+its coordinate system from the minimap and causes conflicting mobile anchors.
+
+On touch/mobile layouts:
+
+- `#topRightHud` is hidden by default.
+- It is visible only while `body.mobile-gameplay-hud` is present.
+- The pause button is the left child and the minimap is the right child.
+- Both children use `position: static` inside the fixed top-right row.
+- `#playerHealthBarWrap` remains hidden because mobile health is rendered above
+  the player ship.
