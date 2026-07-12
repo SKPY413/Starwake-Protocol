@@ -5952,6 +5952,68 @@
         // onto the splash screen, menus, pause screen, or Upgrade Protocol.
         document.body.classList.toggle("mobile-gameplay-hud", visible);
 
+        // Runtime mobile HUD contract. The stylesheet contains legacy mobile rules
+        // from earlier builds with competing specificity. Apply the final gameplay
+        // layout directly so those historical rules cannot move the minimap or
+        // resurrect the desktop health bar. Inline !important declarations are
+        // deliberate here: this is the authoritative platform-state boundary.
+        const mobileProfileActive = document.documentElement.classList.contains("mobile-performance");
+        const topRightHud = document.getElementById("topRightHud");
+        const pauseButton = document.getElementById("touchPauseButton");
+        const minimapWrap = document.getElementById("minimapWrap");
+        const desktopHealthBar = document.getElementById("playerHealthBarWrap");
+
+        if (mobileProfileActive) {
+            if (desktopHealthBar) {
+                desktopHealthBar.hidden = true;
+                desktopHealthBar.style.setProperty("display", "none", "important");
+            }
+
+            if (topRightHud) {
+                topRightHud.style.setProperty("display", visible ? "flex" : "none", "important");
+                topRightHud.style.setProperty("position", "fixed", "important");
+                topRightHud.style.setProperty("top", "max(12px, env(safe-area-inset-top))", "important");
+                topRightHud.style.setProperty("right", "max(12px, env(safe-area-inset-right))", "important");
+                topRightHud.style.setProperty("left", "auto", "important");
+                topRightHud.style.setProperty("bottom", "auto", "important");
+                topRightHud.style.setProperty("transform", "none", "important");
+                topRightHud.style.setProperty("flex-direction", "row", "important");
+                topRightHud.style.setProperty("align-items", "flex-start", "important");
+                topRightHud.style.setProperty("justify-content", "flex-end", "important");
+                topRightHud.style.setProperty("gap", "10px", "important");
+                topRightHud.style.setProperty("z-index", "80", "important");
+                topRightHud.style.setProperty("pointer-events", "none", "important");
+            }
+
+            if (pauseButton) {
+                pauseButton.style.setProperty("display", visible ? "grid" : "none", "important");
+                pauseButton.style.setProperty("position", "static", "important");
+                pauseButton.style.setProperty("inset", "auto", "important");
+                pauseButton.style.setProperty("transform", "none", "important");
+                pauseButton.style.setProperty("margin", "0", "important");
+                pauseButton.style.setProperty("pointer-events", "auto", "important");
+                pauseButton.style.setProperty("flex", "0 0 48px", "important");
+            }
+
+            if (minimapWrap) {
+                minimapWrap.style.setProperty("display", visible ? "block" : "none", "important");
+                minimapWrap.style.setProperty("position", "static", "important");
+                minimapWrap.style.setProperty("inset", "auto", "important");
+                minimapWrap.style.setProperty("top", "auto", "important");
+                minimapWrap.style.setProperty("right", "auto", "important");
+                minimapWrap.style.setProperty("bottom", "auto", "important");
+                minimapWrap.style.setProperty("left", "auto", "important");
+                minimapWrap.style.setProperty("transform", "none", "important");
+                minimapWrap.style.setProperty("margin", "0", "important");
+                minimapWrap.style.setProperty("width", "132px", "important");
+                minimapWrap.style.setProperty("flex", "0 0 132px", "important");
+                minimapWrap.style.setProperty("pointer-events", "none", "important");
+            }
+        } else if (desktopHealthBar) {
+            desktopHealthBar.hidden = false;
+            desktopHealthBar.style.removeProperty("display");
+        }
+
         // CSS only displays `.available.active`; inactive overlays therefore cannot
         // intercept menu swipes or impose touch-action:none over the viewport.
     }

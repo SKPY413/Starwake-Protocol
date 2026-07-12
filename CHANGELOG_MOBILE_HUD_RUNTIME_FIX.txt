@@ -1,0 +1,6 @@
+MOBILE HUD RUNTIME FIX
+- Mobile HUD position is now applied by updateTouchControlVisibility().
+- topRightHud is the sole fixed-position owner.
+- Pause and minimap children use static layout inside the row.
+- Desktop health bar is hidden with both hidden=true and display:none!important.
+- This avoids legacy CSS specificity conflicts from previous mobile revisions.

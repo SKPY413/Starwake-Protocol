@@ -2065,3 +2065,17 @@ html.mobile-performance body:not(.mobile-gameplay-hud) #topRightHud > .touch-pau
         height: 73px !important;
     }
 }
+
+/* Runtime HUD state in game.js is authoritative on mobile. This small final
+   block only supplies dimensions and appearance; it does not position children. */
+html.mobile-performance #topRightHud > #minimapWrap {
+    max-width: 132px !important;
+    box-sizing: border-box !important;
+}
+html.mobile-performance #topRightHud > #minimapWrap #minimap {
+    width: 120px !important;
+    height: 80px !important;
+}
+html.mobile-performance #playerHealthBarWrap[hidden] {
+    display: none !important;
+}
