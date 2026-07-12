@@ -2208,15 +2208,32 @@
     /**
      * Handles the worldToScreen operation. Keep its responsibilities narrow and update this comment when behavior changes.
      */
+    const CAMERA_ZOOM = clamp(Number(PLATFORM_PROFILE.cameraZoom) || 1, 0.6, 1);
+
+    function getVisibleWorldWidth() {
+        return canvas.width / CAMERA_ZOOM;
+    }
+
+    function getVisibleWorldHeight() {
+        return canvas.height / CAMERA_ZOOM;
+    }
+
     function worldToScreen(pos) {
+        // Returned coordinates are in logical world-view units. drawGame() applies
+        // CAMERA_ZOOM once to the full scene so positions and object sizes scale
+        // together. Do not multiply by CAMERA_ZOOM here.
         return { x: pos.x - camera.x, y: pos.y - camera.y };
     }
 
     /**
-     * Handles the screenToWorld operation. Keep its responsibilities narrow and update this comment when behavior changes.
+     * Converts CSS-pixel pointer coordinates into world coordinates. The inverse
+     * zoom is required for mouse, touch aim, and controller-generated aim points.
      */
     function screenToWorld(pos) {
-        return { x: pos.x + camera.x, y: pos.y + camera.y };
+        return {
+            x: pos.x / CAMERA_ZOOM + camera.x,
+            y: pos.y / CAMERA_ZOOM + camera.y,
+        };
     }
 
     /**
@@ -2225,9 +2242,9 @@
     function isInView(pos, margin = 0) {
         const screen = worldToScreen(pos);
         return screen.x > -margin &&
-            screen.x < canvas.width + margin &&
+            screen.x < getVisibleWorldWidth() + margin &&
             screen.y > -margin &&
-            screen.y < canvas.height + margin;
+            screen.y < getVisibleWorldHeight() + margin;
     }
 
     /**
@@ -2244,11 +2261,13 @@
      * Advances this subsystem by one simulation step. Respect paused/ended state and avoid unnecessary allocations.
      */
     function updateCamera() {
-        const maxCameraX = Math.max(0, WORLD.width - canvas.width);
-        const maxCameraY = Math.max(0, WORLD.height - canvas.height);
+        const viewWidth = getVisibleWorldWidth();
+        const viewHeight = getVisibleWorldHeight();
+        const maxCameraX = Math.max(0, WORLD.width - viewWidth);
+        const maxCameraY = Math.max(0, WORLD.height - viewHeight);
 
-        camera.x = clamp(player.x - canvas.width / 2, 0, maxCameraX);
-        camera.y = clamp(player.y - canvas.height / 2, 0, maxCameraY);
+        camera.x = clamp(player.x - viewWidth / 2, 0, maxCameraX);
+        camera.y = clamp(player.y - viewHeight / 2, 0, maxCameraY);
     }
 
     /**
@@ -2390,6 +2409,7 @@
         applyDifficultyToWave();
         state.started = true;
         state.paused = false;
+        lastPlayerMovementAt = performance.now();
         state.ended = false;
         ui.splashScreen.style.display = "none";
         ui.startMenu.style.display = "none";
@@ -2903,29 +2923,47 @@
     /**
      * Advances this subsystem by one simulation step. Respect paused/ended state and avoid unnecessary allocations.
      */
+    let lastPlayerMovementAt = 0;
+
     function updatePlayer(now) {
-        let dx = 0;
-        let dy = 0;
+        let keyboardX = 0;
+        let keyboardY = 0;
 
-        if (keysHeld.w || keysHeld.arrowup) dy--;
-        if (keysHeld.s || keysHeld.arrowdown) dy++;
-        if (keysHeld.a || keysHeld.arrowleft) dx--;
-        if (keysHeld.d || keysHeld.arrowright) dx++;
+        if (keysHeld.w || keysHeld.arrowup) keyboardY--;
+        if (keysHeld.s || keysHeld.arrowdown) keyboardY++;
+        if (keysHeld.a || keysHeld.arrowleft) keyboardX--;
+        if (keysHeld.d || keysHeld.arrowright) keyboardX++;
 
-        // Analog movement is additive, then normalized with keyboard input so
-        // switching devices mid-run never causes a speed spike.
-        dx += analogInput.moveX;
-        dy += analogInput.moveY;
-
-        const length = Math.hypot(dx, dy);
-        if (length > 0) {
-            dx /= length;
-            dy /= length;
+        // Keyboard remains digital/full-speed. Analog input preserves stick
+        // magnitude, so a small thumb movement produces slow movement instead
+        // of being normalized immediately to maximum speed.
+        const keyboardLength = Math.hypot(keyboardX, keyboardY);
+        if (keyboardLength > 0) {
+            keyboardX /= keyboardLength;
+            keyboardY /= keyboardLength;
         }
 
+        let dx = keyboardX || analogInput.moveX;
+        let dy = keyboardY || analogInput.moveY;
+
+        // Clamp combined input to the unit circle without destroying analog
+        // magnitude. This also prevents diagonal movement from becoming faster.
+        const inputLength = Math.hypot(dx, dy);
+        if (inputLength > 1) {
+            dx /= inputLength;
+            dy /= inputLength;
+        }
+
+        // Movement used to be measured in pixels per rendered frame, causing
+        // 90/120 Hz mobile displays to move substantially faster than 60 Hz.
+        // Normalize to a 60 Hz baseline and cap long-frame catch-up after pauses.
+        const elapsedMs = lastPlayerMovementAt > 0 ? now - lastPlayerMovementAt : 1000 / 60;
+        lastPlayerMovementAt = now;
+        const frameScale = clamp(elapsedMs / (1000 / 60), 0.25, 1.75);
+
         const speed = getPlayerMoveSpeed(now);
-        player.x += dx * speed;
-        player.y += dy * speed;
+        player.x += dx * speed * frameScale;
+        player.y += dy * speed * frameScale;
         keepPlayerInWorld();
     }
 
@@ -3273,17 +3311,17 @@
         let y;
 
         if (side === 0) {
-            x = camera.x + Math.random() * canvas.width;
+            x = camera.x + Math.random() * getVisibleWorldWidth();
             y = camera.y - margin;
         } else if (side === 1) {
-            x = camera.x + canvas.width + margin;
-            y = camera.y + Math.random() * canvas.height;
+            x = camera.x + getVisibleWorldWidth() + margin;
+            y = camera.y + Math.random() * getVisibleWorldHeight();
         } else if (side === 2) {
-            x = camera.x + Math.random() * canvas.width;
-            y = camera.y + canvas.height + margin;
+            x = camera.x + Math.random() * getVisibleWorldWidth();
+            y = camera.y + getVisibleWorldHeight() + margin;
         } else {
             x = camera.x - margin;
-            y = camera.y + Math.random() * canvas.height;
+            y = camera.y + Math.random() * getVisibleWorldHeight();
         }
 
         const position = pushSpawnAwayFromPlayer({
@@ -4460,7 +4498,7 @@
         ctx.strokeStyle = "rgba(80, 170, 255, 0.12)";
         ctx.lineWidth = 1;
 
-        for (let x = startX; x <= camera.x + canvas.width + gridSize; x += gridSize) {
+        for (let x = startX; x <= camera.x + getVisibleWorldWidth() + gridSize; x += gridSize) {
             const sx = x - camera.x;
             ctx.beginPath();
             ctx.moveTo(sx, 0);
@@ -4468,7 +4506,7 @@
             ctx.stroke();
         }
 
-        for (let y = startY; y <= camera.y + canvas.height + gridSize; y += gridSize) {
+        for (let y = startY; y <= camera.y + getVisibleWorldHeight() + gridSize; y += gridSize) {
             const sy = y - camera.y;
             ctx.beginPath();
             ctx.moveTo(0, sy);
@@ -5707,6 +5745,9 @@
         if (state.screenShake > 0) {
             ctx.translate(randomRange(-state.screenShake, state.screenShake), randomRange(-state.screenShake, state.screenShake));
         }
+        // Mobile zooms the entire world scene out without increasing the canvas
+        // backing resolution. DOM HUD and touch controls remain full-size.
+        ctx.scale(CAMERA_ZOOM, CAMERA_ZOOM);
 
         drawSciFiBackground();
         drawParticles();
@@ -5793,8 +5834,8 @@
         if (!analogInput.aimActive) return;
         const playerScreen = worldToScreen(player);
         const aimDistance = Math.max(260, Math.min(canvas.width, canvas.height) * 0.38);
-        mouse.x = playerScreen.x + analogInput.aimX * aimDistance;
-        mouse.y = playerScreen.y + analogInput.aimY * aimDistance;
+        mouse.x = playerScreen.x * CAMERA_ZOOM + analogInput.aimX * aimDistance;
+        mouse.y = playerScreen.y * CAMERA_ZOOM + analogInput.aimY * aimDistance;
     }
 
     function applyDeadZone(value, deadZone = 0.18) {
@@ -5844,7 +5885,10 @@
     function updateTouchControlVisibility() {
         if (!touchControls) return;
         const touchCapable = matchMedia("(pointer: coarse)").matches || navigator.maxTouchPoints > 0;
-        const visible = touchCapable && state.started && !state.ended && !state.paused && !state.clearPhaseActive && ui.upgradeMenu.style.display !== "flex";
+        // Keep controls active during the wave-clear collection window so the
+        // player can sweep up point orbs and pickups. They hide only once the
+        // Upgrade Protocol menu opens or gameplay is otherwise paused/ended.
+        const visible = touchCapable && state.started && !state.ended && !state.paused && ui.upgradeMenu.style.display !== "flex";
         touchControls.classList.toggle("available", touchCapable);
         touchControls.classList.toggle("active", visible);
         touchControls.setAttribute("aria-hidden", String(!visible));
@@ -5884,8 +5928,16 @@
             const ny = dy / radius;
             if (knob) knob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
             if (kind === "move") {
-                analogInput.moveX = nx;
-                analogInput.moveY = ny;
+                const magnitude = Math.hypot(nx, ny);
+                const deadZone = 0.10;
+                if (magnitude <= deadZone) {
+                    analogInput.moveX = 0;
+                    analogInput.moveY = 0;
+                } else {
+                    const shapedMagnitude = Math.min(1, (magnitude - deadZone) / (1 - deadZone));
+                    analogInput.moveX = (nx / magnitude) * shapedMagnitude;
+                    analogInput.moveY = (ny / magnitude) * shapedMagnitude;
+                }
             } else if (Math.hypot(nx, ny) > 0.08) {
                 const length = Math.hypot(nx, ny);
                 analogInput.aimX = nx / length;

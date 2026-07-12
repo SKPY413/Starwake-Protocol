@@ -25,6 +25,7 @@
     renderEveryNFrames: isMobilePerformance ? 2 : 1,
     spawnMultiplier: isMobilePerformance ? 0.72 : 1,
     musicDetail: isMobilePerformance ? 0.58 : 1,
+    cameraZoom: isMobilePerformance ? 0.78 : 1,
     limits: Object.freeze(isMobilePerformance ? {
       maxPointOrbs: 120,
       maxLifeStealOrbs: 36,

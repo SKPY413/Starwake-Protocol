@@ -197,3 +197,11 @@ Testing overrides:
 - Fullscreen buttons all use `[data-fullscreen-button]` and one shared `toggleFullscreen()` implementation.
 - Fullscreen is optional. Unsupported or rejected requests must never block menus or gameplay.
 - Recalculate canvas dimensions after fullscreen changes because mobile browser chrome changes usable viewport size.
+
+
+## Mobile camera and wave-clear controls
+
+- `platformProfile.cameraZoom` controls mobile world zoom. The scene is scaled with the canvas context; the backing canvas resolution must not be increased just to zoom out.
+- Pointer coordinates must pass through `screenToWorld()`, which divides by `CAMERA_ZOOM`.
+- Touch controls remain active during `clearPhaseActive` so players can collect point orbs and pickups. Hide them only for actual modal menus, pause, game over, or pre-game screens.
+- HUD and touch controls are DOM layers and intentionally remain full-size while the world scene is zoomed out.
