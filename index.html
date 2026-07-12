@@ -199,11 +199,21 @@
 
         <p class="small">Selected difficulty: <strong id="selectedDifficultyLabel">Easy</strong></p>
         <p id="platformStatus" class="platform-status small" aria-live="polite"></p>
+
+        <label class="developer-mode-toggle" for="developerModeCheckbox">
+            <input id="developerModeCheckbox" type="checkbox">
+            <span>Developer Mode</span>
+        </label>
+
         <div class="menu-controls">
             <button class="fullscreen-button" data-fullscreen-button type="button">Enter Fullscreen</button>
             <button id="startButton" type="button">Launch Protocol</button>
             <div id="startupStatus" hidden role="alert" style="margin-top:10px;color:#ffb0b0;font-size:13px;line-height:1.35;"></div>
         </div>
+        <footer class="menu-version-footer">
+            <span>Starwake Protocol v0.9.0 Alpha</span>
+            <strong id="developerModeStatus" hidden>Developer Mode Enabled</strong>
+        </footer>
     </div>
 </div>
 

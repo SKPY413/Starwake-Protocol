@@ -1,0 +1,7 @@
+Starwake Protocol - Developer Mode UI
+
+- Added a simple Developer Mode checkbox to the main menu.
+- Debug controls and Audio Diagnostics are hidden by default.
+- The setting persists through safeStorage.
+- Added a compact version footer and visible developer-mode status.
+- Centralized debug visibility in setDeveloperMode().

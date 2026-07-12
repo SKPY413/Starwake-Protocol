@@ -1460,3 +1460,49 @@ html.mobile-performance .platform-status { color: #7cffd4; font-weight: 800; }
 
     .upgrade-header-actions { width: 100%; }
 }
+
+
+/* -------------------------------------------------------------------------
+   Developer mode
+   Debug tools are hidden in normal player-facing sessions. The body class is
+   the single authoritative switch so future debug UI can follow one contract.
+   ------------------------------------------------------------------------- */
+#debugPanel { display: none !important; }
+body.developer-mode #debugPanel { display: flex !important; }
+body:not(.developer-mode) #audioDebugConsole { display: none !important; }
+
+.developer-mode-toggle {
+    width: min(520px, 100%);
+    margin: 12px auto 2px;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    border: 1px solid rgba(120,190,255,0.24);
+    border-radius: 12px;
+    background: rgba(5,10,20,0.42);
+    color: #d7ecff;
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 0.4px;
+    cursor: pointer;
+}
+.developer-mode-toggle input {
+    width: 20px;
+    height: 20px;
+    accent-color: #7cffd4;
+}
+.menu-version-footer {
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255,255,255,0.10);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px 14px;
+    color: #8fa7c2;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+}
+.menu-version-footer strong { color: #7cffd4; }

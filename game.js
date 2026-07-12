@@ -121,6 +121,9 @@
         audioDebugKillButton: document.getElementById("audioDebugKillButton"),
         audioDebugRestartButton: document.getElementById("audioDebugRestartButton"),
         audioDebugExportButton: document.getElementById("audioDebugExportButton"),
+        developerModeCheckbox: document.getElementById("developerModeCheckbox"),
+        developerModeStatus: document.getElementById("developerModeStatus"),
+        debugPanel: document.getElementById("debugPanel"),
     };
 
     const upgradeButtons = [...document.querySelectorAll("[data-upgrade]")];
@@ -265,6 +268,7 @@
     const savedMusicVolume = clamp(Number(safeStorage.get("starwakeMusicVolume") ?? 82), 0, 100);
     const savedSfxVolume = clamp(Number(safeStorage.get("starwakeSfxVolume") ?? 92), 0, 100);
     const savedAudioEnabled = safeStorage.get("starwakeAudioEnabled") !== "false";
+    const savedDeveloperMode = safeStorage.get("starwakeDeveloperMode") === "true";
 
     // -------------------------------------------------------------------------
     // Procedural music and redesigned sound effects
@@ -5996,6 +6000,24 @@
         zone.addEventListener("lostpointercapture", reset);
     }
 
+    /**
+     * Centralized developer-mode visibility controller.
+     * Keep player-facing builds clean by default while preserving diagnostics for testing.
+     * Any future debug-only UI should be placed inside #debugPanel or
+     * .audio-debug-console so this single switch remains authoritative.
+     */
+    function setDeveloperMode(enabled, { persist = true } = {}) {
+        const isEnabled = Boolean(enabled);
+        document.body.classList.toggle("developer-mode", isEnabled);
+        if (ui.developerModeCheckbox) ui.developerModeCheckbox.checked = isEnabled;
+        if (ui.developerModeStatus) ui.developerModeStatus.hidden = !isEnabled;
+
+        // Closing the diagnostics panel prevents an already-open debug overlay from
+        // remaining visible after Developer Mode is turned off.
+        if (!isEnabled && ui.audioDebugConsole) ui.audioDebugConsole.hidden = true;
+        if (persist) safeStorage.set("starwakeDeveloperMode", String(isEnabled));
+    }
+
     function initializeTouchAndGamepadControls() {
         bindVirtualStick(document.querySelector('[data-stick="move"]'), "move");
         bindVirtualStick(document.querySelector('[data-stick="aim"]'), "aim");
@@ -6077,6 +6099,9 @@
             appendAudioDiagnostic(`Restart failed: ${audio.diagnostics.lastError}`);
         }));
         ui.audioDebugExportButton?.addEventListener("click", exportAudioDiagnostics);
+        ui.developerModeCheckbox?.addEventListener("change", event => {
+            setDeveloperMode(event.target.checked);
+        });
         document.getElementById("debugWaveInput")?.addEventListener("keydown", event => {
             if (event.key === "Enter") debugGoToWave();
         });
@@ -6117,6 +6142,7 @@
         bindEvents();
         setHudVisible(true);
         setCursorColor(savedCursorColor);
+        setDeveloperMode(savedDeveloperMode, { persist: false });
         initializeTouchAndGamepadControls();
         updateFullscreenButtons();
         updateCursorPosition(mouse.x, mouse.y);

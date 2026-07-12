@@ -211,3 +211,13 @@ Testing overrides:
 - Mobile camera zoom is intentionally wider than desktop. Keep pointer conversion, camera bounds, visibility tests, and minimap camera rectangles based on `CAMERA_ZOOM`.
 - Mobile health is rendered in world space above the ship; do not re-enable the large bottom health HUD on mobile without checking touch-control overlap.
 - The mobile minimap is a deliberately low-detail 120x80 asset. Avoid adding bullets, grid effects, shadows, or per-frame updates to it.
+
+
+## Developer mode contract
+
+- Developer Mode is disabled by default and persisted with the `starwakeDeveloperMode` setting.
+- `setDeveloperMode()` is the single authoritative controller for debug visibility.
+- Player-facing debug controls belong inside `#debugPanel`; live diagnostics belong in `.audio-debug-console`.
+- Turning Developer Mode off must close any open diagnostics panel.
+- Do not add isolated debug elements that bypass the centralized body class.
+- The checkbox is intentionally temporary and can be removed later without deleting the underlying tools.
