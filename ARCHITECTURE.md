@@ -221,3 +221,9 @@ Testing overrides:
 - Turning Developer Mode off must close any open diagnostics panel.
 - Do not add isolated debug elements that bypass the centralized body class.
 - The checkbox is intentionally temporary and can be removed later without deleting the underlying tools.
+
+
+## Mobile top-right HUD stack
+- The touch pause button owns the top-right safe-area slot.
+- The lightweight minimap is positioned directly below it using the same right-edge inset.
+- Do not independently move either element without preserving that vertical stack, or they may overlap on compact phones.

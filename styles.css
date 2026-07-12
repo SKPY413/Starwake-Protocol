@@ -1309,8 +1309,9 @@ html.mobile-performance #splashScreen::after,
 html.mobile-performance .splash-title { animation: none !important; }
 html.mobile-performance #minimapWrap {
     display: block !important;
-    top: max(8px, env(safe-area-inset-top));
-    right: max(8px, env(safe-area-inset-right));
+    /* Mobile top-right stack: pause button first, minimap directly below it. */
+    top: calc(max(14px, env(safe-area-inset-top)) + 58px);
+    right: max(14px, env(safe-area-inset-right));
     width: 132px;
     padding: 5px;
     border-radius: 9px;
@@ -1676,4 +1677,42 @@ body:not(.developer-mode) #audioDebugConsole { display: none !important; }
     #splashScreen .splash-credit { font-size: 10px; margin-bottom: 3px; }
     #splashScreen .splash-actions { flex-wrap: nowrap; }
     #splashScreen .splash-actions > button { min-height: 34px; padding: 6px 9px; }
+}
+
+
+/* Mobile HUD stack contract: pause button occupies the top-right slot; the
+   minimap is anchored beneath it. Keep both aligned to the same safe-area edge. */
+html.mobile-performance .touch-pause-button {
+    top: max(14px, env(safe-area-inset-top));
+    right: max(14px, env(safe-area-inset-right));
+    z-index: 2;
+}
+html.mobile-performance #minimapWrap {
+    z-index: 14;
+}
+
+/* Mobile top-right row contract:
+   Pause sits immediately left of the minimap. Both share the same top inset and
+   keep a deliberate margin from the screen edge. This replaces the older
+   vertical stack used in previous mobile builds. */
+html.mobile-performance #minimapWrap {
+    top: max(16px, env(safe-area-inset-top)) !important;
+    right: max(16px, env(safe-area-inset-right)) !important;
+    width: 132px;
+    margin: 0;
+}
+html.mobile-performance .touch-pause-button {
+    top: max(16px, env(safe-area-inset-top)) !important;
+    right: calc(max(16px, env(safe-area-inset-right)) + 132px + 10px) !important;
+    margin: 0;
+}
+
+/* Compact phones keep the same left-to-right order with a slightly smaller gap. */
+@media (pointer: coarse) and (max-width: 520px) {
+    html.mobile-performance #minimapWrap {
+        right: max(12px, env(safe-area-inset-right)) !important;
+    }
+    html.mobile-performance .touch-pause-button {
+        right: calc(max(12px, env(safe-area-inset-right)) + 132px + 8px) !important;
+    }
 }
