@@ -232,3 +232,14 @@ Testing overrides:
 - Pause and minimap are fixed DOM HUD elements, never world/camera elements.
 - Always reset `left`, `bottom`, and `transform` when anchoring them with `top/right`.
 - The desktop `#playerHealthBarWrap` must remain fully hidden in mobile-performance mode; mobile health is rendered above the ship.
+
+## Mobile HUD visibility contract
+
+Mobile HUD elements are hidden by default. `updateTouchControlVisibility()` is
+responsible for toggling `body.mobile-gameplay-hud` only while active gameplay
+accepts touch input. The minimap and touch pause button must be scoped under
+that body class. Do not expose them globally from a mobile media query, because
+that causes them to leak onto the splash screen and menus before startup.
+
+The desktop `#playerHealthBarWrap` remains hidden on mobile; mobile health is
+rendered directly above the ship.

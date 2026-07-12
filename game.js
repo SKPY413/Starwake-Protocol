@@ -5947,6 +5947,11 @@
         touchControls.classList.toggle("active", visible);
         touchControls.setAttribute("aria-hidden", String(!visible));
 
+        // Mobile HUD visibility is controlled by one explicit body state. This
+        // prevents the minimap, pause control, or desktop health bar from leaking
+        // onto the splash screen, menus, pause screen, or Upgrade Protocol.
+        document.body.classList.toggle("mobile-gameplay-hud", visible);
+
         // CSS only displays `.available.active`; inactive overlays therefore cannot
         // intercept menu swipes or impose touch-action:none over the viewport.
     }

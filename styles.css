@@ -1778,3 +1778,66 @@ html.mobile-performance #minimap {
         height: 73px !important;
     }
 }
+
+/* -------------------------------------------------------------------------
+   Mobile gameplay HUD visibility contract
+   -------------------------------------------------------------------------
+   Mobile HUD pieces are hidden by default and only become visible while
+   `body.mobile-gameplay-hud` is present. Never make these elements globally
+   visible through a mobile media query; doing so leaks them onto splash/menu
+   screens before game state has initialized.
+*/
+html.mobile-performance #minimapWrap,
+html.mobile-performance .touch-pause-button,
+html.mobile-performance #playerHealthBarWrap {
+    display: none !important;
+}
+
+html.mobile-performance body.mobile-gameplay-hud #minimapWrap {
+    display: block !important;
+    position: fixed !important;
+    top: max(14px, env(safe-area-inset-top)) !important;
+    right: max(14px, env(safe-area-inset-right)) !important;
+    left: auto !important;
+    bottom: auto !important;
+    transform: none !important;
+    width: 132px !important;
+    margin: 0 !important;
+    z-index: 59 !important;
+    pointer-events: none !important;
+}
+
+html.mobile-performance body.mobile-gameplay-hud .touch-pause-button {
+    display: grid !important;
+    position: fixed !important;
+    top: max(14px, env(safe-area-inset-top)) !important;
+    right: calc(max(14px, env(safe-area-inset-right)) + 132px + 10px) !important;
+    left: auto !important;
+    bottom: auto !important;
+    transform: none !important;
+    margin: 0 !important;
+    z-index: 60 !important;
+}
+
+/* The desktop bottom health bar never appears on mobile. Health is drawn above
+   the ship by the renderer instead. */
+html.mobile-performance body.mobile-gameplay-hud #playerHealthBarWrap {
+    display: none !important;
+}
+
+@media (pointer: coarse) and (max-width: 520px) {
+    html.mobile-performance body.mobile-gameplay-hud #minimapWrap {
+        right: max(10px, env(safe-area-inset-right)) !important;
+        width: 120px !important;
+        padding: 4px !important;
+    }
+
+    html.mobile-performance body.mobile-gameplay-hud #minimap {
+        width: 110px !important;
+        height: 73px !important;
+    }
+
+    html.mobile-performance body.mobile-gameplay-hud .touch-pause-button {
+        right: calc(max(10px, env(safe-area-inset-right)) + 120px + 8px) !important;
+    }
+}
