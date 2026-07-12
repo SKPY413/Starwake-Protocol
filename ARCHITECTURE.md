@@ -227,3 +227,8 @@ Testing overrides:
 - The touch pause button owns the top-right safe-area slot.
 - The lightweight minimap is positioned directly below it using the same right-edge inset.
 - Do not independently move either element without preserving that vertical stack, or they may overlap on compact phones.
+
+## Mobile HUD anchoring
+- Pause and minimap are fixed DOM HUD elements, never world/camera elements.
+- Always reset `left`, `bottom`, and `transform` when anchoring them with `top/right`.
+- The desktop `#playerHealthBarWrap` must remain fully hidden in mobile-performance mode; mobile health is rendered above the ship.

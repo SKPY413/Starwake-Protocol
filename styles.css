@@ -1716,3 +1716,65 @@ html.mobile-performance .touch-pause-button {
         right: calc(max(12px, env(safe-area-inset-right)) + 132px + 8px) !important;
     }
 }
+
+/* -------------------------------------------------------------------------
+   Mobile HUD hard anchoring fix
+   -------------------------------------------------------------------------
+   Mobile zoom/camera transforms must never affect DOM HUD placement. Explicitly
+   reset every opposing inset and transform so stale rules cannot pull the
+   minimap to the left or leave the desktop health bar visible.
+*/
+html.mobile-performance #playerHealthBarWrap {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+html.mobile-performance .touch-pause-button {
+    position: fixed !important;
+    top: max(14px, env(safe-area-inset-top)) !important;
+    right: calc(max(14px, env(safe-area-inset-right)) + 132px + 10px) !important;
+    left: auto !important;
+    bottom: auto !important;
+    transform: none !important;
+    margin: 0 !important;
+    z-index: 60 !important;
+}
+
+html.mobile-performance #minimapWrap {
+    position: fixed !important;
+    top: max(14px, env(safe-area-inset-top)) !important;
+    right: max(14px, env(safe-area-inset-right)) !important;
+    left: auto !important;
+    bottom: auto !important;
+    transform: none !important;
+    margin: 0 !important;
+    width: 132px !important;
+    height: auto !important;
+    z-index: 59 !important;
+    pointer-events: none !important;
+}
+
+html.mobile-performance #minimap {
+    display: block !important;
+    width: 120px !important;
+    height: 80px !important;
+    max-width: none !important;
+    margin: 0 !important;
+}
+
+@media (pointer: coarse) and (max-width: 520px) {
+    html.mobile-performance .touch-pause-button {
+        right: calc(max(10px, env(safe-area-inset-right)) + 120px + 8px) !important;
+    }
+    html.mobile-performance #minimapWrap {
+        right: max(10px, env(safe-area-inset-right)) !important;
+        width: 120px !important;
+        padding: 4px !important;
+    }
+    html.mobile-performance #minimap {
+        width: 110px !important;
+        height: 73px !important;
+    }
+}
