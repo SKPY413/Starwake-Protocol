@@ -112,7 +112,10 @@
                 <span id="pauseSfxVolumeValue" class="volume-value">92%</span>
             </div>
         </div>
-        <button id="resumeButton" type="button">Resume</button>
+        <div class="pause-actions">
+            <button class="fullscreen-button" data-fullscreen-button type="button">Enter Fullscreen</button>
+            <button id="resumeButton" type="button">Resume</button>
+        </div>
     </div>
 </div>
 
@@ -128,7 +131,10 @@
         <h1 class="splash-title">Starwake<br>Protocol</h1>
         <p class="splash-tagline">A Human–AI Collaborative Experiment in Emergent Game Design</p>
         <p class="splash-credit">Designed in collaboration with <strong>GPT-5.5 Thinking</strong></p>
-        <button id="continueFromSplashButton" type="button">Continue</button>
+        <div class="splash-actions">
+            <button id="continueFromSplashButton" type="button">Continue</button>
+            <button class="fullscreen-button" data-fullscreen-button type="button">Enter Fullscreen</button>
+        </div>
     </div>
 </div>
 
@@ -194,6 +200,7 @@
         <p class="small">Selected difficulty: <strong id="selectedDifficultyLabel">Easy</strong></p>
         <p id="platformStatus" class="platform-status small" aria-live="polite"></p>
         <div class="menu-controls">
+            <button class="fullscreen-button" data-fullscreen-button type="button">Enter Fullscreen</button>
             <button id="startButton" type="button">Launch Protocol</button>
             <div id="startupStatus" hidden role="alert" style="margin-top:10px;color:#ffb0b0;font-size:13px;line-height:1.35;"></div>
         </div>
@@ -208,7 +215,10 @@
                 <h1>Upgrade Protocol</h1>
                 <p>Refit your ship, inspect the next benefit, or continue to the next wave.</p>
             </div>
-            <div class="upgrade-points-panel">AVAILABLE POINTS<strong id="menuPoints">0</strong></div>
+            <div class="upgrade-header-actions">
+                <div class="upgrade-points-panel">AVAILABLE POINTS<strong id="menuPoints">0</strong></div>
+                <button class="fullscreen-button compact" data-fullscreen-button type="button">Fullscreen</button>
+            </div>
         </div>
 
         <div id="upgradeGrid">

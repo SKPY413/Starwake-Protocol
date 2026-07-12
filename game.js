@@ -2333,6 +2333,54 @@
     }
 
     // -------------------------------------------------------------------------
+    // Fullscreen support
+    // -------------------------------------------------------------------------
+    // Standard Fullscreen API works in most desktop and Android browsers. Some
+    // iOS browsers do not expose page fullscreen; buttons remain harmless and
+    // report that limitation instead of throwing.
+    function getFullscreenElement() {
+        return document.fullscreenElement || document.webkitFullscreenElement || null;
+    }
+
+    async function toggleFullscreen() {
+        const root = document.documentElement;
+        try {
+            if (getFullscreenElement()) {
+                const exit = document.exitFullscreen || document.webkitExitFullscreen;
+                if (exit) await exit.call(document);
+                return;
+            }
+
+            const request = root.requestFullscreen || root.webkitRequestFullscreen;
+            if (!request) {
+                const status = document.getElementById("platformStatus");
+                if (status) status.textContent = "Fullscreen is not supported by this browser. Use Add to Home Screen for an app-like view.";
+                return;
+            }
+
+            await request.call(root, { navigationUI: "hide" });
+            try { screen.orientation?.lock?.("landscape"); } catch (_) { /* Optional browser permission. */ }
+        } catch (error) {
+            console.warn("Fullscreen request was rejected:", error);
+            const status = document.getElementById("platformStatus");
+            if (status) status.textContent = "Fullscreen request was blocked. Tap the button again after interacting with the page.";
+        } finally {
+            updateFullscreenButtons();
+        }
+    }
+
+    function updateFullscreenButtons() {
+        const active = Boolean(getFullscreenElement());
+        for (const button of document.querySelectorAll("[data-fullscreen-button]")) {
+            button.textContent = active ? "Exit Fullscreen" : (button.classList.contains("compact") ? "Fullscreen" : "Enter Fullscreen");
+            button.setAttribute("aria-pressed", String(active));
+        }
+        // Browser UI changes alter the usable viewport on mobile. Recalculate the
+        // canvas after fullscreen transitions rather than relying only on resize.
+        requestAnimationFrame(updateCanvasSize);
+    }
+
+    // -------------------------------------------------------------------------
     // Game state
     // -------------------------------------------------------------------------
     /**
@@ -5913,6 +5961,15 @@
         document.addEventListener("keydown", () => { if (state.started && !state.ended) resumeAudio(); });
 
         ui.continueFromSplashButton?.addEventListener("click", showStartMenu);
+        for (const button of document.querySelectorAll("[data-fullscreen-button]")) {
+            button.addEventListener("click", event => {
+                event.preventDefault();
+                event.stopPropagation();
+                toggleFullscreen();
+            });
+        }
+        document.addEventListener("fullscreenchange", updateFullscreenButtons);
+        document.addEventListener("webkitfullscreenchange", updateFullscreenButtons);
         const startButton = document.getElementById("startButton");
         startButton?.addEventListener("click", event => {
             event.preventDefault();
@@ -5978,6 +6035,7 @@
         setHudVisible(true);
         setCursorColor(savedCursorColor);
         initializeTouchAndGamepadControls();
+        updateFullscreenButtons();
         updateCursorPosition(mouse.x, mouse.y);
         setDifficulty(state.difficulty);
         setAudioVolume(savedAudioVolume);

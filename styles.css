@@ -1309,3 +1309,132 @@ html.mobile-performance button,
 html.mobile-performance .difficulty-card { transition: none !important; }
 .platform-status { margin: 6px auto 0; color: #9edcff; }
 html.mobile-performance .platform-status { color: #7cffd4; font-weight: 800; }
+
+
+/* -------------------------------------------------------------------------
+   Reliable mobile menu viewport + fullscreen controls
+   -------------------------------------------------------------------------
+   Menu overlays are their own scrolling viewports. Use dynamic viewport units
+   where supported so browser address bars do not hide the bottom controls.
+*/
+#splashScreen,
+#startMenu,
+#upgradeMenu,
+#pauseOverlay,
+#gameOverMenu {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow-x: hidden;
+    overflow-y: auto;
+    justify-content: flex-start;
+    align-items: center;
+    padding:
+        max(16px, env(safe-area-inset-top))
+        max(12px, env(safe-area-inset-right))
+        max(24px, env(safe-area-inset-bottom))
+        max(12px, env(safe-area-inset-left));
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    scroll-behavior: smooth;
+}
+
+/* Cards use margin:auto so short menus remain centered, while tall menus begin
+   at the top and remain fully reachable by scrolling. */
+#splashScreen > .splash-card,
+#startMenu > .menu-card,
+#pauseOverlay > .pause-card,
+#gameOverMenu > *,
+#upgradeMenu > #upgradeCard {
+    flex: 0 0 auto;
+    margin-top: auto;
+    margin-bottom: auto;
+    max-width: 100%;
+}
+
+#startMenu .menu-card {
+    max-height: none;
+    overflow: visible;
+}
+
+.splash-actions,
+.pause-actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.pause-actions > button,
+.splash-actions > button {
+    width: auto;
+    min-width: 170px;
+}
+
+.upgrade-header-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: stretch;
+}
+
+.fullscreen-button {
+    background: rgba(124, 255, 212, 0.13);
+    color: #eaffff;
+    border: 1px solid rgba(124, 255, 212, 0.45);
+    box-shadow: 0 0 14px rgba(124, 255, 212, 0.10);
+    touch-action: manipulation;
+}
+.fullscreen-button:hover { background: rgba(124, 255, 212, 0.24); }
+.fullscreen-button.compact {
+    min-height: 38px;
+    padding: 8px 12px;
+    font-size: 13px;
+}
+
+@media (max-width: 720px), (max-height: 760px) {
+    #splashScreen,
+    #startMenu,
+    #upgradeMenu,
+    #pauseOverlay,
+    #gameOverMenu {
+        padding-top: max(10px, env(safe-area-inset-top));
+        padding-bottom: max(18px, env(safe-area-inset-bottom));
+    }
+
+    #startMenu > .menu-card,
+    #splashScreen > .splash-card,
+    #pauseOverlay > .pause-card,
+    #upgradeMenu > #upgradeCard {
+        margin-top: 0;
+        margin-bottom: 0;
+    }
+
+    #startMenu .menu-card {
+        width: min(100%, calc(100vw - 16px));
+        padding: 14px;
+    }
+
+    #startMenu .menu-title { font-size: clamp(30px, 10vw, 48px); }
+    #startMenu .menu-tagline { font-size: 14px; }
+    #startMenu .menu-subtitle { font-size: 12px; margin-bottom: 10px; }
+    #startMenu .difficulty-grid { margin-top: 10px; }
+
+    .splash-actions,
+    .pause-actions,
+    .menu-controls {
+        width: 100%;
+    }
+
+    .splash-actions > button,
+    .pause-actions > button,
+    .menu-controls > button {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .upgrade-header-actions { width: 100%; }
+}

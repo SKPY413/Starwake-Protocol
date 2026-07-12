@@ -187,3 +187,13 @@ Do not independently detect mobile inside new systems. Read `window.STARWAKE_PLA
 Testing overrides:
 - `?mobile=1` forces Mobile Performance Mode.
 - `?desktop=1` forces Desktop Performance Mode.
+
+
+## Mobile menu viewport and fullscreen contract
+
+- Menu overlays are fixed, dynamic-viewport scroll containers (`100dvh`) and must remain independently scrollable.
+- Do not restore vertical centering directly on the overlay; cards use auto margins so short content centers and tall content scrolls from the top.
+- Touch-control overlays must be inactive while any menu is open.
+- Fullscreen buttons all use `[data-fullscreen-button]` and one shared `toggleFullscreen()` implementation.
+- Fullscreen is optional. Unsupported or rejected requests must never block menus or gameplay.
+- Recalculate canvas dimensions after fullscreen changes because mobile browser chrome changes usable viewport size.
