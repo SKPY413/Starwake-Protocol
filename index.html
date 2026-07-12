@@ -192,6 +192,7 @@
         </div>
 
         <p class="small">Selected difficulty: <strong id="selectedDifficultyLabel">Easy</strong></p>
+        <p id="platformStatus" class="platform-status small" aria-live="polite"></p>
         <div class="menu-controls">
             <button id="startButton" type="button">Launch Protocol</button>
             <div id="startupStatus" hidden role="alert" style="margin-top:10px;color:#ffb0b0;font-size:13px;line-height:1.35;"></div>
@@ -283,6 +284,8 @@
 
 
 
+<!-- Platform profile must load first so audio/rendering allocate the correct budgets. -->
+<script src="platformProfile.js"></script>
 <!-- Script order matters: the optional music API is exposed before game.js attempts to use it. -->
 <script src="musicEngine.js"></script>
 <!-- game.js owns the authoritative game state and must remain able to boot without music. -->

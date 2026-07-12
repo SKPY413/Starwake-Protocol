@@ -28,6 +28,8 @@
   const BPM = { normal: 150, boss: 156, gigaBoss: 162, upgrade: 92 };
   const ROOT_MIDI = 41; // F2
   const SILENCE = 0.0001;
+  const PROFILE = window.STARWAKE_PLATFORM_PROFILE || { isMobilePerformance: false, musicDetail: 1 };
+  const MOBILE_MUSIC = !!PROFILE.isMobilePerformance;
 
   const engine = {
     initialized: false,
@@ -155,7 +157,7 @@
     noiseBus.gain.value = 0.75;
     engine.noiseSource = createLoopingNoise(ctx, audio, noiseBus);
 
-    rack.kicks = makeVoicePool(2, () => {
+    rack.kicks = makeVoicePool(MOBILE_MUSIC ? 1 : 2, () => {
       const gain = ctx.createGain();
       const filter = ctx.createBiquadFilter();
       const drive = ctx.createWaveShaper();
@@ -171,7 +173,7 @@
       return { osc, gain };
     });
 
-    rack.kickClicks = makeVoicePool(2, () => {
+    rack.kickClicks = makeVoicePool(MOBILE_MUSIC ? 1 : 2, () => {
       const filter = ctx.createBiquadFilter();
       const gain = ctx.createGain();
       filter.type = "highpass";
@@ -183,7 +185,7 @@
       return { filter, gain };
     });
 
-    rack.hats = makeVoicePool(4, () => {
+    rack.hats = makeVoicePool(MOBILE_MUSIC ? 2 : 4, () => {
       const filter = ctx.createBiquadFilter();
       const gain = ctx.createGain();
       filter.type = "highpass";
@@ -195,7 +197,7 @@
       return { filter, gain };
     });
 
-    rack.snares = makeVoicePool(2, () => {
+    rack.snares = makeVoicePool(MOBILE_MUSIC ? 1 : 2, () => {
       const filter = ctx.createBiquadFilter();
       const gain = ctx.createGain();
       filter.type = "bandpass";
@@ -233,7 +235,7 @@
 
     // Pads use two alternating chord voices. Each chord voice has one oscillator
     // per triad note. This preserves harmony with only six persistent sources.
-    rack.pads = makeVoicePool(2, () => {
+    rack.pads = makeVoicePool(MOBILE_MUSIC ? 1 : 2, () => {
       const filter = ctx.createBiquadFilter();
       const gain = ctx.createGain();
       filter.type = "lowpass";
@@ -250,7 +252,7 @@
       return { oscs, filter, gain };
     });
 
-    rack.arp = makeVoicePool(2, () => {
+    rack.arp = makeVoicePool(MOBILE_MUSIC ? 1 : 2, () => {
       const filter = ctx.createBiquadFilter();
       const gain = ctx.createGain();
       filter.type = "bandpass";
@@ -265,7 +267,7 @@
 
     // Three lead voices allow the melody tail and final-bar harmony to overlap.
     // Each voice uses two oscillators instead of the previous three-source stack.
-    rack.lead = makeVoicePool(3, () => {
+    rack.lead = makeVoicePool(MOBILE_MUSIC ? 2 : 3, () => {
       const filter = ctx.createBiquadFilter();
       const drive = ctx.createWaveShaper();
       const gain = ctx.createGain();
@@ -285,7 +287,7 @@
       return { oscs, filter, drive, gain };
     });
 
-    rack.risers = makeVoicePool(2, () => {
+    rack.risers = makeVoicePool(MOBILE_MUSIC ? 1 : 2, () => {
       const filter = ctx.createBiquadFilter();
       const gain = ctx.createGain();
       filter.type = "bandpass";
@@ -497,7 +499,7 @@
     engine.barLfo.frequency.setTargetAtTime(barHz, time, 0.05);
     engine.fastLfo.frequency.setTargetAtTime(barHz * 16, time, 0.03);
     const slowDepth = mode === "gigaBoss" ? 1750 : mode === "boss" ? 1450 : 1100;
-    const fastDepth = mode === "gigaBoss" ? 0.11 : mode === "boss" ? 0.09 : 0.07;
+    const fastDepth = (mode === "gigaBoss" ? 0.11 : mode === "boss" ? 0.09 : 0.07) * (MOBILE_MUSIC ? 0.45 : 1);
     engine.barLfoDepth.gain.setTargetAtTime(slowDepth, time, 0.1);
     engine.fastLfoDepth.gain.setTargetAtTime(fastDepth, time, 0.08);
   }
@@ -546,8 +548,12 @@
     if (sixteenth % 4 === 0 && !buildBar) kick(time, finalBar ? 1.05 : 1);
     if (buildBar && sixteenth >= 8 && sixteenth % 2 === 0) kick(time, 0.68 + (sixteenth - 8) * 0.035);
     if (sixteenth === 4 || sixteenth === 12) snare(time, intensity);
-    hat(time, false, intensity * (sixteenth % 2 ? 1.05 : 0.70));
-    if ([2, 6, 10, 14].includes(sixteenth)) hat(time, true, intensity * 0.85);
+    if (!MOBILE_MUSIC || sixteenth % 2 === 1) {
+      hat(time, false, intensity * (sixteenth % 2 ? 1.05 : 0.70));
+    }
+    if ((!MOBILE_MUSIC && [2, 6, 10, 14].includes(sixteenth)) || (MOBILE_MUSIC && [6, 14].includes(sixteenth))) {
+      hat(time, true, intensity * 0.72);
+    }
 
     const bassPattern = [0, 0, 7, 0, 0, 10, 7, 3, 0, 0, 7, 10, 0, 3, 7, 10];
     if (!buildBar || sixteenth >= 8) {
@@ -557,7 +563,9 @@
 
     const order = [0, 1, 2, 1, 0, 2, 1, 2, 0, 1, 2, 1, 2, 1, 0, 2];
     const octaveJump = finalBar && sixteenth >= 8 ? 12 : 0;
-    arp(time + 0.004, ROOT_MIDI + 24 + chord[order[sixteenth]] + octaveJump, 0.075, intensity * (buildBar ? 0.82 : 0.62));
+    if (!MOBILE_MUSIC || sixteenth % 2 === 0) {
+      arp(time + 0.004, ROOT_MIDI + 24 + chord[order[sixteenth]] + octaveJump, 0.075, intensity * (buildBar ? 0.72 : 0.54));
+    }
 
     if (sixteenth === 0) {
       pad(time, chord, 1.42, intensity * (buildBar ? 0.66 : 0.9));
@@ -571,11 +579,11 @@
       [7, null, 10, 12, 15, 12, 17, 15, 12, 10, 8, 7, 5, 7, 3, 0],
     ];
     const melodyOffset = melodyBars[bar][sixteenth];
-    if (melodyOffset !== null) {
+    if (melodyOffset !== null && (!MOBILE_MUSIC || sixteenth % 2 === 0)) {
       const accent = sixteenth % 4 === 0 || finalBar;
       const duration = sixteenth % 2 === 0 ? 0.19 : 0.10;
       leadVoice(time + 0.008, ROOT_MIDI + 24 + melodyOffset, duration, intensity * (buildBar ? 0.88 : finalBar ? 1.18 : 0.96), accent, false);
-      if (finalBar && sixteenth % 4 === 0) {
+      if (!MOBILE_MUSIC && finalBar && sixteenth % 4 === 0) {
         leadVoice(time + 0.012, ROOT_MIDI + 36 + melodyOffset + 7, 0.15, intensity * 0.27, true, false);
       }
     }

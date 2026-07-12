@@ -1282,3 +1282,30 @@ button:disabled {
     .touch-stick-base { inset: 10px; }
     .touch-stick-knob { width: 50px; height: 50px; }
 }
+
+/* Mobile Performance Mode: preserve gameplay while reducing GPU compositing. */
+html.mobile-performance .splash-card,
+html.mobile-performance .menu-card,
+html.mobile-performance .pause-card,
+html.mobile-performance #upgradeCard,
+html.mobile-performance .touch-stick-base {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    box-shadow: 0 0 14px rgba(60, 140, 255, 0.12) !important;
+}
+html.mobile-performance #splashScreen::before,
+html.mobile-performance #splashScreen::after,
+html.mobile-performance .splash-title { animation: none !important; }
+html.mobile-performance #minimapWrap { display: none !important; }
+html.mobile-performance #damageOverlay,
+html.mobile-performance #waveClearOverlay,
+html.mobile-performance #speedBoostOverlay,
+html.mobile-performance #slowStatusOverlay {
+    box-shadow: none !important;
+    filter: none !important;
+}
+html.mobile-performance .upgrade-button,
+html.mobile-performance button,
+html.mobile-performance .difficulty-card { transition: none !important; }
+.platform-status { margin: 6px auto 0; color: #9edcff; }
+html.mobile-performance .platform-status { color: #7cffd4; font-weight: 800; }

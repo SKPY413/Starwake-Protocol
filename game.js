@@ -216,13 +216,29 @@
         maxHealth:      { label: "MAX HEALTH",      icon: "♥", category: "defense", accent: "#55e889", description: "Increases maximum hull integrity and restores some health.", baseCost: 140, growth: 1.25 },
     });
 
+    // Platform profile is selected before this script loads. Mobile uses tighter
+    // object/audio budgets while sharing identical gameplay systems and save data.
+    const PLATFORM_PROFILE = window.STARWAKE_PLATFORM_PROFILE || {
+        name: "desktop",
+        isMobilePerformance: false,
+        renderEveryNFrames: 1,
+        spawnMultiplier: 1,
+        limits: {},
+    };
+    const profileLimits = PLATFORM_PROFILE.limits || {};
     const PERFORMANCE_LIMITS = Object.freeze({
-        maxPointOrbs: 260,
-        maxLifeStealOrbs: 90,
-        maxParticles: 180,
-        maxDamageNumbers: 120,
-        minimapFrameSkip: 2,
-        maxCrowdingPairs: 5000,
+        maxPointOrbs: profileLimits.maxPointOrbs ?? 260,
+        maxLifeStealOrbs: profileLimits.maxLifeStealOrbs ?? 90,
+        maxParticles: profileLimits.maxParticles ?? 180,
+        maxDamageNumbers: profileLimits.maxDamageNumbers ?? 120,
+        maxBullets: profileLimits.maxBullets ?? 520,
+        maxMissiles: profileLimits.maxMissiles ?? 80,
+        maxEnemyBullets: profileLimits.maxEnemyBullets ?? 320,
+        maxCarrierMissiles: profileLimits.maxCarrierMissiles ?? 100,
+        maxExplosions: profileLimits.maxExplosions ?? 64,
+        maxEnemies: profileLimits.maxEnemies ?? 120,
+        minimapFrameSkip: profileLimits.minimapFrameSkip ?? 2,
+        maxCrowdingPairs: profileLimits.maxCrowdingPairs ?? 5000,
     });
 
     const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
@@ -287,14 +303,14 @@
         sfxLastPlayed: Object.create(null),
         sfxWindowStartedAt: 0,
         sfxEventsInWindow: 0,
-        maxSfxEventsPerSecond: 40,
+        maxSfxEventsPerSecond: profileLimits.maxSfxEventsPerSecond ?? 40,
         musicWatchdogTimer: null,
 
         // Voice-pressure guardrails. The music engine is protected; expendable SFX
         // are shed before the Web Audio graph reaches the instability observed in
         // late waves. Values are intentionally conservative for Chromium/Linux.
-        softVoiceLimit: 52,
-        hardVoiceLimit: 68,
+        softVoiceLimit: profileLimits.softVoiceLimit ?? 52,
+        hardVoiceLimit: profileLimits.hardVoiceLimit ?? 68,
         currentSfxPriority: null,
         currentSfxCategory: null,
 
@@ -2100,6 +2116,7 @@
     let cursorPendingX = 0;
     let cursorPendingY = 0;
     let minimapFrameCounter = 0;
+    let renderFrameCounter = 0;
 
     const state = {
         started: false,
@@ -2383,7 +2400,7 @@
      */
     function applyDifficultyToWave() {
         const difficulty = getDifficulty();
-        state.enemiesToSpawn = Math.max(4, Math.round(difficulty.spawnBase + state.wave * difficulty.spawnGrowth));
+        state.enemiesToSpawn = Math.max(4, Math.round((difficulty.spawnBase + state.wave * difficulty.spawnGrowth) * (PLATFORM_PROFILE.spawnMultiplier || 1)));
     }
 
     /**
@@ -3250,7 +3267,7 @@
         state.spawnTimer++;
         const spawnDelay = Math.max(9, (42 - state.wave * 1.5) * getDifficulty().spawnDelay);
 
-        if (state.enemiesSpawned < state.enemiesToSpawn && state.spawnTimer > spawnDelay) {
+        if (state.enemiesSpawned < state.enemiesToSpawn && state.spawnTimer > spawnDelay && enemies.length < PERFORMANCE_LIMITS.maxEnemies) {
             spawnEnemy();
             state.enemiesSpawned++;
             state.spawnTimer = 0;
@@ -5574,6 +5591,11 @@
         trimOldest(lifeStealOrbs, PERFORMANCE_LIMITS.maxLifeStealOrbs);
         trimOldest(particles, PERFORMANCE_LIMITS.maxParticles);
         trimOldest(damageNumbers, PERFORMANCE_LIMITS.maxDamageNumbers);
+        trimOldest(bullets, PERFORMANCE_LIMITS.maxBullets);
+        trimOldest(missiles, PERFORMANCE_LIMITS.maxMissiles);
+        trimOldest(enemyBullets, PERFORMANCE_LIMITS.maxEnemyBullets);
+        trimOldest(carrierMissiles, PERFORMANCE_LIMITS.maxCarrierMissiles);
+        trimOldest(explosions, PERFORMANCE_LIMITS.maxExplosions);
     }
 
     /**
@@ -5669,7 +5691,10 @@
                 updateGame(now);
             }
 
-            drawGame();
+            renderFrameCounter = (renderFrameCounter + 1) % Math.max(1, PLATFORM_PROFILE.renderEveryNFrames || 1);
+            if (renderFrameCounter === 0 || !state.started || state.paused || state.ended) {
+                drawGame();
+            }
             updateMusicMode();
             updateDamageOverlay(now);
             updateStatusOverlays(now);

@@ -1,0 +1,9 @@
+STARWAKE PROTOCOL — MOBILE PERFORMANCE PROFILE
+
+- Added platformProfile.js with automatic touch/mobile detection and URL overrides.
+- Added bounded mobile limits for particles, projectiles, enemies, explosions, pickups, and audio.
+- Reduced mobile wave enemy-count pressure without changing enemy behavior/stat scaling.
+- Reduced persistent music rack size and arrangement density on mobile.
+- Added every-second-frame mobile rendering while retaining full-rate simulation/input.
+- Disabled expensive mobile blur, splash animations, minimap, and layered overlay shadows.
+- Added visible platform mode status and architecture documentation.

@@ -175,3 +175,15 @@ this contract is functioning.
 - Never display the overlay from `.available` alone; its `touch-action: none` would block native menu scrolling.
 - Menu surfaces use `touch-action: pan-y` so vertical swipes remain browser-native.
 - Virtual-stick listeners may call `preventDefault()` only for pointers that begin inside a stick zone.
+
+## Mobile Performance Profile
+
+`platformProfile.js` must load before `musicEngine.js` and `game.js`.
+
+The mobile profile shares the authoritative game state and mechanics, but uses bounded projectile, particle, explosion, pickup, enemy, and audio budgets; reduced enemy-count pressure; every-second-frame rendering while simulation/input continue every animation frame; a reduced persistent music rack; and disabled GPU-heavy blur, minimap rendering, and layered overlay effects.
+
+Do not independently detect mobile inside new systems. Read `window.STARWAKE_PLATFORM_PROFILE`.
+
+Testing overrides:
+- `?mobile=1` forces Mobile Performance Mode.
+- `?desktop=1` forces Desktop Performance Mode.
