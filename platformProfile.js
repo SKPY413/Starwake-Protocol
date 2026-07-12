@@ -25,7 +25,7 @@
     renderEveryNFrames: isMobilePerformance ? 2 : 1,
     spawnMultiplier: isMobilePerformance ? 0.72 : 1,
     musicDetail: isMobilePerformance ? 0.58 : 1,
-    cameraZoom: isMobilePerformance ? 0.78 : 1,
+    cameraZoom: isMobilePerformance ? 0.64 : 1,
     limits: Object.freeze(isMobilePerformance ? {
       maxPointOrbs: 120,
       maxLifeStealOrbs: 36,
@@ -37,7 +37,7 @@
       maxCarrierMissiles: 32,
       maxExplosions: 18,
       maxEnemies: 46,
-      minimapFrameSkip: 8,
+      minimapFrameSkip: 12,
       maxCrowdingPairs: 1300,
       maxSfxEventsPerSecond: 26,
       softVoiceLimit: 36,

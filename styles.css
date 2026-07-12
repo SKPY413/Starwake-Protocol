@@ -1296,7 +1296,29 @@ html.mobile-performance .touch-stick-base {
 html.mobile-performance #splashScreen::before,
 html.mobile-performance #splashScreen::after,
 html.mobile-performance .splash-title { animation: none !important; }
-html.mobile-performance #minimapWrap { display: none !important; }
+html.mobile-performance #minimapWrap {
+    display: block !important;
+    top: max(8px, env(safe-area-inset-top));
+    right: max(8px, env(safe-area-inset-right));
+    width: 132px;
+    padding: 5px;
+    border-radius: 9px;
+    background: rgba(0,0,0,0.42);
+    box-shadow: none !important;
+    pointer-events: none;
+}
+html.mobile-performance #minimapTitle {
+    display: none;
+}
+html.mobile-performance #minimap {
+    width: 120px;
+    height: 80px;
+    border-radius: 6px;
+    image-rendering: auto;
+}
+html.mobile-performance #playerHealthBarWrap {
+    display: none !important;
+}
 html.mobile-performance #damageOverlay,
 html.mobile-performance #waveClearOverlay,
 html.mobile-performance #speedBoostOverlay,

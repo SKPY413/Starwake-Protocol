@@ -49,6 +49,13 @@
     const minimap = document.getElementById("minimap");
     const minimapCtx = minimap.getContext("2d");
 
+    // Mobile uses a smaller backing canvas and a reduced-detail renderer. This
+    // keeps the minimap useful without spending desktop-level fill rate.
+    if (window.STARWAKE_PLATFORM_PROFILE?.isMobilePerformance) {
+        minimap.width = 120;
+        minimap.height = 80;
+    }
+
     const ui = {
         splashScreen: document.getElementById("splashScreen"),
         continueFromSplashButton: document.getElementById("continueFromSplashButton"),
@@ -2208,7 +2215,7 @@
     /**
      * Handles the worldToScreen operation. Keep its responsibilities narrow and update this comment when behavior changes.
      */
-    const CAMERA_ZOOM = clamp(Number(PLATFORM_PROFILE.cameraZoom) || 1, 0.6, 1);
+    const CAMERA_ZOOM = clamp(Number(PLATFORM_PROFILE.cameraZoom) || 1, 0.5, 1);
 
     function getVisibleWorldWidth() {
         return canvas.width / CAMERA_ZOOM;
@@ -4665,10 +4672,32 @@
     /**
      * Renders a visual element on the canvas. Do not change gameplay state from rendering code.
      */
+    function drawPlayerWorldHealthBar(screen) {
+        if (!PLATFORM_PROFILE.isMobilePerformance) return;
+
+        const width = player.r * 3.2;
+        const height = 5;
+        const x = screen.x - width / 2;
+        const y = screen.y - player.r * 1.75;
+        const ratio = clamp(player.health / Math.max(1, player.maxHealth), 0, 1);
+
+        ctx.save();
+        ctx.fillStyle = "rgba(0,0,0,0.72)";
+        ctx.fillRect(x - 1, y - 1, width + 2, height + 2);
+        ctx.fillStyle = ratio > 0.55 ? "#4cff83" : ratio > 0.25 ? "#ffd85c" : "#ff4f5e";
+        ctx.fillRect(x, y, width * ratio, height);
+        ctx.strokeStyle = "rgba(255,255,255,0.72)";
+        ctx.lineWidth = 1;
+        ctx.strokeRect(x, y, width, height);
+        ctx.restore();
+    }
+
     function drawPlayer() {
         const target = screenToWorld(mouse);
         const angle = Math.atan2(target.y - player.y, target.x - player.x);
-        drawPlayerShip(angle, worldToScreen(player));
+        const screen = worldToScreen(player);
+        drawPlayerShip(angle, screen);
+        drawPlayerWorldHealthBar(screen);
     }
 
 
@@ -5470,7 +5499,7 @@
         minimapCtx.fillStyle = "rgba(8, 12, 22, 0.98)";
         minimapCtx.fillRect(0, 0, width, height);
 
-        drawMinimapGrid(width, height);
+        if (!PLATFORM_PROFILE.isMobilePerformance) drawMinimapGrid(width, height);
         drawMinimapCameraView(scaleX, scaleY);
         drawMinimapEntities(scaleX, scaleY);
 
@@ -5510,8 +5539,8 @@
         minimapCtx.strokeRect(
             camera.x * scaleX,
             camera.y * scaleY,
-            canvas.width * scaleX,
-            canvas.height * scaleY
+            getVisibleWorldWidth() * scaleX,
+            getVisibleWorldHeight() * scaleY
         );
     }
 
@@ -5523,8 +5552,10 @@
         for (const orb of lifeStealOrbs) drawCircle(minimapCtx, orb.x * scaleX, orb.y * scaleY, 2.2, "#7cff9b");
         for (const pickup of pickups) drawMinimapPickup(pickup, scaleX, scaleY);
         for (const enemy of enemies) drawMinimapEnemy(enemy, scaleX, scaleY);
-        for (const bullet of enemyBullets) drawMinimapEnemyBullet(bullet, scaleX, scaleY);
-        for (const missile of carrierMissiles) if (missile && !missile.dead) drawCircle(minimapCtx, missile.x * scaleX, missile.y * scaleY, 2.5, "#ffcf66");
+        if (!PLATFORM_PROFILE.isMobilePerformance) {
+            for (const bullet of enemyBullets) drawMinimapEnemyBullet(bullet, scaleX, scaleY);
+            for (const missile of carrierMissiles) if (missile && !missile.dead) drawCircle(minimapCtx, missile.x * scaleX, missile.y * scaleY, 2.5, "#ffcf66");
+        }
         drawMinimapPlayer(scaleX, scaleY);
     }
 

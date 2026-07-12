@@ -205,3 +205,9 @@ Testing overrides:
 - Pointer coordinates must pass through `screenToWorld()`, which divides by `CAMERA_ZOOM`.
 - Touch controls remain active during `clearPhaseActive` so players can collect point orbs and pickups. Hide them only for actual modal menus, pause, game over, or pre-game screens.
 - HUD and touch controls are DOM layers and intentionally remain full-size while the world scene is zoomed out.
+
+
+## Mobile tactical view
+- Mobile camera zoom is intentionally wider than desktop. Keep pointer conversion, camera bounds, visibility tests, and minimap camera rectangles based on `CAMERA_ZOOM`.
+- Mobile health is rendered in world space above the ship; do not re-enable the large bottom health HUD on mobile without checking touch-control overlap.
+- The mobile minimap is a deliberately low-detail 120x80 asset. Avoid adding bullets, grid effects, shadows, or per-frame updates to it.
