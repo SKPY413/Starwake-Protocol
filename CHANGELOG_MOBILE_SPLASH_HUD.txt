@@ -1,0 +1,7 @@
+Mobile splash and HUD correction
+
+- Splash screen is now a fixed, non-scrollable presentation on touch/mobile layouts.
+- Splash typography and spacing scale against both viewport width and height.
+- Very short landscape screens receive an additional compact layout.
+- Mobile score/points display is now text-only, removing the unexplained pale rectangle in the top-left corner.
+- Desktop presentation remains unchanged.
