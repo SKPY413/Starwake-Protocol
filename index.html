@@ -2,9 +2,12 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
 <title>Starwake Protocol</title>
-<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="styles-20260711a.css">
 </head>
 <body>
 
@@ -307,11 +310,11 @@
 
 
 <!-- Platform profile must load first so audio/rendering allocate the correct budgets. -->
-<script src="platformProfile.js"></script>
+<script src="platformProfile-20260711a.js"></script>
 <!-- Script order matters: the optional music API is exposed before game.js attempts to use it. -->
-<script src="musicEngine.js"></script>
+<script src="musicEngine-20260711a.js"></script>
 <!-- game.js owns the authoritative game state and must remain able to boot without music. -->
-<script src="game.js"></script>
+<script src="game-20260711a.js"></script>
 <script>
 window.addEventListener("load", () => {
     const button = document.getElementById("startButton");
@@ -319,7 +322,7 @@ window.addEventListener("load", () => {
     if (typeof window.StarwakeLaunchProtocol !== "function") {
         if (status) {
             status.hidden = false;
-            status.textContent = "game.js did not initialize. Keep index.html, game.js, musicEngine.js, and styles.css together in the extracted folder.";
+            status.textContent = "The game scripts did not initialize. Keep all versioned project files together in the extracted folder.";
         }
         if (button) button.textContent = "Game files not loaded";
     }
