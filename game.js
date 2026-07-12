@@ -2262,8 +2262,20 @@
      * Advances this subsystem by one simulation step. Respect paused/ended state and avoid unnecessary allocations.
      */
     function updateCanvasSize() {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+        // Prefer the visual viewport on mobile. Browser chrome and fullscreen
+        // transitions can make window.innerHeight describe a larger layout
+        // viewport than the pixels actually visible to the player.
+        const viewport = window.visualViewport;
+        const width = Math.max(1, Math.round(viewport?.width || window.innerWidth));
+        const height = Math.max(1, Math.round(viewport?.height || window.innerHeight));
+
+        canvas.width = width;
+        canvas.height = height;
+        canvas.style.width = `${width}px`;
+        canvas.style.height = `${height}px`;
+        canvas.style.left = `${Math.round(viewport?.offsetLeft || 0)}px`;
+        canvas.style.top = `${Math.round(viewport?.offsetTop || 0)}px`;
+
         keepPlayerInWorld();
         updateCamera();
     }
@@ -4465,13 +4477,20 @@
      * Renders a visual element on the canvas. Do not change gameplay state from rendering code.
      */
     function drawSciFiBackground() {
+        // drawGame() applies CAMERA_ZOOM before this function. Therefore every
+        // screen-filling background primitive must use logical visible-world
+        // dimensions, not raw canvas pixels. Using canvas.width here would fill
+        // only CAMERA_ZOOM of the physical screen and produce a lighter block in
+        // the top-left on mobile.
+        const viewWidth = getVisibleWorldWidth();
+        const viewHeight = getVisibleWorldHeight();
         const gradient = ctx.createRadialGradient(
-            canvas.width / 2,
-            canvas.height / 2,
+            viewWidth / 2,
+            viewHeight / 2,
             80,
-            canvas.width / 2,
-            canvas.height / 2,
-            Math.max(canvas.width, canvas.height) * 0.75
+            viewWidth / 2,
+            viewHeight / 2,
+            Math.max(viewWidth, viewHeight) * 0.75
         );
 
         gradient.addColorStop(0, "#151e34");
@@ -4479,7 +4498,7 @@
         gradient.addColorStop(1, "#080a10");
 
         ctx.fillStyle = gradient;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillRect(0, 0, viewWidth, viewHeight);
 
         drawBackgroundStars();
         drawBackgroundGrid();
@@ -4513,7 +4532,7 @@
             const sx = x - camera.x;
             ctx.beginPath();
             ctx.moveTo(sx, 0);
-            ctx.lineTo(sx, canvas.height);
+            ctx.lineTo(sx, getVisibleWorldHeight());
             ctx.stroke();
         }
 
@@ -4521,7 +4540,7 @@
             const sy = y - camera.y;
             ctx.beginPath();
             ctx.moveTo(0, sy);
-            ctx.lineTo(canvas.width, sy);
+            ctx.lineTo(getVisibleWorldWidth(), sy);
             ctx.stroke();
         }
     }
@@ -4532,7 +4551,7 @@
     function drawBackgroundPanels() {
         for (const panel of backgroundPanels) {
             const screen = worldToScreen(panel);
-            if (screen.x + panel.w < -50 || screen.x > canvas.width + 50 || screen.y + panel.h < -50 || screen.y > canvas.height + 50) continue;
+            if (screen.x + panel.w < -50 || screen.x > getVisibleWorldWidth() + 50 || screen.y + panel.h < -50 || screen.y > getVisibleWorldHeight() + 50) continue;
 
             ctx.fillStyle = `rgba(30, 70, 110, ${0.12 + panel.glow * 0.08})`;
             ctx.fillRect(screen.x, screen.y, panel.w, panel.h);
@@ -6045,6 +6064,8 @@
      */
     function bindEvents() {
         window.addEventListener("resize", updateCanvasSize);
+    window.visualViewport?.addEventListener("resize", updateCanvasSize);
+    window.visualViewport?.addEventListener("scroll", updateCanvasSize);
 
         window.addEventListener("keydown", event => {
             const key = event.key.toLowerCase();
