@@ -1841,3 +1841,109 @@ html.mobile-performance body.mobile-gameplay-hud #playerHealthBarWrap {
         right: calc(max(10px, env(safe-area-inset-right)) + 120px + 8px) !important;
     }
 }
+
+
+/* -------------------------------------------------------------------------
+   Unified top-right gameplay HUD
+   -------------------------------------------------------------------------
+   One DOM container owns both the pause button and the single minimap. This
+   supersedes all historical mobile minimap/pause positioning rules above.
+*/
+#topRightHud {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 14;
+    display: block;
+    pointer-events: none;
+}
+
+#topRightHud > #minimapWrap {
+    position: static !important;
+    inset: auto !important;
+    transform: none !important;
+    margin: 0 !important;
+}
+
+#topRightHud > .touch-pause-button {
+    display: none;
+}
+
+html.mobile-performance #topRightHud {
+    display: none !important;
+    position: fixed !important;
+    top: max(14px, env(safe-area-inset-top)) !important;
+    right: max(14px, env(safe-area-inset-right)) !important;
+    left: auto !important;
+    bottom: auto !important;
+    width: auto !important;
+    height: auto !important;
+    margin: 0 !important;
+    transform: none !important;
+    align-items: flex-start;
+    justify-content: flex-end;
+    gap: 10px;
+    pointer-events: none;
+    z-index: 70 !important;
+}
+
+html.mobile-performance body.mobile-gameplay-hud #topRightHud {
+    display: flex !important;
+}
+
+html.mobile-performance #topRightHud > .touch-pause-button,
+html.mobile-performance body.mobile-gameplay-hud #topRightHud > .touch-pause-button {
+    position: static !important;
+    inset: auto !important;
+    transform: none !important;
+    margin: 0 !important;
+    flex: 0 0 auto;
+    display: grid !important;
+    pointer-events: auto;
+    z-index: auto !important;
+}
+
+html.mobile-performance #topRightHud > #minimapWrap,
+html.mobile-performance body.mobile-gameplay-hud #topRightHud > #minimapWrap {
+    position: static !important;
+    inset: auto !important;
+    transform: none !important;
+    margin: 0 !important;
+    width: 132px !important;
+    height: auto !important;
+    display: block !important;
+    flex: 0 0 auto;
+    pointer-events: none;
+    z-index: auto !important;
+}
+
+html.mobile-performance #topRightHud > #minimapWrap #minimap {
+    display: block !important;
+    width: 120px !important;
+    height: 80px !important;
+    margin: 0 !important;
+}
+
+/* The old direct-element visibility selectors must not override the unified
+   container. Visibility is controlled only by #topRightHud above. */
+html.mobile-performance body:not(.mobile-gameplay-hud) #topRightHud,
+html.mobile-performance body:not(.mobile-gameplay-hud) #topRightHud > #minimapWrap,
+html.mobile-performance body:not(.mobile-gameplay-hud) #topRightHud > .touch-pause-button {
+    display: none !important;
+}
+
+@media (pointer: coarse) and (max-width: 520px) {
+    html.mobile-performance #topRightHud {
+        top: max(10px, env(safe-area-inset-top)) !important;
+        right: max(10px, env(safe-area-inset-right)) !important;
+        gap: 8px;
+    }
+    html.mobile-performance #topRightHud > #minimapWrap {
+        width: 120px !important;
+        padding: 4px !important;
+    }
+    html.mobile-performance #topRightHud > #minimapWrap #minimap {
+        width: 110px !important;
+        height: 73px !important;
+    }
+}

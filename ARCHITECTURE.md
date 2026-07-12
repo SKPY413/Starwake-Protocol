@@ -243,3 +243,12 @@ that causes them to leak onto the splash screen and menus before startup.
 
 The desktop `#playerHealthBarWrap` remains hidden on mobile; mobile health is
 rendered directly above the ship.
+
+
+## Unified top-right HUD contract
+
+- There is exactly one minimap DOM element: `#minimapWrap`.
+- `#touchPauseButton` and `#minimapWrap` both live inside `#topRightHud`.
+- Never position those children independently on mobile. Position only `#topRightHud`.
+- Mobile visibility is controlled exclusively by `body.mobile-gameplay-hud`.
+- Do not add a second mobile minimap or move the pause button back into the full-screen touch overlay.
