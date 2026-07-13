@@ -1,0 +1,8 @@
+DESKTOP MINIMAP STRUCTURAL FIX
+
+- Added shared gameplay-hud-active state.
+- Desktop minimap wrapper, title, and canvas are rendered as one fixed card.
+- Desktop touch pause button is always hidden.
+- Removed mobile inline HUD styles whenever desktop profile is active.
+- Minimap is hidden on splash and modal menus.
+- Renamed all runtime assets to 20260712b to prevent stale cache reuse.

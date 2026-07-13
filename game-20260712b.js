@@ -49,6 +49,13 @@
     const minimap = document.getElementById("minimap");
     const minimapCtx = minimap.getContext("2d");
 
+    // Mobile uses a smaller backing canvas and a reduced-detail renderer. This
+    // keeps the minimap useful without spending desktop-level fill rate.
+    if (window.STARWAKE_PLATFORM_PROFILE?.isMobilePerformance) {
+        minimap.width = 120;
+        minimap.height = 80;
+    }
+
     const ui = {
         splashScreen: document.getElementById("splashScreen"),
         continueFromSplashButton: document.getElementById("continueFromSplashButton"),
@@ -114,6 +121,9 @@
         audioDebugKillButton: document.getElementById("audioDebugKillButton"),
         audioDebugRestartButton: document.getElementById("audioDebugRestartButton"),
         audioDebugExportButton: document.getElementById("audioDebugExportButton"),
+        developerModeCheckbox: document.getElementById("developerModeCheckbox"),
+        developerModeStatus: document.getElementById("developerModeStatus"),
+        debugPanel: document.getElementById("debugPanel"),
     };
 
     const upgradeButtons = [...document.querySelectorAll("[data-upgrade]")];
@@ -258,6 +268,7 @@
     const savedMusicVolume = clamp(Number(safeStorage.get("starwakeMusicVolume") ?? 82), 0, 100);
     const savedSfxVolume = clamp(Number(safeStorage.get("starwakeSfxVolume") ?? 92), 0, 100);
     const savedAudioEnabled = safeStorage.get("starwakeAudioEnabled") !== "false";
+    const savedDeveloperMode = safeStorage.get("starwakeDeveloperMode") === "true";
 
     // -------------------------------------------------------------------------
     // Procedural music and redesigned sound effects
@@ -2208,15 +2219,32 @@
     /**
      * Handles the worldToScreen operation. Keep its responsibilities narrow and update this comment when behavior changes.
      */
+    const CAMERA_ZOOM = clamp(Number(PLATFORM_PROFILE.cameraZoom) || 1, 0.5, 1);
+
+    function getVisibleWorldWidth() {
+        return canvas.width / CAMERA_ZOOM;
+    }
+
+    function getVisibleWorldHeight() {
+        return canvas.height / CAMERA_ZOOM;
+    }
+
     function worldToScreen(pos) {
+        // Returned coordinates are in logical world-view units. drawGame() applies
+        // CAMERA_ZOOM once to the full scene so positions and object sizes scale
+        // together. Do not multiply by CAMERA_ZOOM here.
         return { x: pos.x - camera.x, y: pos.y - camera.y };
     }
 
     /**
-     * Handles the screenToWorld operation. Keep its responsibilities narrow and update this comment when behavior changes.
+     * Converts CSS-pixel pointer coordinates into world coordinates. The inverse
+     * zoom is required for mouse, touch aim, and controller-generated aim points.
      */
     function screenToWorld(pos) {
-        return { x: pos.x + camera.x, y: pos.y + camera.y };
+        return {
+            x: pos.x / CAMERA_ZOOM + camera.x,
+            y: pos.y / CAMERA_ZOOM + camera.y,
+        };
     }
 
     /**
@@ -2225,17 +2253,29 @@
     function isInView(pos, margin = 0) {
         const screen = worldToScreen(pos);
         return screen.x > -margin &&
-            screen.x < canvas.width + margin &&
+            screen.x < getVisibleWorldWidth() + margin &&
             screen.y > -margin &&
-            screen.y < canvas.height + margin;
+            screen.y < getVisibleWorldHeight() + margin;
     }
 
     /**
      * Advances this subsystem by one simulation step. Respect paused/ended state and avoid unnecessary allocations.
      */
     function updateCanvasSize() {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+        // Prefer the visual viewport on mobile. Browser chrome and fullscreen
+        // transitions can make window.innerHeight describe a larger layout
+        // viewport than the pixels actually visible to the player.
+        const viewport = window.visualViewport;
+        const width = Math.max(1, Math.round(viewport?.width || window.innerWidth));
+        const height = Math.max(1, Math.round(viewport?.height || window.innerHeight));
+
+        canvas.width = width;
+        canvas.height = height;
+        canvas.style.width = `${width}px`;
+        canvas.style.height = `${height}px`;
+        canvas.style.left = `${Math.round(viewport?.offsetLeft || 0)}px`;
+        canvas.style.top = `${Math.round(viewport?.offsetTop || 0)}px`;
+
         keepPlayerInWorld();
         updateCamera();
     }
@@ -2244,11 +2284,13 @@
      * Advances this subsystem by one simulation step. Respect paused/ended state and avoid unnecessary allocations.
      */
     function updateCamera() {
-        const maxCameraX = Math.max(0, WORLD.width - canvas.width);
-        const maxCameraY = Math.max(0, WORLD.height - canvas.height);
+        const viewWidth = getVisibleWorldWidth();
+        const viewHeight = getVisibleWorldHeight();
+        const maxCameraX = Math.max(0, WORLD.width - viewWidth);
+        const maxCameraY = Math.max(0, WORLD.height - viewHeight);
 
-        camera.x = clamp(player.x - canvas.width / 2, 0, maxCameraX);
-        camera.y = clamp(player.y - canvas.height / 2, 0, maxCameraY);
+        camera.x = clamp(player.x - viewWidth / 2, 0, maxCameraX);
+        camera.y = clamp(player.y - viewHeight / 2, 0, maxCameraY);
     }
 
     /**
@@ -2333,6 +2375,54 @@
     }
 
     // -------------------------------------------------------------------------
+    // Fullscreen support
+    // -------------------------------------------------------------------------
+    // Standard Fullscreen API works in most desktop and Android browsers. Some
+    // iOS browsers do not expose page fullscreen; buttons remain harmless and
+    // report that limitation instead of throwing.
+    function getFullscreenElement() {
+        return document.fullscreenElement || document.webkitFullscreenElement || null;
+    }
+
+    async function toggleFullscreen() {
+        const root = document.documentElement;
+        try {
+            if (getFullscreenElement()) {
+                const exit = document.exitFullscreen || document.webkitExitFullscreen;
+                if (exit) await exit.call(document);
+                return;
+            }
+
+            const request = root.requestFullscreen || root.webkitRequestFullscreen;
+            if (!request) {
+                const status = document.getElementById("platformStatus");
+                if (status) status.textContent = "Fullscreen is not supported by this browser. Use Add to Home Screen for an app-like view.";
+                return;
+            }
+
+            await request.call(root, { navigationUI: "hide" });
+            try { screen.orientation?.lock?.("landscape"); } catch (_) { /* Optional browser permission. */ }
+        } catch (error) {
+            console.warn("Fullscreen request was rejected:", error);
+            const status = document.getElementById("platformStatus");
+            if (status) status.textContent = "Fullscreen request was blocked. Tap the button again after interacting with the page.";
+        } finally {
+            updateFullscreenButtons();
+        }
+    }
+
+    function updateFullscreenButtons() {
+        const active = Boolean(getFullscreenElement());
+        for (const button of document.querySelectorAll("[data-fullscreen-button]")) {
+            button.textContent = active ? "Exit Fullscreen" : (button.classList.contains("compact") ? "Fullscreen" : "Enter Fullscreen");
+            button.setAttribute("aria-pressed", String(active));
+        }
+        // Browser UI changes alter the usable viewport on mobile. Recalculate the
+        // canvas after fullscreen transitions rather than relying only on resize.
+        requestAnimationFrame(updateCanvasSize);
+    }
+
+    // -------------------------------------------------------------------------
     // Game state
     // -------------------------------------------------------------------------
     /**
@@ -2342,6 +2432,7 @@
         applyDifficultyToWave();
         state.started = true;
         state.paused = false;
+        lastPlayerMovementAt = performance.now();
         state.ended = false;
         ui.splashScreen.style.display = "none";
         ui.startMenu.style.display = "none";
@@ -2855,29 +2946,47 @@
     /**
      * Advances this subsystem by one simulation step. Respect paused/ended state and avoid unnecessary allocations.
      */
+    let lastPlayerMovementAt = 0;
+
     function updatePlayer(now) {
-        let dx = 0;
-        let dy = 0;
+        let keyboardX = 0;
+        let keyboardY = 0;
 
-        if (keysHeld.w || keysHeld.arrowup) dy--;
-        if (keysHeld.s || keysHeld.arrowdown) dy++;
-        if (keysHeld.a || keysHeld.arrowleft) dx--;
-        if (keysHeld.d || keysHeld.arrowright) dx++;
+        if (keysHeld.w || keysHeld.arrowup) keyboardY--;
+        if (keysHeld.s || keysHeld.arrowdown) keyboardY++;
+        if (keysHeld.a || keysHeld.arrowleft) keyboardX--;
+        if (keysHeld.d || keysHeld.arrowright) keyboardX++;
 
-        // Analog movement is additive, then normalized with keyboard input so
-        // switching devices mid-run never causes a speed spike.
-        dx += analogInput.moveX;
-        dy += analogInput.moveY;
-
-        const length = Math.hypot(dx, dy);
-        if (length > 0) {
-            dx /= length;
-            dy /= length;
+        // Keyboard remains digital/full-speed. Analog input preserves stick
+        // magnitude, so a small thumb movement produces slow movement instead
+        // of being normalized immediately to maximum speed.
+        const keyboardLength = Math.hypot(keyboardX, keyboardY);
+        if (keyboardLength > 0) {
+            keyboardX /= keyboardLength;
+            keyboardY /= keyboardLength;
         }
 
+        let dx = keyboardX || analogInput.moveX;
+        let dy = keyboardY || analogInput.moveY;
+
+        // Clamp combined input to the unit circle without destroying analog
+        // magnitude. This also prevents diagonal movement from becoming faster.
+        const inputLength = Math.hypot(dx, dy);
+        if (inputLength > 1) {
+            dx /= inputLength;
+            dy /= inputLength;
+        }
+
+        // Movement used to be measured in pixels per rendered frame, causing
+        // 90/120 Hz mobile displays to move substantially faster than 60 Hz.
+        // Normalize to a 60 Hz baseline and cap long-frame catch-up after pauses.
+        const elapsedMs = lastPlayerMovementAt > 0 ? now - lastPlayerMovementAt : 1000 / 60;
+        lastPlayerMovementAt = now;
+        const frameScale = clamp(elapsedMs / (1000 / 60), 0.25, 1.75);
+
         const speed = getPlayerMoveSpeed(now);
-        player.x += dx * speed;
-        player.y += dy * speed;
+        player.x += dx * speed * frameScale;
+        player.y += dy * speed * frameScale;
         keepPlayerInWorld();
     }
 
@@ -3225,17 +3334,17 @@
         let y;
 
         if (side === 0) {
-            x = camera.x + Math.random() * canvas.width;
+            x = camera.x + Math.random() * getVisibleWorldWidth();
             y = camera.y - margin;
         } else if (side === 1) {
-            x = camera.x + canvas.width + margin;
-            y = camera.y + Math.random() * canvas.height;
+            x = camera.x + getVisibleWorldWidth() + margin;
+            y = camera.y + Math.random() * getVisibleWorldHeight();
         } else if (side === 2) {
-            x = camera.x + Math.random() * canvas.width;
-            y = camera.y + canvas.height + margin;
+            x = camera.x + Math.random() * getVisibleWorldWidth();
+            y = camera.y + getVisibleWorldHeight() + margin;
         } else {
             x = camera.x - margin;
-            y = camera.y + Math.random() * canvas.height;
+            y = camera.y + Math.random() * getVisibleWorldHeight();
         }
 
         const position = pushSpawnAwayFromPlayer({
@@ -4368,13 +4477,20 @@
      * Renders a visual element on the canvas. Do not change gameplay state from rendering code.
      */
     function drawSciFiBackground() {
+        // drawGame() applies CAMERA_ZOOM before this function. Therefore every
+        // screen-filling background primitive must use logical visible-world
+        // dimensions, not raw canvas pixels. Using canvas.width here would fill
+        // only CAMERA_ZOOM of the physical screen and produce a lighter block in
+        // the top-left on mobile.
+        const viewWidth = getVisibleWorldWidth();
+        const viewHeight = getVisibleWorldHeight();
         const gradient = ctx.createRadialGradient(
-            canvas.width / 2,
-            canvas.height / 2,
+            viewWidth / 2,
+            viewHeight / 2,
             80,
-            canvas.width / 2,
-            canvas.height / 2,
-            Math.max(canvas.width, canvas.height) * 0.75
+            viewWidth / 2,
+            viewHeight / 2,
+            Math.max(viewWidth, viewHeight) * 0.75
         );
 
         gradient.addColorStop(0, "#151e34");
@@ -4382,7 +4498,7 @@
         gradient.addColorStop(1, "#080a10");
 
         ctx.fillStyle = gradient;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillRect(0, 0, viewWidth, viewHeight);
 
         drawBackgroundStars();
         drawBackgroundGrid();
@@ -4412,19 +4528,19 @@
         ctx.strokeStyle = "rgba(80, 170, 255, 0.12)";
         ctx.lineWidth = 1;
 
-        for (let x = startX; x <= camera.x + canvas.width + gridSize; x += gridSize) {
+        for (let x = startX; x <= camera.x + getVisibleWorldWidth() + gridSize; x += gridSize) {
             const sx = x - camera.x;
             ctx.beginPath();
             ctx.moveTo(sx, 0);
-            ctx.lineTo(sx, canvas.height);
+            ctx.lineTo(sx, getVisibleWorldHeight());
             ctx.stroke();
         }
 
-        for (let y = startY; y <= camera.y + canvas.height + gridSize; y += gridSize) {
+        for (let y = startY; y <= camera.y + getVisibleWorldHeight() + gridSize; y += gridSize) {
             const sy = y - camera.y;
             ctx.beginPath();
             ctx.moveTo(0, sy);
-            ctx.lineTo(canvas.width, sy);
+            ctx.lineTo(getVisibleWorldWidth(), sy);
             ctx.stroke();
         }
     }
@@ -4435,7 +4551,7 @@
     function drawBackgroundPanels() {
         for (const panel of backgroundPanels) {
             const screen = worldToScreen(panel);
-            if (screen.x + panel.w < -50 || screen.x > canvas.width + 50 || screen.y + panel.h < -50 || screen.y > canvas.height + 50) continue;
+            if (screen.x + panel.w < -50 || screen.x > getVisibleWorldWidth() + 50 || screen.y + panel.h < -50 || screen.y > getVisibleWorldHeight() + 50) continue;
 
             ctx.fillStyle = `rgba(30, 70, 110, ${0.12 + panel.glow * 0.08})`;
             ctx.fillRect(screen.x, screen.y, panel.w, panel.h);
@@ -4579,10 +4695,32 @@
     /**
      * Renders a visual element on the canvas. Do not change gameplay state from rendering code.
      */
+    function drawPlayerWorldHealthBar(screen) {
+        if (!PLATFORM_PROFILE.isMobilePerformance) return;
+
+        const width = player.r * 3.2;
+        const height = 5;
+        const x = screen.x - width / 2;
+        const y = screen.y - player.r * 1.75;
+        const ratio = clamp(player.health / Math.max(1, player.maxHealth), 0, 1);
+
+        ctx.save();
+        ctx.fillStyle = "rgba(0,0,0,0.72)";
+        ctx.fillRect(x - 1, y - 1, width + 2, height + 2);
+        ctx.fillStyle = ratio > 0.55 ? "#4cff83" : ratio > 0.25 ? "#ffd85c" : "#ff4f5e";
+        ctx.fillRect(x, y, width * ratio, height);
+        ctx.strokeStyle = "rgba(255,255,255,0.72)";
+        ctx.lineWidth = 1;
+        ctx.strokeRect(x, y, width, height);
+        ctx.restore();
+    }
+
     function drawPlayer() {
         const target = screenToWorld(mouse);
         const angle = Math.atan2(target.y - player.y, target.x - player.x);
-        drawPlayerShip(angle, worldToScreen(player));
+        const screen = worldToScreen(player);
+        drawPlayerShip(angle, screen);
+        drawPlayerWorldHealthBar(screen);
     }
 
 
@@ -5384,7 +5522,7 @@
         minimapCtx.fillStyle = "rgba(8, 12, 22, 0.98)";
         minimapCtx.fillRect(0, 0, width, height);
 
-        drawMinimapGrid(width, height);
+        if (!PLATFORM_PROFILE.isMobilePerformance) drawMinimapGrid(width, height);
         drawMinimapCameraView(scaleX, scaleY);
         drawMinimapEntities(scaleX, scaleY);
 
@@ -5424,8 +5562,8 @@
         minimapCtx.strokeRect(
             camera.x * scaleX,
             camera.y * scaleY,
-            canvas.width * scaleX,
-            canvas.height * scaleY
+            getVisibleWorldWidth() * scaleX,
+            getVisibleWorldHeight() * scaleY
         );
     }
 
@@ -5437,8 +5575,10 @@
         for (const orb of lifeStealOrbs) drawCircle(minimapCtx, orb.x * scaleX, orb.y * scaleY, 2.2, "#7cff9b");
         for (const pickup of pickups) drawMinimapPickup(pickup, scaleX, scaleY);
         for (const enemy of enemies) drawMinimapEnemy(enemy, scaleX, scaleY);
-        for (const bullet of enemyBullets) drawMinimapEnemyBullet(bullet, scaleX, scaleY);
-        for (const missile of carrierMissiles) if (missile && !missile.dead) drawCircle(minimapCtx, missile.x * scaleX, missile.y * scaleY, 2.5, "#ffcf66");
+        if (!PLATFORM_PROFILE.isMobilePerformance) {
+            for (const bullet of enemyBullets) drawMinimapEnemyBullet(bullet, scaleX, scaleY);
+            for (const missile of carrierMissiles) if (missile && !missile.dead) drawCircle(minimapCtx, missile.x * scaleX, missile.y * scaleY, 2.5, "#ffcf66");
+        }
         drawMinimapPlayer(scaleX, scaleY);
     }
 
@@ -5659,6 +5799,9 @@
         if (state.screenShake > 0) {
             ctx.translate(randomRange(-state.screenShake, state.screenShake), randomRange(-state.screenShake, state.screenShake));
         }
+        // Mobile zooms the entire world scene out without increasing the canvas
+        // backing resolution. DOM HUD and touch controls remain full-size.
+        ctx.scale(CAMERA_ZOOM, CAMERA_ZOOM);
 
         drawSciFiBackground();
         drawParticles();
@@ -5745,8 +5888,8 @@
         if (!analogInput.aimActive) return;
         const playerScreen = worldToScreen(player);
         const aimDistance = Math.max(260, Math.min(canvas.width, canvas.height) * 0.38);
-        mouse.x = playerScreen.x + analogInput.aimX * aimDistance;
-        mouse.y = playerScreen.y + analogInput.aimY * aimDistance;
+        mouse.x = playerScreen.x * CAMERA_ZOOM + analogInput.aimX * aimDistance;
+        mouse.y = playerScreen.y * CAMERA_ZOOM + analogInput.aimY * aimDistance;
     }
 
     function applyDeadZone(value, deadZone = 0.18) {
@@ -5796,10 +5939,104 @@
     function updateTouchControlVisibility() {
         if (!touchControls) return;
         const touchCapable = matchMedia("(pointer: coarse)").matches || navigator.maxTouchPoints > 0;
-        const visible = touchCapable && state.started && !state.ended && !state.paused && !state.clearPhaseActive && ui.upgradeMenu.style.display !== "flex";
+        // Keep controls active during the wave-clear collection window so the
+        // player can sweep up point orbs and pickups. They hide only once the
+        // Upgrade Protocol menu opens or gameplay is otherwise paused/ended.
+        const visible = touchCapable && state.started && !state.ended && !state.paused && ui.upgradeMenu.style.display !== "flex";
         touchControls.classList.toggle("available", touchCapable);
         touchControls.classList.toggle("active", visible);
         touchControls.setAttribute("aria-hidden", String(!visible));
+
+        // Mobile HUD visibility is controlled by one explicit body state. This
+        // prevents the minimap, pause control, or desktop health bar from leaking
+        // onto the splash screen, menus, pause screen, or Upgrade Protocol.
+        document.body.classList.toggle("mobile-gameplay-hud", visible);
+        // Shared gameplay HUD state for desktop and mobile. Desktop minimap visibility
+        // must not depend on touch capability.
+        const gameplayHudVisible = state.started && !state.ended && !state.paused && ui.upgradeMenu.style.display !== "flex";
+        document.body.classList.toggle("gameplay-hud-active", gameplayHudVisible);
+
+        // Runtime mobile HUD contract. The stylesheet contains legacy mobile rules
+        // from earlier builds with competing specificity. Apply the final gameplay
+        // layout directly so those historical rules cannot move the minimap or
+        // resurrect the desktop health bar. Inline !important declarations are
+        // deliberate here: this is the authoritative platform-state boundary.
+        const mobileProfileActive = document.documentElement.classList.contains("mobile-performance");
+        const topRightHud = document.getElementById("topRightHud");
+        const pauseButton = document.getElementById("touchPauseButton");
+        const minimapWrap = document.getElementById("minimapWrap");
+        const desktopHealthBar = document.getElementById("playerHealthBarWrap");
+
+        if (mobileProfileActive) {
+            if (desktopHealthBar) {
+                desktopHealthBar.hidden = true;
+                desktopHealthBar.style.setProperty("display", "none", "important");
+            }
+
+            if (topRightHud) {
+                topRightHud.style.setProperty("display", visible ? "flex" : "none", "important");
+                topRightHud.style.setProperty("position", "fixed", "important");
+                topRightHud.style.setProperty("top", "max(12px, env(safe-area-inset-top))", "important");
+                topRightHud.style.setProperty("right", "max(12px, env(safe-area-inset-right))", "important");
+                topRightHud.style.setProperty("left", "auto", "important");
+                topRightHud.style.setProperty("bottom", "auto", "important");
+                topRightHud.style.setProperty("transform", "none", "important");
+                topRightHud.style.setProperty("flex-direction", "row", "important");
+                topRightHud.style.setProperty("align-items", "flex-start", "important");
+                topRightHud.style.setProperty("justify-content", "flex-end", "important");
+                topRightHud.style.setProperty("gap", "10px", "important");
+                topRightHud.style.setProperty("z-index", "80", "important");
+                topRightHud.style.setProperty("pointer-events", "none", "important");
+            }
+
+            if (pauseButton) {
+                pauseButton.style.setProperty("display", visible ? "grid" : "none", "important");
+                pauseButton.style.setProperty("position", "static", "important");
+                pauseButton.style.setProperty("inset", "auto", "important");
+                pauseButton.style.setProperty("transform", "none", "important");
+                pauseButton.style.setProperty("margin", "0", "important");
+                pauseButton.style.setProperty("pointer-events", "auto", "important");
+                pauseButton.style.setProperty("flex", "0 0 48px", "important");
+            }
+
+            if (minimapWrap) {
+                minimapWrap.style.setProperty("display", visible ? "block" : "none", "important");
+                minimapWrap.style.setProperty("position", "static", "important");
+                minimapWrap.style.setProperty("inset", "auto", "important");
+                minimapWrap.style.setProperty("top", "auto", "important");
+                minimapWrap.style.setProperty("right", "auto", "important");
+                minimapWrap.style.setProperty("bottom", "auto", "important");
+                minimapWrap.style.setProperty("left", "auto", "important");
+                minimapWrap.style.setProperty("transform", "none", "important");
+                minimapWrap.style.setProperty("margin", "0", "important");
+                minimapWrap.style.setProperty("width", "132px", "important");
+                minimapWrap.style.setProperty("flex", "0 0 132px", "important");
+                minimapWrap.style.setProperty("pointer-events", "none", "important");
+            }
+        } else {
+            // Desktop owns a full-size minimap card. Remove every mobile inline
+            // declaration so the desktop CSS contract can render the wrapper,
+            // title, and canvas as one intact unit.
+            if (desktopHealthBar) {
+                desktopHealthBar.hidden = false;
+                desktopHealthBar.style.removeProperty("display");
+            }
+            if (topRightHud) {
+                for (const property of ["display", "position", "top", "right", "left", "bottom", "transform", "flex-direction", "align-items", "justify-content", "gap", "z-index", "pointer-events"]) {
+                    topRightHud.style.removeProperty(property);
+                }
+            }
+            if (pauseButton) {
+                for (const property of ["display", "position", "inset", "transform", "margin", "pointer-events", "flex"]) {
+                    pauseButton.style.removeProperty(property);
+                }
+            }
+            if (minimapWrap) {
+                for (const property of ["display", "position", "inset", "top", "right", "bottom", "left", "transform", "margin", "width", "height", "flex", "pointer-events"]) {
+                    minimapWrap.style.removeProperty(property);
+                }
+            }
+        }
 
         // CSS only displays `.available.active`; inactive overlays therefore cannot
         // intercept menu swipes or impose touch-action:none over the viewport.
@@ -5836,8 +6073,16 @@
             const ny = dy / radius;
             if (knob) knob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
             if (kind === "move") {
-                analogInput.moveX = nx;
-                analogInput.moveY = ny;
+                const magnitude = Math.hypot(nx, ny);
+                const deadZone = 0.10;
+                if (magnitude <= deadZone) {
+                    analogInput.moveX = 0;
+                    analogInput.moveY = 0;
+                } else {
+                    const shapedMagnitude = Math.min(1, (magnitude - deadZone) / (1 - deadZone));
+                    analogInput.moveX = (nx / magnitude) * shapedMagnitude;
+                    analogInput.moveY = (ny / magnitude) * shapedMagnitude;
+                }
             } else if (Math.hypot(nx, ny) > 0.08) {
                 const length = Math.hypot(nx, ny);
                 analogInput.aimX = nx / length;
@@ -5863,6 +6108,24 @@
         zone.addEventListener("pointerup", event => { if (event.pointerId === pointerId) reset(); });
         zone.addEventListener("pointercancel", event => { if (event.pointerId === pointerId) reset(); });
         zone.addEventListener("lostpointercapture", reset);
+    }
+
+    /**
+     * Centralized developer-mode visibility controller.
+     * Keep player-facing builds clean by default while preserving diagnostics for testing.
+     * Any future debug-only UI should be placed inside #debugPanel or
+     * .audio-debug-console so this single switch remains authoritative.
+     */
+    function setDeveloperMode(enabled, { persist = true } = {}) {
+        const isEnabled = Boolean(enabled);
+        document.body.classList.toggle("developer-mode", isEnabled);
+        if (ui.developerModeCheckbox) ui.developerModeCheckbox.checked = isEnabled;
+        if (ui.developerModeStatus) ui.developerModeStatus.hidden = !isEnabled;
+
+        // Closing the diagnostics panel prevents an already-open debug overlay from
+        // remaining visible after Developer Mode is turned off.
+        if (!isEnabled && ui.audioDebugConsole) ui.audioDebugConsole.hidden = true;
+        if (persist) safeStorage.set("starwakeDeveloperMode", String(isEnabled));
     }
 
     function initializeTouchAndGamepadControls() {
@@ -5892,6 +6155,8 @@
      */
     function bindEvents() {
         window.addEventListener("resize", updateCanvasSize);
+    window.visualViewport?.addEventListener("resize", updateCanvasSize);
+    window.visualViewport?.addEventListener("scroll", updateCanvasSize);
 
         window.addEventListener("keydown", event => {
             const key = event.key.toLowerCase();
@@ -5913,6 +6178,15 @@
         document.addEventListener("keydown", () => { if (state.started && !state.ended) resumeAudio(); });
 
         ui.continueFromSplashButton?.addEventListener("click", showStartMenu);
+        for (const button of document.querySelectorAll("[data-fullscreen-button]")) {
+            button.addEventListener("click", event => {
+                event.preventDefault();
+                event.stopPropagation();
+                toggleFullscreen();
+            });
+        }
+        document.addEventListener("fullscreenchange", updateFullscreenButtons);
+        document.addEventListener("webkitfullscreenchange", updateFullscreenButtons);
         const startButton = document.getElementById("startButton");
         startButton?.addEventListener("click", event => {
             event.preventDefault();
@@ -5937,6 +6211,9 @@
             appendAudioDiagnostic(`Restart failed: ${audio.diagnostics.lastError}`);
         }));
         ui.audioDebugExportButton?.addEventListener("click", exportAudioDiagnostics);
+        ui.developerModeCheckbox?.addEventListener("change", event => {
+            setDeveloperMode(event.target.checked);
+        });
         document.getElementById("debugWaveInput")?.addEventListener("keydown", event => {
             if (event.key === "Enter") debugGoToWave();
         });
@@ -5977,7 +6254,9 @@
         bindEvents();
         setHudVisible(true);
         setCursorColor(savedCursorColor);
+        setDeveloperMode(savedDeveloperMode, { persist: false });
         initializeTouchAndGamepadControls();
+        updateFullscreenButtons();
         updateCursorPosition(mouse.x, mouse.y);
         setDifficulty(state.difficulty);
         setAudioVolume(savedAudioVolume);

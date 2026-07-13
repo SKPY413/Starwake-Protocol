@@ -7,7 +7,7 @@
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
 <title>Starwake Protocol</title>
-<link rel="stylesheet" href="styles-20260711a.css">
+<link rel="stylesheet" href="styles-20260712b.css">
 </head>
 <body>
 
@@ -310,11 +310,11 @@
 
 
 <!-- Platform profile must load first so audio/rendering allocate the correct budgets. -->
-<script src="platformProfile-20260711a.js"></script>
+<script src="platformProfile-20260712b.js"></script>
 <!-- Script order matters: the optional music API is exposed before game.js attempts to use it. -->
-<script src="musicEngine-20260711a.js"></script>
+<script src="musicEngine-20260712b.js"></script>
 <!-- game.js owns the authoritative game state and must remain able to boot without music. -->
-<script src="game-20260711a.js"></script>
+<script src="game-20260712b.js"></script>
 <script>
 window.addEventListener("load", () => {
     const button = document.getElementById("startButton");
