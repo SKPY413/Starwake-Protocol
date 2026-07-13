@@ -335,3 +335,20 @@ world; that can increase travel time without reducing local density.
 - Prediction must remain short and distance-bounded; long fixed lead values can make interceptors steer away from fast bullets.
 - Close-range interception is resolved immediately after missile movement to prevent projectile tunneling.
 - A successful interceptor collision destroys the player bullet, preserves the missile, and returns it to orbit.
+
+## Boss Command System
+
+- Bosses and giga bosses own a unique `commandId` and may spawn bounded escort units.
+- Summons carry `commandOwnerId` and `isBossSummon`; do not count them by array position.
+- Reinforcement orders obey the per-difficulty simultaneous-enemy cap and `PERFORMANCE_LIMITS.maxEnemies`.
+- Boss summons award reduced points so command phases cannot become renewable economy farms.
+- Timed orders and 75/50/25-percent health bursts must remain bounded and must never recursively create bosses.
+- Build-aware summon weighting is a soft response, not a guaranteed counter.
+
+## Nonlinear Upgrade Economy
+
+- `getUpgradeCost()` is the only authoritative pricing function.
+- Core upgrades receive a small entry premium but stronger repeated-level pressure after level 3.
+- Advanced, Experimental, Hybrid, and Capstone research use progressively larger tier multipliers.
+- Mature builds receive a capped global surcharge after ten purchased levels.
+- Do not apply a flat global percentage increase outside `getUpgradeCost()`.

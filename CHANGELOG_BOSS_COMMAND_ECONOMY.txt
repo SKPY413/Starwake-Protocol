@@ -1,0 +1,11 @@
+STARWAKE PROTOCOL - BOSS COMMAND AND ECONOMY UPDATE
+
+- Bosses now issue bounded reinforcement orders.
+- Reinforcement types include runners, fighters, dodgers, brutes, tanks, and late-game carriers.
+- Summon weighting responds softly to the player's current system investments.
+- Bosses issue one-time distress reinforcement bursts at 75%, 50%, and 25% health.
+- Giga bosses receive larger command budgets and higher escort caps.
+- Boss summons grant reduced point rewards.
+- Upgrade pricing is now nonlinear by tier, base power, repeated stat investment, and total build maturity.
+- Early core purchases remain comparatively affordable.
+- Experimental, Hybrid, and Capstone modules are substantially more expensive.
