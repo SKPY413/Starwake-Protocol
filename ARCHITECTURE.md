@@ -295,3 +295,28 @@ Mobile may change only layout, sizing, and column count. It must never hide,
 replace, or maintain a second legacy upgrade screen. Runtime asset filenames are
 versioned when UI structure changes so deployed mobile browsers cannot reuse an
 older upgrade stylesheet or game script.
+
+
+## Ship Reconstruction undo contract
+
+- The Upgrade menu exposes one-step undo on desktop and mobile.
+- Capture a reconstruction snapshot immediately before any paid upgrade or end-of-wave research bonus mutates state.
+- The snapshot covers player build fields, upgrade levels, upgrade points, research-claim state, and the weapon status label.
+- Undo history is cleared when Ship Reconstruction opens and when the next wave starts. It must never rewind combat, score, enemies, drops, or wave progression.
+- Any future upgrade that mutates data outside `player`, `upgradeLevels`, `state.upgradePoints`, or `waveResearch` must extend the snapshot contract before shipping.
+
+## End-of-wave reward balance contract
+
+End-of-wave choices must not grant permanent repeatable offense. A reward offered after
+every wave compounds independently of upgrade costs and will eventually overpower all
+enemy scaling. Keep these choices limited to modest currency, recovery, consumable
+barriers, or explicitly one-wave effects. Non-stacking queued effects belong on `state`
+and must be consumed/reset by `startNextWave()`.
+
+## Difficulty crowding contract
+
+Wave size and simultaneous battlefield density are separate controls. Use
+`spawnBase`/`spawnGrowth` for total wave population and `maxConcurrent` for visual and
+movement pressure. Easy must remain readable around waves 12–15, with farther spawn
+placement and delayed advanced archetypes. Do not solve crowding only by enlarging the
+world; that can increase travel time without reducing local density.

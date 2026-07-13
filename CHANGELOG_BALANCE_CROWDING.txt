@@ -1,0 +1,10 @@
+STARWAKE PROTOCOL — POWER AND CROWDING REBALANCE
+
+- Removed permanent offensive end-of-wave rewards that compounded every wave.
+- Reduced Research Cache payout and Field Repair strength.
+- Added non-stacking Momentum Reserve and Emergency Armor rewards.
+- Easy mode now has lower enemy speed, slower spawn growth, slower stat growth,
+  later archetype unlocks, and a 14-enemy concurrent cap.
+- Added per-difficulty concurrent enemy limits.
+- Increased minimum spawn distance, especially on Easy.
+- Slightly adjusted Easy economy so paid research remains meaningful.

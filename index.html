@@ -7,7 +7,7 @@
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
 <title>Starwake Protocol</title>
-<link rel="stylesheet" href="styles-20260713c.css">
+<link rel="stylesheet" href="styles-20260713e.css">
 </head>
 <body>
 
@@ -279,6 +279,7 @@
             <button data-upgrade="combatAlgorithms"></button>
             <button data-upgrade="railAcceleration"></button>
             <button data-upgrade="livingDrones"></button>
+            <button id="undoUpgradeButton" type="button" disabled>Undo Last Choice</button>
             <button id="skipUpgradeButton">Skip / Next Wave</button>
         </div>
     </div>
@@ -339,11 +340,11 @@
 
 
 <!-- Platform profile must load first so audio/rendering allocate the correct budgets. -->
-<script src="platformProfile-20260713c.js"></script>
+<script src="platformProfile-20260713e.js"></script>
 <!-- Script order matters: the optional music API is exposed before game.js attempts to use it. -->
-<script src="musicEngine-20260713c.js"></script>
+<script src="musicEngine-20260713e.js"></script>
 <!-- game.js owns the authoritative game state and must remain able to boot without music. -->
-<script src="game-20260713c.js"></script>
+<script src="game-20260713e.js"></script>
 <script>
 window.addEventListener("load", () => {
     const button = document.getElementById("startButton");
