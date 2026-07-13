@@ -4085,15 +4085,31 @@
     function findCarrierInterceptionTarget(missile) {
         let best = null;
         let bestScore = Infinity;
+        const owner = missile.owner && !missile.owner.dead ? missile.owner : null;
+
         for (const bullet of bullets) {
             if (!bullet || bullet.dead) continue;
             const dx = bullet.x - missile.x;
             const dy = bullet.y - missile.y;
             const dist = Math.hypot(dx, dy);
-            if (dist > 620) continue;
-            const owner = missile.owner && !missile.owner.dead ? missile.owner : player;
-            const ownerDist = Math.hypot(bullet.x - owner.x, bullet.y - owner.y);
-            const score = dist + ownerDist * 0.22;
+            if (dist > 720) continue;
+
+            // Favor bullets travelling toward the carrier. A negative radial dot
+            // means the projectile is closing on the protected ship; bullets
+            // already escaping the carrier receive a large penalty so drones do
+            // not turn around and appear to flee from the actual threat.
+            let closingBonus = 0;
+            let ownerDist = dist;
+            if (owner) {
+                const toOwnerX = owner.x - bullet.x;
+                const toOwnerY = owner.y - bullet.y;
+                ownerDist = Math.hypot(toOwnerX, toOwnerY);
+                const ownerLen = Math.max(1, ownerDist);
+                const towardOwner = (bullet.dx * toOwnerX + bullet.dy * toOwnerY) / ownerLen;
+                closingBonus = towardOwner > 0 ? -Math.min(220, towardOwner * 42) : 260;
+            }
+
+            const score = dist * 0.72 + ownerDist * 0.38 + closingBonus;
             if (score < bestScore) {
                 bestScore = score;
                 best = bullet;
@@ -4147,13 +4163,22 @@
             }
 
             if (missile.mode === "intercept" && missile.targetBullet && !missile.targetBullet.dead) {
-                const leadFrames = 7;
+                const target = missile.targetBullet;
+                const separation = Math.hypot(target.x - missile.x, target.y - missile.y);
+
+                // Use only a short, distance-bounded lead. The old fixed seven-frame
+                // prediction could put the aim point behind a fast projectile and make
+                // the interceptor visibly peel away. Close threats are chased directly.
+                const leadFrames = separation > 260 ? 3.2 : separation > 120 ? 1.6 : 0;
+                const originalTurnRate = missile.turnRate;
+                missile.turnRate = Math.max(originalTurnRate, separation < 150 ? 0.15 : 0.105);
                 steerCarrierMissile(
                     missile,
-                    missile.targetBullet.x + missile.targetBullet.dx * leadFrames,
-                    missile.targetBullet.y + missile.targetBullet.dy * leadFrames,
-                    1.18
+                    target.x + target.dx * leadFrames,
+                    target.y + target.dy * leadFrames,
+                    separation < 160 ? 1.58 : 1.38
                 );
+                missile.turnRate = originalTurnRate;
             } else if (missile.mode === "dive") {
                 steerCarrierMissile(missile, player.x, player.y, 1.24);
                 if (now >= missile.diveEndsAt) {
@@ -4176,6 +4201,23 @@
 
             missile.x += missile.dx;
             missile.y += missile.dy;
+
+            // Interceptor capture is resolved here, immediately after movement, so
+            // fast opposing projectiles cannot tunnel through one another between
+            // the later broad collision passes. The missile survives and returns to
+            // the carrier's defensive ring after physically meeting the bullet.
+            if (missile.mode === "intercept" && missile.targetBullet && !missile.targetBullet.dead) {
+                const target = missile.targetBullet;
+                const captureRadius = missile.r + (target.r || 3) + 7;
+                if (Math.hypot(target.x - missile.x, target.y - missile.y) <= captureRadius) {
+                    target.dead = true;
+                    missile.targetBullet = null;
+                    missile.mode = "orbit";
+                    missile.interceptCooldownUntil = now + 180;
+                    missile.diveAt = 999999999;
+                    explosions.push({ x: missile.x, y: missile.y, radius: 18, life: 7, maxLife: 7, harmless: true });
+                }
+            }
 
             if (distance(missile, player) < missile.r + player.r) {
                 missile.dead = true;

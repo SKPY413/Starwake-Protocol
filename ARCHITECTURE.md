@@ -320,3 +320,18 @@ Wave size and simultaneous battlefield density are separate controls. Use
 movement pressure. Easy must remain readable around waves 12–15, with farther spawn
 placement and delayed advanced archetypes. Do not solve crowding only by enlarging the
 world; that can increase travel time without reducing local density.
+
+
+## Ship Reconstruction grouping contract
+
+- Desktop reconstruction is grouped into Nanobot, Weapon AI, Anti-Gravity, Quantum, and Hybrid sections.
+- The outer system grid is two columns on desktop and one column on touch/mobile.
+- Upgrade buttons remain selected by `[data-upgrade]`; moving a card between visual sections must not rename that attribute.
+- Undo and Continue live in the shared action bar and must remain outside individual system sections.
+
+## Carrier interceptor commitment contract
+
+- Interceptor missiles prioritize player bullets travelling toward their carrier.
+- Prediction must remain short and distance-bounded; long fixed lead values can make interceptors steer away from fast bullets.
+- Close-range interception is resolved immediately after missile movement to prevent projectile tunneling.
+- A successful interceptor collision destroys the player bullet, preserves the missile, and returns it to orbit.

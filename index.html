@@ -249,38 +249,84 @@
             <div id="waveResearchChoices" class="wave-research-choices"></div>
         </section>
 
-        <div id="upgradeGrid">
-            <button data-upgrade="multiShot"></button>
-            <button data-upgrade="damage"></button>
-            <button data-upgrade="fireRate"></button>
-            <button data-upgrade="bulletVelocity"></button>
-            <button data-upgrade="explosive"></button>
-            <button data-upgrade="speed"></button>
-            <button data-upgrade="magnet"></button>
-            <button data-upgrade="autoMissile"></button>
-            <button data-upgrade="damageAura"></button>
-            <button data-upgrade="healthRegen"></button>
-            <button data-upgrade="lifeSteal"></button>
-            <button data-upgrade="maxHealth"></button>
+        <div id="upgradeGrid" class="upgrade-system-grid">
+            <section class="upgrade-system-section system-panel-green" aria-labelledby="greenSystemTitle">
+                <header class="upgrade-system-header">
+                    <div><span class="system-symbol">◆</span><h2 id="greenSystemTitle">Nanobot Network</h2></div>
+                    <p>Hull integrity, repair, mitigation, and survival.</p>
+                </header>
+                <div class="upgrade-system-list">
+                    <button data-upgrade="maxHealth"></button>
+                    <button data-upgrade="healthRegen"></button>
+                    <button data-upgrade="lifeSteal"></button>
+                    <button data-upgrade="adaptivePlating"></button>
+                    <button data-upgrade="combatNanobots"></button>
+                    <button data-upgrade="livingColony"></button>
+                </div>
+            </section>
 
-            <button data-upgrade="adaptivePlating"></button>
-            <button data-upgrade="combatNanobots"></button>
-            <button data-upgrade="livingColony"></button>
-            <button data-upgrade="predictiveTargeting"></button>
-            <button data-upgrade="heatManagement"></button>
-            <button data-upgrade="autonomousArsenal"></button>
-            <button data-upgrade="boostCapacitor"></button>
-            <button data-upgrade="inertialDampeners"></button>
-            <button data-upgrade="zeroPointReactor"></button>
-            <button data-upgrade="combatHeuristics"></button>
-            <button data-upgrade="swarmMatrix"></button>
-            <button data-upgrade="distributedConsciousness"></button>
-            <button data-upgrade="adaptiveHull"></button>
-            <button data-upgrade="combatAlgorithms"></button>
-            <button data-upgrade="railAcceleration"></button>
-            <button data-upgrade="livingDrones"></button>
-            <button id="undoUpgradeButton" type="button" disabled>Undo Last Choice</button>
-            <button id="skipUpgradeButton">Skip / Next Wave</button>
+            <section class="upgrade-system-section system-panel-red" aria-labelledby="redSystemTitle">
+                <header class="upgrade-system-header">
+                    <div><span class="system-symbol">◆</span><h2 id="redSystemTitle">Weapon AI Systems</h2></div>
+                    <p>Primary fire, cadence, targeting, and detonation logic.</p>
+                </header>
+                <div class="upgrade-system-list">
+                    <button data-upgrade="multiShot"></button>
+                    <button data-upgrade="damage"></button>
+                    <button data-upgrade="fireRate"></button>
+                    <button data-upgrade="bulletVelocity"></button>
+                    <button data-upgrade="explosive"></button>
+                    <button data-upgrade="predictiveTargeting"></button>
+                    <button data-upgrade="heatManagement"></button>
+                    <button data-upgrade="autonomousArsenal"></button>
+                </div>
+            </section>
+
+            <section class="upgrade-system-section system-panel-blue" aria-labelledby="blueSystemTitle">
+                <header class="upgrade-system-header">
+                    <div><span class="system-symbol">◆</span><h2 id="blueSystemTitle">Anti-Gravity Unit</h2></div>
+                    <p>Movement, handling, attraction fields, and boost duration.</p>
+                </header>
+                <div class="upgrade-system-list">
+                    <button data-upgrade="speed"></button>
+                    <button data-upgrade="magnet"></button>
+                    <button data-upgrade="boostCapacitor"></button>
+                    <button data-upgrade="inertialDampeners"></button>
+                    <button data-upgrade="zeroPointReactor"></button>
+                </div>
+            </section>
+
+            <section class="upgrade-system-section system-panel-purple" aria-labelledby="purpleSystemTitle">
+                <header class="upgrade-system-header">
+                    <div><span class="system-symbol">◆</span><h2 id="purpleSystemTitle">Quantum Processor</h2></div>
+                    <p>Autonomous missiles, orbital fields, and swarm intelligence.</p>
+                </header>
+                <div class="upgrade-system-list">
+                    <button data-upgrade="autoMissile"></button>
+                    <button data-upgrade="damageAura"></button>
+                    <button data-upgrade="combatHeuristics"></button>
+                    <button data-upgrade="swarmMatrix"></button>
+                    <button data-upgrade="distributedConsciousness"></button>
+                </div>
+            </section>
+
+            <section class="upgrade-system-section hybrid-system-section" aria-labelledby="hybridSystemTitle">
+                <header class="upgrade-system-header">
+                    <div><span class="system-symbol">✦</span><h2 id="hybridSystemTitle">Hybrid Research</h2></div>
+                    <p>Cross-system modules unlocked through investment in two branches.</p>
+                </header>
+                <div class="upgrade-system-list hybrid-upgrade-list">
+                    <button data-upgrade="adaptiveHull"></button>
+                    <button data-upgrade="combatAlgorithms"></button>
+                    <button data-upgrade="railAcceleration"></button>
+                    <button data-upgrade="livingDrones"></button>
+                </div>
+            </section>
+
+            <div class="upgrade-action-bar">
+                <button id="undoUpgradeButton" type="button" disabled>Undo Last Choice</button>
+                <button id="skipUpgradeButton">Skip / Next Wave</button>
+            </div>
         </div>
     </div>
 </div>

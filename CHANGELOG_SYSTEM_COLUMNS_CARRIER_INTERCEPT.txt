@@ -1,0 +1,8 @@
+Starwake Protocol — System Columns + Carrier Interceptor Fix
+
+- Reorganized Ship Reconstruction by Nanobots, Weapon AI, Anti-Gravity, Quantum, and Hybrid Research.
+- Added a two-column desktop system layout and one-column mobile layout.
+- Added a sticky desktop Undo/Continue action bar.
+- Carrier interceptors now favor bullets closing on the carrier.
+- Reduced predictive overshoot and increased close-range commitment.
+- Added immediate close-range capture to prevent fast projectiles tunneling through interceptors.
