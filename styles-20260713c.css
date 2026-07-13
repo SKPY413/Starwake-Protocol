@@ -2323,3 +2323,127 @@ html:not(.mobile-performance) body:not(.gameplay-hud-active) #minimapWrap {
     .wave-research-panel > div:first-child { flex-direction:column; }
     .wave-research-choices { grid-template-columns:1fr; }
 }
+
+/* --------------------------------------------------------------------------
+   Authoritative mobile Ship Reconstruction layout
+   --------------------------------------------------------------------------
+   This block intentionally comes last. Mobile must render the same progression
+   system as desktop; only the layout changes. Do not hide or replace these
+   elements in platform-specific styles.
+*/
+@media (pointer: coarse), (max-width: 900px), (max-height: 760px) {
+    #upgradeMenu {
+        display: none;
+        align-items: flex-start !important;
+        justify-content: flex-start !important;
+        overflow-y: auto !important;
+        touch-action: pan-y !important;
+        padding: max(10px, env(safe-area-inset-top)) 8px max(22px, env(safe-area-inset-bottom)) !important;
+    }
+
+    #upgradeMenu[style*="display: flex"],
+    body.upgrade-menu-open #upgradeMenu {
+        display: flex !important;
+    }
+
+    #upgradeCard {
+        display: block !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        max-height: none !important;
+        min-height: 0 !important;
+        margin: 0 !important;
+        padding: 12px !important;
+        overflow: visible !important;
+        border-radius: 14px !important;
+    }
+
+    .upgrade-header {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 10px !important;
+    }
+
+    .upgrade-header h1 {
+        font-size: clamp(25px, 8vw, 36px) !important;
+        line-height: 1 !important;
+    }
+
+    .upgrade-header p {
+        font-size: 12px !important;
+        line-height: 1.35 !important;
+    }
+
+    .upgrade-header-actions,
+    .upgrade-points-panel,
+    .system-investment-bar,
+    .wave-research-panel,
+    #upgradeGrid,
+    #skipUpgradeButton {
+        display: grid !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+
+    .upgrade-header-actions { grid-template-columns: 1fr !important; }
+
+    .system-investment-bar {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 7px !important;
+        margin: 9px 0 11px !important;
+    }
+
+    .system-chip {
+        min-width: 0 !important;
+        padding: 8px 9px !important;
+        font-size: 9px !important;
+        letter-spacing: .45px !important;
+    }
+
+    .system-chip strong { font-size: 18px !important; }
+
+    .wave-research-panel {
+        grid-template-columns: 1fr !important;
+        margin: 8px 0 12px !important;
+        padding: 10px !important;
+    }
+
+    .wave-research-panel > div:first-child {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 3px !important;
+    }
+
+    .wave-research-choices {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 7px !important;
+    }
+
+    #upgradeGrid {
+        grid-template-columns: 1fr !important;
+        gap: 8px !important;
+        width: 100% !important;
+    }
+
+    .upgrade-button {
+        display: grid !important;
+        grid-template-columns: 42px minmax(0, 1fr) !important;
+        min-height: 116px !important;
+        width: 100% !important;
+        padding: 11px !important;
+    }
+
+    .upgrade-icon {
+        width: 40px !important;
+        height: 40px !important;
+        font-size: 21px !important;
+    }
+
+    .upgrade-title { font-size: 14px !important; }
+    .upgrade-description,
+    .upgrade-stats,
+    .upgrade-footer { font-size: 11px !important; }
+    .research-tier { font-size: 9px !important; }
+}

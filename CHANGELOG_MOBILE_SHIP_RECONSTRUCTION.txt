@@ -1,0 +1,8 @@
+Mobile Ship Reconstruction synchronization
+
+- Added an authoritative mobile layout for Ship Reconstruction.
+- Core-system investment chips, end-of-wave research choices, advanced modules,
+  experimental modules, hybrids, and capstones are explicitly visible on mobile.
+- Upgrade screen uses one-column touch-friendly cards and native vertical scrolling.
+- Renamed every runtime asset to invalidate stale mobile browser/Vercel caches.
+- Added no-cache metadata to index.html.

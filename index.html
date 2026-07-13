@@ -7,7 +7,7 @@
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
 <title>Starwake Protocol</title>
-<link rel="stylesheet" href="styles-20260712b.css">
+<link rel="stylesheet" href="styles-20260713c.css">
 </head>
 <body>
 
@@ -228,14 +228,26 @@
     <div id="upgradeCard">
         <div class="upgrade-header">
             <div>
-                <h1>Upgrade Protocol</h1>
-                <p>Refit your ship, inspect the next benefit, or continue to the next wave.</p>
+                <h1>Ship Reconstruction</h1>
+                <p>Bring core systems online, unlock advanced research, and evolve an autonomous warship—without adding new combat controls.</p>
             </div>
             <div class="upgrade-header-actions">
                 <div class="upgrade-points-panel">AVAILABLE POINTS<strong id="menuPoints">0</strong></div>
                 <button class="fullscreen-button compact" data-fullscreen-button type="button">Fullscreen</button>
             </div>
         </div>
+
+        <div class="system-investment-bar" aria-label="Core system investment">
+            <div class="system-chip green"><span>NANOBOTS</span><strong data-system-investment="green">0</strong></div>
+            <div class="system-chip red"><span>WEAPON AI</span><strong data-system-investment="red">0</strong></div>
+            <div class="system-chip blue"><span>ANTI-GRAV</span><strong data-system-investment="blue">0</strong></div>
+            <div class="system-chip purple"><span>QUANTUM</span><strong data-system-investment="purple">0</strong></div>
+        </div>
+
+        <section class="wave-research-panel">
+            <div><strong>END-OF-WAVE RESEARCH</strong><span>Choose one passive bonus. No new combat buttons are added.</span></div>
+            <div id="waveResearchChoices" class="wave-research-choices"></div>
+        </section>
 
         <div id="upgradeGrid">
             <button data-upgrade="multiShot"></button>
@@ -250,6 +262,23 @@
             <button data-upgrade="healthRegen"></button>
             <button data-upgrade="lifeSteal"></button>
             <button data-upgrade="maxHealth"></button>
+
+            <button data-upgrade="adaptivePlating"></button>
+            <button data-upgrade="combatNanobots"></button>
+            <button data-upgrade="livingColony"></button>
+            <button data-upgrade="predictiveTargeting"></button>
+            <button data-upgrade="heatManagement"></button>
+            <button data-upgrade="autonomousArsenal"></button>
+            <button data-upgrade="boostCapacitor"></button>
+            <button data-upgrade="inertialDampeners"></button>
+            <button data-upgrade="zeroPointReactor"></button>
+            <button data-upgrade="combatHeuristics"></button>
+            <button data-upgrade="swarmMatrix"></button>
+            <button data-upgrade="distributedConsciousness"></button>
+            <button data-upgrade="adaptiveHull"></button>
+            <button data-upgrade="combatAlgorithms"></button>
+            <button data-upgrade="railAcceleration"></button>
+            <button data-upgrade="livingDrones"></button>
             <button id="skipUpgradeButton">Skip / Next Wave</button>
         </div>
     </div>
@@ -310,11 +339,11 @@
 
 
 <!-- Platform profile must load first so audio/rendering allocate the correct budgets. -->
-<script src="platformProfile-20260712b.js"></script>
+<script src="platformProfile-20260713c.js"></script>
 <!-- Script order matters: the optional music API is exposed before game.js attempts to use it. -->
-<script src="musicEngine-20260712b.js"></script>
+<script src="musicEngine-20260713c.js"></script>
 <!-- game.js owns the authoritative game state and must remain able to boot without music. -->
-<script src="game-20260712b.js"></script>
+<script src="game-20260713c.js"></script>
 <script>
 window.addEventListener("load", () => {
     const button = document.getElementById("startButton");

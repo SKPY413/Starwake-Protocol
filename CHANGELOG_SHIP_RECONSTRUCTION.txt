@@ -1,0 +1,7 @@
+SHIP RECONSTRUCTION PROGRESSION
+
+- Added Nanobots, Weapon AI, Anti-Gravity, and Quantum system investment.
+- Added Advanced, Experimental, Capstone, and Hybrid one-time research.
+- Added explicit prerequisite text and system counters.
+- Added one passive end-of-wave research choice.
+- Preserved move + aim twin-stick input with automatic abilities only.

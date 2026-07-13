@@ -287,3 +287,11 @@ On touch/mobile layouts:
 - `UPGRADE_DATA` is the single source of truth for system, tier, cost, and prerequisite metadata.
 - Keep prerequisite validation centralized in `getResearchLock()` and never duplicate gate logic in button handlers.
 - End-of-wave research is one choice per completed wave and must be resolved before it can be claimed again.
+
+## Mobile Ship Reconstruction contract
+
+Mobile and desktop use the same Ship Reconstruction DOM and progression state.
+Mobile may change only layout, sizing, and column count. It must never hide,
+replace, or maintain a second legacy upgrade screen. Runtime asset filenames are
+versioned when UI structure changes so deployed mobile browsers cannot reuse an
+older upgrade stylesheet or game script.
