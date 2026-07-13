@@ -1,0 +1,9 @@
+Carrier Command-Ship Overhaul
+
+- Raised initial missile salvos to 8/10/12/16 by difficulty, with additional late-wave scaling.
+- Added frequent replenishment volleys and per-carrier active missile caps.
+- Assigned 50% of each volley to bullet-interception duty.
+- Added launch, orbit, intercept, dive, and return-to-orbit missile states.
+- Added carrier plasma cannon with difficulty-scaled burst count.
+- Added support-range strafing/kiting behavior.
+- Added role colors: blue interceptors, purple orbiters, orange attackers.

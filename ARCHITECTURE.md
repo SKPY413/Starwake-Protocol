@@ -267,3 +267,14 @@ On touch/mobile layouts:
 - Both children use `position: static` inside the fixed top-right row.
 - `#playerHealthBarWrap` remains hidden because mobile health is rendered above
   the player ship.
+
+## Carrier Command-Ship Contract
+
+- Carriers own two independent offensive systems: a direct plasma cannon and a missile factory.
+- Missile production must not be tied to `shootCooldown`; changing cannon balance must not silently alter volley cadence.
+- Opening missile salvos are intentionally large because carriers unlock after the player has built substantial power.
+- Carrier missile doctrine is 50% interceptors. Interceptors delete player bullets and return to orbit rather than behaving like disposable homing rockets.
+- Non-interceptor missiles launch outward, form rings around the player, then dive in timed attack windows before returning to orbit if they miss.
+- Missile counts, active caps, cannon bursts, and volley frequency scale by difficulty through `getCarrierDoctrine()`.
+- Preserve `PERFORMANCE_LIMITS.maxCarrierMissiles`, especially for the mobile profile. New carrier features must respect both per-carrier and global caps.
+- Carrier movement should maintain support range and strafe; it should not revert to simple direct pursuit.

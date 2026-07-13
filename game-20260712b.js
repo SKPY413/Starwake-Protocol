@@ -3239,7 +3239,12 @@
                 health: 1500 + scaledWave * 185,
                 damage: 48,
                 reward: 230 + scaledWave * 12,
-                shootCooldown: Math.max(1500, 3100 - scaledWave * 38),
+                // The carrier cannon is intentionally independent from its missile factory.
+                shootCooldown: Math.max(620, 1250 - scaledWave * 16),
+                missileInitialVolleyPending: true,
+                nextMissileVolleyAt: 0,
+                carrierOrbitDirection: Math.random() < 0.5 ? -1 : 1,
+                carrierOrbitPhase: Math.random() * TWO_PI,
             },
             dodger: {
                 r: 15,
@@ -3315,7 +3320,8 @@
     function spawnEnemy() {
         const position = getSpawnPosition();
         const enemyType = chooseEnemyType();
-        enemies.push(makeEnemy(enemyType, position));
+        const enemy = makeEnemy(enemyType, position);
+        enemies.push(enemy);
 
         if (enemyType === "boss" || enemyType === "gigaBoss") {
             playSound("bossSpawn");
@@ -3403,6 +3409,7 @@
 
         for (const enemy of enemies) {
             if (!enemy || enemy.dead) continue;
+            if (enemy.type === "carrier") updateCarrierSystems(enemy, now);
             if (canEnemyShoot(enemy)) shootEnemy(enemy, now);
             damagePlayerOnTouch(enemy, now);
         }
@@ -3426,6 +3433,9 @@
         }
         if (enemy.type === "fighter") {
             return getFighterMovement(enemy, dx, dy, now);
+        }
+        if (enemy.type === "carrier") {
+            return getCarrierMovement(enemy, dx, dy, now);
         }
 
         return addEnemySeparationSteering(enemy, dx, dy);
@@ -3548,6 +3558,28 @@
     /**
      * Returns derived data without mutating shared state. Keep this helper deterministic where practical.
      */
+    /**
+     * Keeps carriers at support range while they strafe around the player.
+     * The missile screen provides defense; the carrier itself should not blindly ram.
+     */
+    function getCarrierMovement(enemy, baseX, baseY, now) {
+        const dist = distance(enemy, player);
+        const tangentX = -baseY * enemy.carrierOrbitDirection;
+        const tangentY = baseX * enemy.carrierOrbitDirection;
+        const wobble = Math.sin(now / 700 + enemy.carrierOrbitPhase) * 0.16;
+
+        let radial = 0;
+        if (dist < 500) radial = -1.35;
+        else if (dist > 780) radial = 0.72;
+        else radial = clamp((dist - 640) / 260, -0.28, 0.28);
+
+        return addEnemySeparationSteering(
+            enemy,
+            tangentX * 0.88 + baseX * radial + tangentY * wobble,
+            tangentY * 0.88 + baseY * radial - tangentX * wobble
+        );
+    }
+
     function getDodgerMovement(enemy, baseX, baseY, now) {
         enemy.speedMultiplier = 1;
 
@@ -3656,7 +3688,7 @@
         playSound("enemyShoot");
 
         if (enemy.type === "carrier") {
-            launchCarrierMissile(enemy);
+            shootCarrierCannon(enemy);
             return;
         }
 
@@ -3677,54 +3709,229 @@
         const isGigaBoss = enemy.type === "gigaBoss";
         const isBoss = enemy.type === "boss";
         const isMiniTank = enemy.type === "miniTank";
-        const speed = isGigaBoss ? 5.8 : isBoss ? 5.2 : isMiniTank ? 4.9 : 4.6;
+        const isCarrier = enemy.type === "carrier";
+        const speed = isGigaBoss ? 5.8 : isBoss ? 5.2 : isCarrier ? 5.35 : isMiniTank ? 4.9 : 4.6;
 
         enemyBullets.push({
             x: enemy.x + Math.cos(angle) * (enemy.r + 8),
             y: enemy.y + Math.sin(angle) * (enemy.r + 8),
-            r: isGigaBoss ? 11 : isBoss ? 8 : isMiniTank ? 7 : 6,
+            r: isGigaBoss ? 11 : isBoss ? 8 : isCarrier ? 7 : isMiniTank ? 7 : 6,
             dx: Math.cos(angle) * speed,
             dy: Math.sin(angle) * speed,
-            damage: isGigaBoss ? 28 : isBoss ? 18 : isMiniTank ? 14 : 10,
-            color: isGigaBoss ? "#ffffff" : isBoss ? "#ff3535" : isMiniTank ? "#d58bff" : "#ff79c6",
+            damage: isGigaBoss ? 28 : isBoss ? 18 : isCarrier ? Math.round(13 * getDifficulty().enemyDamage) : isMiniTank ? 14 : 10,
+            color: isGigaBoss ? "#ffffff" : isBoss ? "#ff3535" : isCarrier ? "#62d9ff" : isMiniTank ? "#d58bff" : "#ff79c6",
         });
     }
 
     /**
-     * Handles the launchCarrierMissile operation. Keep its responsibilities narrow and update this comment when behavior changes.
+     * Returns carrier doctrine values. Missile counts rise sharply because carriers
+     * enter after the player has had time to assemble a powerful build.
      */
-    function launchCarrierMissile(enemy) {
-        const angle = Math.atan2(player.y - enemy.y, player.x - enemy.x);
+    function getCarrierDoctrine() {
+        const profiles = {
+            easy:       { initial: 8,  volley: 6,  activeCap: 16, volleyCooldown: 2550, cannonShots: 1, cannonSpread: 0.00 },
+            medium:     { initial: 10, volley: 8,  activeCap: 20, volleyCooldown: 2150, cannonShots: 2, cannonSpread: 0.08 },
+            hard:       { initial: 12, volley: 10, activeCap: 26, volleyCooldown: 1750, cannonShots: 3, cannonSpread: 0.10 },
+            impossible: { initial: 16, volley: 14, activeCap: 34, volleyCooldown: 1350, cannonShots: 4, cannonSpread: 0.11 },
+        };
+        const base = profiles[state.difficulty] || profiles.medium;
+        const waveBonus = Math.min(8, Math.floor(Math.max(0, state.wave - 14) / 5));
+        return {
+            ...base,
+            initial: base.initial + waveBonus,
+            volley: base.volley + Math.floor(waveBonus * 0.75),
+            activeCap: base.activeCap + waveBonus,
+            volleyCooldown: Math.max(900, base.volleyCooldown - waveBonus * 55),
+        };
+    }
+
+    /**
+     * Runs the carrier's missile factory independently from its cannon.
+     * The first salvo is intentionally immediate and large.
+     */
+    function updateCarrierSystems(enemy, now) {
+        const doctrine = getCarrierDoctrine();
+        const activeOwned = carrierMissiles.reduce(
+            (count, missile) => count + (missile && !missile.dead && missile.owner === enemy ? 1 : 0),
+            0
+        );
+
+        if (enemy.missileInitialVolleyPending) {
+            launchCarrierVolley(enemy, Math.min(doctrine.initial, doctrine.activeCap));
+            enemy.missileInitialVolleyPending = false;
+            enemy.nextMissileVolleyAt = now + doctrine.volleyCooldown * 0.72;
+            return;
+        }
+
+        if (now < enemy.nextMissileVolleyAt || activeOwned >= doctrine.activeCap) return;
+        const roomForCarrier = doctrine.activeCap - activeOwned;
+        const roomGlobal = Math.max(0, PERFORMANCE_LIMITS.maxCarrierMissiles - carrierMissiles.filter(m => m && !m.dead).length);
+        const launchCount = Math.min(doctrine.volley, roomForCarrier, roomGlobal);
+        if (launchCount > 0) launchCarrierVolley(enemy, launchCount);
+        enemy.nextMissileVolleyAt = now + doctrine.volleyCooldown;
+    }
+
+    /**
+     * Fires the carrier's own plasma cannon. Missile defense does not replace direct pressure.
+     */
+    function shootCarrierCannon(enemy) {
+        const doctrine = getCarrierDoctrine();
+        const baseAngle = Math.atan2(player.y - enemy.y, player.x - enemy.x);
+        const center = (doctrine.cannonShots - 1) / 2;
+        for (let i = 0; i < doctrine.cannonShots; i++) {
+            createEnemyBullet(enemy, baseAngle + (i - center) * doctrine.cannonSpread);
+        }
+    }
+
+    /**
+     * Creates one coordinated volley. Exactly half the salvo receives interceptor duty;
+     * the remainder orbit before periodically diving at the player.
+     */
+    function launchCarrierVolley(enemy, count) {
+        if (count <= 0) return;
+        const interceptorCount = Math.ceil(count * 0.5);
+        for (let i = 0; i < count; i++) {
+            const role = i < interceptorCount ? "interceptor" : (i % 3 === 0 ? "orbit" : "attacker");
+            launchCarrierMissile(enemy, role, i, count);
+        }
+    }
+
+    /**
+     * Creates a missile that launches outward, forms a ring around the player, then performs
+     * its assigned job. Interceptors consume bullets without sacrificing themselves.
+     */
+    function launchCarrierMissile(enemy, role = "attacker", index = 0, volleySize = 1) {
+        if (carrierMissiles.filter(m => m && !m.dead).length >= PERFORMANCE_LIMITS.maxCarrierMissiles) return;
+        const launchAngle = (TWO_PI * index / Math.max(1, volleySize)) + Math.random() * 0.14;
+        const difficultySpeed = state.difficulty === "impossible" ? 0.75 : state.difficulty === "hard" ? 0.4 : 0;
+        const orbitRing = index % 2;
+        const now = performance.now();
+        const health = 24 + state.wave * 2.5;
         carrierMissiles.push({
-            x: enemy.x + Math.cos(angle) * (enemy.r + 14),
-            y: enemy.y + Math.sin(angle) * (enemy.r + 14),
-            dx: Math.cos(angle) * 2.2,
-            dy: Math.sin(angle) * 2.2,
-            speed: 3.15,
-            turnRate: 0.045,
-            r: 13,
-            health: 28 + state.wave * 3,
-            maxHealth: 28 + state.wave * 3,
-            damage: Math.round((24 + state.wave * 0.9) * getDifficulty().enemyDamage),
-            life: 520,
+            owner: enemy,
+            role,
+            mode: "launch",
+            x: enemy.x + Math.cos(launchAngle) * (enemy.r + 14),
+            y: enemy.y + Math.sin(launchAngle) * (enemy.r + 14),
+            dx: Math.cos(launchAngle) * 3.2,
+            dy: Math.sin(launchAngle) * 3.2,
+            speed: 3.35 + difficultySpeed,
+            turnRate: 0.052 + difficultySpeed * 0.012,
+            r: 11,
+            health,
+            maxHealth: health,
+            damage: Math.round((20 + state.wave * 0.72) * getDifficulty().enemyDamage),
+            life: 1500,
+            launchedAt: now,
+            modeUntil: now + 420 + Math.random() * 180,
+            orbitAngle: launchAngle,
+            orbitDirection: index % 2 === 0 ? 1 : -1,
+            orbitRadius: 235 + orbitRing * 82 + Math.random() * 26,
+            orbitSpeed: 0.012 + Math.random() * 0.004,
+            diveAt: now + (role === "attacker" ? 1200 : role === "orbit" ? 2600 : 999999),
+            diveEndsAt: 0,
+            retargetAt: 0,
+            targetBullet: null,
+            interceptCooldownUntil: 0,
         });
     }
 
     /**
-     * Advances this subsystem by one simulation step. Respect paused/ended state and avoid unnecessary allocations.
+     * Finds a nearby player projectile worth intercepting. Prefer bullets approaching the
+     * carrier or player, then fall back to nearest distance.
      */
-    function updateCarrierMissiles() {
+    function findCarrierInterceptionTarget(missile) {
+        let best = null;
+        let bestScore = Infinity;
+        for (const bullet of bullets) {
+            if (!bullet || bullet.dead) continue;
+            const dx = bullet.x - missile.x;
+            const dy = bullet.y - missile.y;
+            const dist = Math.hypot(dx, dy);
+            if (dist > 620) continue;
+            const owner = missile.owner && !missile.owner.dead ? missile.owner : player;
+            const ownerDist = Math.hypot(bullet.x - owner.x, bullet.y - owner.y);
+            const score = dist + ownerDist * 0.22;
+            if (score < bestScore) {
+                bestScore = score;
+                best = bullet;
+            }
+        }
+        return best;
+    }
+
+    /**
+     * Steers a missile toward a point using bounded angular acceleration.
+     */
+    function steerCarrierMissile(missile, targetX, targetY, speedMultiplier = 1) {
+        const desired = Math.atan2(targetY - missile.y, targetX - missile.x);
+        const current = Math.atan2(missile.dy, missile.dx);
+        const delta = ((desired - current + Math.PI * 3) % TWO_PI) - Math.PI;
+        const next = current + clamp(delta, -missile.turnRate, missile.turnRate);
+        missile.dx = Math.cos(next) * missile.speed * speedMultiplier;
+        missile.dy = Math.sin(next) * missile.speed * speedMultiplier;
+    }
+
+    /**
+     * Advances the carrier swarm. Attack missiles orbit before diving; interceptors leave
+     * formation only when a player bullet is available, then return to the ring.
+     */
+    function updateCarrierMissiles(now = performance.now()) {
         for (const missile of carrierMissiles) {
             if (!missile || missile.dead) continue;
             missile.life--;
             if (missile.life <= 0) { missile.dead = true; continue; }
 
-            const desired = Math.atan2(player.y - missile.y, player.x - missile.x);
-            const current = Math.atan2(missile.dy, missile.dx);
-            let delta = ((desired - current + Math.PI * 3) % TWO_PI) - Math.PI;
-            const next = current + clamp(delta, -missile.turnRate, missile.turnRate);
-            missile.dx = Math.cos(next) * missile.speed;
-            missile.dy = Math.sin(next) * missile.speed;
+            if (missile.owner && missile.owner.dead) {
+                missile.role = "attacker";
+                missile.mode = "dive";
+                missile.diveEndsAt = now + 1800;
+            }
+
+            if (missile.mode === "launch" && now >= missile.modeUntil) missile.mode = "orbit";
+
+            if (missile.role === "interceptor" && now >= missile.interceptCooldownUntil) {
+                if (!missile.targetBullet || missile.targetBullet.dead || now >= missile.retargetAt) {
+                    missile.targetBullet = findCarrierInterceptionTarget(missile);
+                    missile.retargetAt = now + 130;
+                }
+                if (missile.targetBullet && !missile.targetBullet.dead) missile.mode = "intercept";
+                else if (missile.mode === "intercept") missile.mode = "orbit";
+            }
+
+            if ((missile.role === "attacker" || missile.role === "orbit") && missile.mode === "orbit" && now >= missile.diveAt) {
+                missile.mode = "dive";
+                missile.diveEndsAt = now + (missile.role === "attacker" ? 1150 : 850);
+            }
+
+            if (missile.mode === "intercept" && missile.targetBullet && !missile.targetBullet.dead) {
+                const leadFrames = 7;
+                steerCarrierMissile(
+                    missile,
+                    missile.targetBullet.x + missile.targetBullet.dx * leadFrames,
+                    missile.targetBullet.y + missile.targetBullet.dy * leadFrames,
+                    1.18
+                );
+            } else if (missile.mode === "dive") {
+                steerCarrierMissile(missile, player.x, player.y, 1.24);
+                if (now >= missile.diveEndsAt) {
+                    missile.mode = "orbit";
+                    missile.diveAt = now + 1500 + Math.random() * 1300;
+                }
+            } else if (missile.mode === "launch") {
+                // Preserve the radial launch vector briefly for a readable opening burst.
+            } else {
+                missile.orbitAngle += missile.orbitDirection * missile.orbitSpeed;
+                const wobble = Math.sin(now / 310 + missile.orbitAngle * 2.2) * 18;
+                const targetRadius = missile.orbitRadius + wobble;
+                steerCarrierMissile(
+                    missile,
+                    player.x + Math.cos(missile.orbitAngle) * targetRadius,
+                    player.y + Math.sin(missile.orbitAngle) * targetRadius,
+                    0.96
+                );
+            }
+
             missile.x += missile.dx;
             missile.y += missile.dy;
 
@@ -3732,7 +3939,7 @@
                 missile.dead = true;
                 damagePlayer(missile.damage);
                 explosions.push({ x: missile.x, y: missile.y, radius: 46, life: 14, maxLife: 14 });
-            } else if (isOutsideWorld(missile, 90)) {
+            } else if (isOutsideWorld(missile, 160)) {
                 missile.dead = true;
             }
         }
@@ -3748,6 +3955,18 @@
                 if (!missile || missile.dead) continue;
                 if (distance(bullet, missile) >= bullet.r + missile.r) continue;
                 bullet.dead = true;
+
+                // Interceptors are defensive drones: they erase the projectile and return
+                // to orbit instead of taking conventional collision damage.
+                if (missile.role === "interceptor" && missile.mode === "intercept") {
+                    missile.targetBullet = null;
+                    missile.mode = "orbit";
+                    missile.interceptCooldownUntil = performance.now() + 260;
+                    missile.diveAt = 999999999;
+                    explosions.push({ x: bullet.x, y: bullet.y, radius: 18, life: 7, maxLife: 7, harmless: true });
+                    break;
+                }
+
                 missile.health -= bullet.damage;
                 addDamageNumber(missile.x, missile.y, bullet.damage, "#b8f6ff");
                 if (missile.health <= 0) {
@@ -4863,9 +5082,10 @@
             ctx.save();
             ctx.translate(screen.x, screen.y);
             ctx.rotate(angle);
-            ctx.shadowColor = "#ff6b4a";
+            const roleColor = missile.role === "interceptor" ? "#55d7ff" : missile.mode === "orbit" ? "#b86bff" : "#ff8a4c";
+            ctx.shadowColor = roleColor;
             ctx.shadowBlur = 12;
-            ctx.fillStyle = "#ffcf66";
+            ctx.fillStyle = missile.role === "interceptor" ? "#b8f6ff" : missile.mode === "orbit" ? "#e0b8ff" : "#ffcf66";
             ctx.beginPath();
             ctx.moveTo(16, 0);
             ctx.lineTo(-10, -8);
@@ -4873,7 +5093,7 @@
             ctx.lineTo(-10, 8);
             ctx.closePath();
             ctx.fill();
-            ctx.fillStyle = "#ff5b3d";
+            ctx.fillStyle = roleColor;
             ctx.fillRect(-17, -3, 8, 6);
             ctx.restore();
 
