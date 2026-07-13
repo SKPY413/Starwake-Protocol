@@ -278,3 +278,12 @@ On touch/mobile layouts:
 - Missile counts, active caps, cannon bursts, and volley frequency scale by difficulty through `getCarrierDoctrine()`.
 - Preserve `PERFORMANCE_LIMITS.maxCarrierMissiles`, especially for the mobile profile. New carrier features must respect both per-carrier and global caps.
 - Carrier movement should maintain support range and strafe; it should not revert to simple direct pursuit.
+
+
+## Ship Reconstruction progression contract
+- Combat input remains movement + aim; all research effects are passive or automatic.
+- Core upgrades may repeat. Advanced unlocks require 3 system investment, Experimental 6, and Capstones 9 plus the previous unique module.
+- Hybrid research requires investment in two systems and must never add combat buttons.
+- `UPGRADE_DATA` is the single source of truth for system, tier, cost, and prerequisite metadata.
+- Keep prerequisite validation centralized in `getResearchLock()` and never duplicate gate logic in button handlers.
+- End-of-wave research is one choice per completed wave and must be resolved before it can be claimed again.
