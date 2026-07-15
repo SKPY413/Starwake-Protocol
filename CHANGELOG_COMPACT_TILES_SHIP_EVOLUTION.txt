@@ -1,0 +1,8 @@
+STARWAKE PROTOCOL — COMPACT TILES + SHIP EVOLUTION
+
+- Desktop Ship Reconstruction now uses square upgrade tiles.
+- Mobile uses responsive two-column tiles and one column on very narrow screens.
+- Expanded desktop reconstruction width to reduce scrolling.
+- Added cosmetic research hardware to the player ship:
+  Weapon AI cannon, Nanobot armor, Anti-Gravity fins/thrusters, Quantum orbiting nodes.
+- Visual hardware scales with branch investment but never changes collision size.

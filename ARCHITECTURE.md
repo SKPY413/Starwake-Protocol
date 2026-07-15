@@ -360,3 +360,25 @@ world; that can increase travel time without reducing local density.
 - Relic behavior is automatic; never add new combat buttons for relic activation.
 - Frequent relic effects must reuse existing projectile/particle systems and obey platform limits.
 - Global enemy movement is intentionally multiplied by 0.60 after all archetype and difficulty scaling.
+
+
+## Relic reveal contract
+
+- Dormant relic cards may hide their exact behavior behind a lore hint.
+- The instant a research stage completes, the UI must reveal the actual unlocked behavior.
+- Awakened cards must retain the effect description and state what the next stage improves.
+- Ability secrecy is a pre-awakening presentation rule, not a reason to leave players unable to understand an active system.
+- Undo may reverse the completed stage; the reveal overlay is presentation-only and is not part of saved combat state.
+
+## Compact reconstruction tiles and ship visual evolution
+
+- Desktop reconstruction upgrades use compact square tiles grouped by system.
+- Mobile uses two columns where practical and collapses to one column on narrow screens.
+- Player visual evolution is rendered by `drawShipResearchHardware()`.
+- Hardware is cosmetic only. Never use rendered gun length, armor plates, fins, or quantum nodes for collision or targeting calculations.
+- Branch identity:
+  - Weapon AI: forward cannon grows and gains rails/core effects.
+  - Nanobots: green armor plating and repair nodes.
+  - Anti-Gravity: stabilizer fins and secondary thruster glow.
+  - Quantum: floating processor nodes.
+- Clamp visual growth independently from endless investment levels to preserve sprite readability.

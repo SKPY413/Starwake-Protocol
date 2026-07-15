@@ -1,0 +1,8 @@
+STARWAKE PROTOCOL — RELIC REVEAL UPDATE
+
+- Added a full-screen Relic Research completion reveal.
+- Astral Lens now explicitly reveals Tactical Laser behavior at 5/5.
+- Verdant Core, Gravity Heart, and Echoing Swarm now reveal their abilities at awakening.
+- Awakened research cards permanently display the active effect.
+- Cards explain what the next Resonant or Ascendant stage improves.
+- Cache-busted all runtime assets.
