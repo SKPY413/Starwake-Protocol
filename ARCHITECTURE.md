@@ -352,3 +352,11 @@ world; that can increase travel time without reducing local density.
 - Advanced, Experimental, Hybrid, and Capstone research use progressively larger tier multipliers.
 - Mature builds receive a capped global surcharge after ten purchased levels.
 - Do not apply a flat global percentage increase outside `getUpgradeCost()`.
+
+
+## Relic Research contract
+- End-of-wave research allocates exactly one fragment to one of four hidden-effect relic projects.
+- Player-facing UI exposes only codename, affinity, lore hint, stage, and progress.
+- Relic behavior is automatic; never add new combat buttons for relic activation.
+- Frequent relic effects must reuse existing projectile/particle systems and obey platform limits.
+- Global enemy movement is intentionally multiplied by 0.60 after all archetype and difficulty scaling.
