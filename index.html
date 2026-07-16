@@ -7,6 +7,9 @@
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
 <title>Starwake Protocol</title>
+<link rel="icon" type="image/png" sizes="16x16" href="assets/branding/seal-mk1/seal-16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/branding/seal-mk1/seal-32.png">
+<link rel="apple-touch-icon" sizes="256x256" href="assets/branding/seal-mk1/seal-256.png">
 <link rel="stylesheet" href="styles-20260715-compact-evolution.css">
 </head>
 <body>
@@ -30,7 +33,11 @@
 </div>
 
 
-<div id="topWaveCounter">Wave <span id="wave">1</span></div>
+<div id="topWaveCounter"><div id="gameplaySeal" class="splash-seal gameplay-seal" aria-hidden="true">
+    <div class="splash-seal-ring splash-seal-ring-outer"></div><div class="splash-seal-ring splash-seal-ring-inner"></div>
+    <div class="splash-seal-star splash-seal-star-cardinal"></div><div class="splash-seal-star splash-seal-star-diagonal"></div>
+    <div class="splash-seal-core"><span class="splash-seal-wake wake-a"></span><span class="splash-seal-wake wake-b"></span><span class="splash-seal-wake wake-c"></span><span class="splash-seal-orb"></span></div>
+</div><span class="wave-label">Wave <span id="wave">1</span></span></div>
 
 <div id="debugPanel" aria-label="Debug controls">
     <button id="debugAddPointsButton" type="button">+1000 Points</button>
@@ -75,10 +82,16 @@
     </div>
 </div>
 
-<div id="playerHealthBarWrap">
-    <div id="playerHealthBar"></div>
-    <div id="regenHealthTick"></div>
-    <div id="playerHealthText">100 / 100</div>
+<div id="playerVitalBars">
+    <div id="playerShieldBarWrap" hidden aria-label="Player shield">
+        <div id="playerShieldBar"></div>
+        <div id="playerShieldText">0 / 0</div>
+    </div>
+    <div id="playerHealthBarWrap">
+        <div id="playerHealthBar"></div>
+        <div id="regenHealthTick"></div>
+        <div id="playerHealthText">100 / 100</div>
+    </div>
 </div>
 
 <div id="pauseOverlay">
@@ -123,7 +136,7 @@
 </div>
 
 <div id="topRightHud" aria-label="Gameplay controls and minimap">
-    <button id="touchPauseButton" class="touch-pause-button" type="button" aria-label="Pause game">Ⅱ</button>
+    <button id="touchPauseButton" class="touch-pause-button" type="button" aria-label="Pause game"><span aria-hidden="true">Ⅱ</span></button>
     <div id="minimapWrap">
         <div id="minimapTitle">MINIMAP</div>
         <canvas id="minimap" width="204" height="136"></canvas>
@@ -133,6 +146,18 @@
 <!-- Boot splash: its Continue handler is intentionally fail-safe and independent of game.js. -->
 <div id="splashScreen">
     <div class="splash-card">
+        <div class="splash-seal" aria-hidden="true">
+            <div class="splash-seal-ring splash-seal-ring-outer"></div>
+            <div class="splash-seal-ring splash-seal-ring-inner"></div>
+            <div class="splash-seal-star splash-seal-star-cardinal"></div>
+            <div class="splash-seal-star splash-seal-star-diagonal"></div>
+            <div class="splash-seal-core">
+                <span class="splash-seal-wake wake-a"></span>
+                <span class="splash-seal-wake wake-b"></span>
+                <span class="splash-seal-wake wake-c"></span>
+                <span class="splash-seal-orb"></span>
+            </div>
+        </div>
         <div class="splash-kicker">AI-Collaborative Arcade Study</div>
         <h1 class="splash-title">Starwake<br>Protocol</h1>
         <p class="splash-tagline">A Human–AI Collaborative Experiment in Emergent Game Design</p>
@@ -211,8 +236,60 @@
             <span>Developer Mode</span>
         </label>
 
+
+        <section class="save-data-panel" aria-labelledby="saveDataTitle">
+            <div class="save-data-heading">
+                <div>
+                    <strong id="saveDataTitle">Save Data</strong>
+                    <span id="saveDataSummary">No recoverable run detected.</span>
+                </div>
+                <span id="saveIntegrityBadge" class="save-integrity-badge">Checking…</span>
+            </div>
+            <div class="save-data-actions">
+                <button id="continueSavedRunButton" type="button" disabled>Continue Saved Run</button>
+                <button id="exportSaveButton" type="button">Export Save</button>
+                <button id="importSaveButton" type="button">Import Save</button>
+                <button id="recoverSaveButton" type="button">Recovery</button>
+                <button id="inspectSaveButton" type="button" aria-expanded="false" aria-controls="saveInspectorPanel">Inspect Saves</button>
+                <input id="importSaveFile" type="file" accept="application/json,.json" hidden>
+            </div>
+            <div id="saveInspectorPanel" class="save-inspector-panel" hidden>
+                <div class="save-inspector-header">
+                    <div class="save-inspector-identity">
+                        <div id="saveHealthSeal" class="save-health-seal state-checking" role="img" aria-label="Save health checking">
+                            <span class="save-health-ring ring-outer"></span>
+                            <span class="save-health-ring ring-inner"></span>
+                            <span class="save-health-star star-a"></span>
+                            <span class="save-health-star star-b"></span>
+                            <span class="save-health-core"><i></i><i></i><i></i><b></b></span>
+                        </div>
+                        <div>
+                            <strong>Save Inspector</strong>
+                            <span id="saveInspectorReassurance">Checking protected copies…</span>
+                        </div>
+                    </div>
+                    <div id="saveIntegrityMeter" class="save-integrity-meter" role="meter" aria-label="Save integrity" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                        <span id="saveIntegrityPercent">0%</span>
+                    </div>
+                </div>
+                <dl id="saveInspectorDetails" class="save-inspector-details"></dl>
+                <div id="saveSlotList" class="save-slot-list" aria-label="Save copies"></div>
+                <p id="saveInspectorAdvice" class="save-inspector-advice"></p>
+                <section class="save-activity-panel" aria-labelledby="saveActivityTitle">
+                    <div class="save-activity-heading">
+                        <div><strong id="saveActivityTitle">Recent Save Activity</strong><span>Newest events first · up to 40 entries retained</span></div>
+                        <button id="clearSaveActivityButton" type="button">Clear History</button>
+                    </div>
+                    <p id="saveActivityEmpty" class="save-activity-empty">No save activity has been recorded yet.</p>
+                    <ol id="saveActivityList" class="save-activity-list"></ol>
+                </section>
+            </div>
+            <p id="saveDataStatus" class="save-data-status" role="status" aria-live="polite"></p>
+        </section>
+
         <div class="menu-controls">
             <button class="fullscreen-button" data-fullscreen-button type="button">Enter Fullscreen</button>
+            <button id="creditsButton" type="button">Credits</button>
             <button id="startButton" type="button">Launch Protocol</button>
             <div id="startupStatus" hidden role="alert" style="margin-top:10px;color:#ffb0b0;font-size:13px;line-height:1.35;"></div>
         </div>
@@ -221,6 +298,21 @@
             <strong id="developerModeStatus" hidden>Developer Mode Enabled</strong>
         </footer>
     </div>
+</div>
+
+<!-- Credits: the tiny Developer Seal evolves with each public release stage. -->
+<div id="creditsOverlay" class="credits-overlay" hidden aria-hidden="true">
+    <section class="credits-card" role="dialog" aria-modal="true" aria-labelledby="creditsTitle">
+        <button id="creditsCloseButton" class="credits-close" type="button" aria-label="Close credits">×</button>
+        <img class="developer-seal" src="assets/branding/seal-mk1/seal-32.png" width="32" height="32" alt="Starwake Developer Seal, Mark I">
+        <h1 id="creditsTitle">Starwake Protocol</h1>
+        <p>A Human–AI Collaborative Experiment in Emergent Game Design</p>
+        <div class="credits-divider"></div>
+        <p><strong>Creative direction, design, testing, and production</strong><br>Brandon Henderson</p>
+        <p><strong>Collaborative design, engineering, and narrative development</strong><br>OpenAI GPT</p>
+        <p class="credits-stage">Developer Seal Mk. I · Pre-Beta</p>
+        <p class="credits-note">The seal changes as Starwake advances through its release stages.</p>
+    </section>
 </div>
 
 <!-- Upgrade Protocol: gameplay is paused while this overlay owns pointer input. -->
@@ -324,8 +416,10 @@
             </section>
 
             <div class="upgrade-action-bar">
-                <button id="undoUpgradeButton" type="button" disabled>Undo Last Choice</button>
+                <button id="undoUpgradeButton" type="button" disabled>Undo Choices</button>
+                <button id="saveUpgradeMenuButton" class="upgrade-save-button" type="button">Save Game</button>
                 <button id="skipUpgradeButton">Skip / Next Wave</button>
+                <span id="upgradeSaveStatus" class="upgrade-save-status" role="status" aria-live="polite"></span>
             </div>
         </div>
     </div>
@@ -380,6 +474,25 @@
         continueButton.addEventListener("pointerup", openMainMenu);
         continueButton.addEventListener("touchend", openMainMenu, { passive: false });
     }
+
+    const creditsButton = document.getElementById("creditsButton");
+    const creditsOverlay = document.getElementById("creditsOverlay");
+    const creditsCloseButton = document.getElementById("creditsCloseButton");
+    const setCreditsOpen = (open) => {
+        if (!creditsOverlay) return;
+        creditsOverlay.hidden = !open;
+        creditsOverlay.setAttribute("aria-hidden", String(!open));
+        if (open) creditsCloseButton?.focus();
+        else creditsButton?.focus();
+    };
+    creditsButton?.addEventListener("click", () => setCreditsOpen(true));
+    creditsCloseButton?.addEventListener("click", () => setCreditsOpen(false));
+    creditsOverlay?.addEventListener("click", (event) => {
+        if (event.target === creditsOverlay) setCreditsOpen(false);
+    });
+    window.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && creditsOverlay && !creditsOverlay.hidden) setCreditsOpen(false);
+    });
 })();
 </script>
 
@@ -390,7 +503,7 @@
 <!-- Script order matters: the optional music API is exposed before game.js attempts to use it. -->
 <script src="musicEngine-20260715-compact-evolution.js"></script>
 <!-- game.js owns the authoritative game state and must remain able to boot without music. -->
-<script src="game-20260715-compact-evolution.js"></script>
+<script src="game-20260716-phase-aware-save.js"></script>
 <script>
 window.addEventListener("load", () => {
     const button = document.getElementById("startButton");

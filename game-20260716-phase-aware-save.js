@@ -89,6 +89,10 @@
         mapInfo: document.getElementById("mapInfo"),
         finalScore: document.getElementById("finalScore"),
         finalWave: document.getElementById("finalWave"),
+        playerVitalBars: document.getElementById("playerVitalBars"),
+        playerShieldBarWrap: document.getElementById("playerShieldBarWrap"),
+        playerShieldBar: document.getElementById("playerShieldBar"),
+        playerShieldText: document.getElementById("playerShieldText"),
         playerHealthBarWrap: document.getElementById("playerHealthBarWrap"),
         playerHealthBar: document.getElementById("playerHealthBar"),
         regenHealthTick: document.getElementById("regenHealthTick"),
@@ -2206,6 +2210,7 @@
         explosiveRadius: 0,
         explosiveDamageRatio: 0.45,
         speedBoostUntil: 0,
+        weaponBoostUntil: 0,
         slowUntil: 0,
         slowMultiplier: 1,
         pointMagnetRadius: 95,
@@ -2301,13 +2306,13 @@
     const RELIC_DEFINITIONS = Object.freeze({
         relic_green_01: {
             system: "green",
-            name: "VERDANT CORE",
-            hint: "A patient orbit waits beneath the hull.",
+            name: "VERDANT AEGIS",
+            hint: "The hull remembers how to remain whole.",
             thresholds: [5, 10, 15],
             reveals: [
-                { title: "ORBITAL ENERGY SPHERE ONLINE", description: "A verdant energy sphere now circles the ship and detonates when it collides with an enemy.", next: "Resonant research increases sphere count, impact damage, and recovery speed." },
-                { title: "VERDANT CORE — RESONANT", description: "The orbital defense gains additional coverage and strikes with greater force.", next: "Ascendant research further expands the living orbital array." },
-                { title: "VERDANT CORE — ASCENDANT", description: "The orbital energy array reaches its highest known combat configuration.", next: "Further fragments refine damage and uptime." },
+                { title: "VERDANT AEGIS ONLINE", description: "The relic reinforces maximum hull, creates a rechargeable shield, and performs periodic emergency repairs.", next: "Resonant research strengthens shield capacity, healing, and recharge frequency." },
+                { title: "VERDANT AEGIS — RESONANT", description: "Hull reinforcement and shield recovery become substantially stronger.", next: "Ascendant research completes the defensive lattice." },
+                { title: "VERDANT AEGIS — ASCENDANT", description: "The ship reaches the relic's highest known health, shield, and self-repair configuration.", next: "Further fragments refine defensive efficiency." },
             ],
         },
         relic_red_01: {
@@ -2323,24 +2328,24 @@
         },
         relic_blue_01: {
             system: "blue",
-            name: "GRAVITY HEART",
-            hint: "Space folds, then remembers its shape.",
+            name: "MOMENTUM VEIL",
+            hint: "Defeated signals leave motion behind.",
             thresholds: [5, 10, 15],
             reveals: [
-                { title: "GRAVITY PULSE ONLINE", description: "The Gravity Heart now releases an automatic pulse that pushes nearby enemies away and briefly slows them.", next: "Resonant research increases pulse radius, force, slow duration, and activation frequency." },
-                { title: "GRAVITY HEART — RESONANT", description: "Gravity pulses cover more space, trigger more often, and hold enemies in a weakened movement state for longer.", next: "Ascendant research further strengthens battlefield control." },
-                { title: "GRAVITY HEART — ASCENDANT", description: "The gravity pulse reaches its highest known radius, force, and control frequency.", next: "Further fragments continue refining pulse efficiency." },
+                { title: "HIDDEN OVERDRIVE DROPS ONLINE", description: "Enemies can release concealed overdrive fragments that boost both movement speed and weapon cycle speed.", next: "Resonant research improves drop rate, duration, and end-of-wave pickup reach." },
+                { title: "MOMENTUM VEIL — RESONANT", description: "Overdrive fragments appear more often, last longer, and are drawn from farther away after a wave ends.", next: "Ascendant research completes the momentum recovery system." },
+                { title: "MOMENTUM VEIL — ASCENDANT", description: "Hidden boost drops and end-of-wave collection reach reach their highest known efficiency.", next: "Further fragments refine overdrive frequency and duration." },
             ],
         },
         relic_purple_01: {
             system: "purple",
-            name: "ECHOING SWARM",
-            hint: "Small voices answer from outside the signal.",
+            name: "RIFT TEARER",
+            hint: "The system opens where reality is weakest.",
             thresholds: [5, 10, 15],
             reveals: [
-                { title: "COMBAT DRONE WING ONLINE", description: "Temporary autonomous followers now orbit the ship, acquire nearby targets, and fire independently. They can be destroyed and are rebuilt automatically.", next: "Resonant research increases drone count, durability, lifetime, and weapon damage." },
-                { title: "ECHOING SWARM — RESONANT", description: "The drone wing fields stronger, longer-lived followers with improved weapons and battlefield presence.", next: "Ascendant research expands the swarm to its highest known configuration." },
-                { title: "ECHOING SWARM — ASCENDANT", description: "The combat-drone wing reaches its highest known count, durability, lifetime, and damage output.", next: "Further fragments continue refining swarm performance." },
+                { title: "RIFT TEARER ONLINE", description: "Unstable rifts open around the ship and repeatedly damage enemies that cross their event horizons.", next: "Resonant research adds rifts, increases their size, and intensifies their damage." },
+                { title: "RIFT TEARER — RESONANT", description: "More persistent tears surround the ship with wider and more destructive event horizons.", next: "Ascendant research pushes local space toward controlled collapse." },
+                { title: "RIFT TEARER — ASCENDANT", description: "The rift array reaches its highest known count, radius, duration, and damage output.", next: "Further fragments refine spatial instability." },
             ],
         },
     });
@@ -2351,10 +2356,13 @@
         awakened: false,
     }]));
 
-    const relicOrbs = [];
-    const relicDrones = [];
+    const relicOrbs = []; // retained for save compatibility; no longer used by Verdant Aegis
+    const relicDrones = []; // retained for save compatibility; replaced by Rift Tearer
     const relicLaser = { nextAt: 0, activeUntil: 0, angle: 0, hitIds: new Set() };
-    const relicPulse = { nextAt: 0, visualUntil: 0, radius: 0 };
+    const relicPulse = { nextAt: 0, visualUntil: 0, radius: 0 }; // retained for compatibility
+    const relicGreen = { nextRepairAt: 0, appliedStage: 0 };
+    const relicRifts = [];
+    let nextRelicRiftAt = 0;
     let nextRelicDroneId = 1;
 
     function getRelicThreshold(id) {
@@ -2807,14 +2815,13 @@
     /**
      * Pauses wave progression and exposes the upgrade flow. Keep menu audio and UI changes reversible when the next wave starts.
      */
-    // Single-step reconstruction undo. The snapshot is intentionally scoped to
-    // upgrade-menu state only: player build data, currency, research selection,
-    // and the displayed weapon label. It is cleared when the menu opens or the
-    // next wave begins so combat state can never be rewound accidentally.
-    let lastReconstructionAction = null;
+    // Reconstruction undo history is scoped to the current upgrade-menu visit.
+    // Every committed choice pushes a snapshot, allowing the player to walk all
+    // the way back to the state in which the menu opened without rewinding combat.
+    const reconstructionUndoStack = [];
 
     function captureReconstructionSnapshot(label) {
-        lastReconstructionAction = {
+        reconstructionUndoStack.push({
             label,
             player: { ...player },
             upgradeLevels: { ...upgradeLevels },
@@ -2823,21 +2830,22 @@
             relicResearch: structuredClone(relicResearch),
             nextWaveSpeedBoostMs: state.nextWaveSpeedBoostMs,
             weaponLabel: ui.weapon?.textContent ?? "",
-        };
+        });
         updateUndoUpgradeButton();
     }
 
     function clearReconstructionUndo() {
-        lastReconstructionAction = null;
+        reconstructionUndoStack.length = 0;
         updateUndoUpgradeButton();
     }
 
     function updateUndoUpgradeButton() {
         if (!ui.undoUpgradeButton) return;
-        ui.undoUpgradeButton.disabled = !lastReconstructionAction;
-        ui.undoUpgradeButton.textContent = lastReconstructionAction
-            ? `Undo: ${lastReconstructionAction.label}`
-            : "Undo Last Choice";
+        const latest = reconstructionUndoStack.at(-1);
+        ui.undoUpgradeButton.disabled = !latest;
+        ui.undoUpgradeButton.textContent = latest
+            ? `Undo: ${latest.label} (${reconstructionUndoStack.length} left)`
+            : "Undo Choices";
     }
 
     function restoreWaveResearchUI() {
@@ -2847,28 +2855,38 @@
     }
 
     function undoLastReconstructionAction() {
-        if (!lastReconstructionAction) return;
-        const snapshot = lastReconstructionAction;
-        lastReconstructionAction = null;
+        const snapshot = reconstructionUndoStack.pop();
+        if (!snapshot) return;
 
-        for (const key of Object.keys(player)) {
-            if (!(key in snapshot.player)) delete player[key];
-        }
-        Object.assign(player, snapshot.player);
-        Object.assign(upgradeLevels, snapshot.upgradeLevels);
-        state.upgradePoints = snapshot.upgradePoints;
-        Object.assign(waveResearch, snapshot.waveResearch);
-        if (snapshot.relicResearch) {
-            for (const [id, data] of Object.entries(snapshot.relicResearch)) Object.assign(relicResearch[id], data);
-        }
-        state.nextWaveSpeedBoostMs = snapshot.nextWaveSpeedBoostMs || 0;
-        if (ui.weapon) ui.weapon.textContent = snapshot.weaponLabel;
-
-        restoreWaveResearchUI();
-        updateUI();
-        updateUpgradeButtons();
+        // Refresh immediately after popping so the button always describes the
+        // new top of the stack, even if a later UI renderer encounters an error.
         updateUndoUpgradeButton();
-        playSound("pickup");
+
+        try {
+            for (const key of Object.keys(player)) {
+                if (!(key in snapshot.player)) delete player[key];
+            }
+            Object.assign(player, snapshot.player);
+            Object.assign(upgradeLevels, snapshot.upgradeLevels);
+            state.upgradePoints = snapshot.upgradePoints;
+            Object.assign(waveResearch, snapshot.waveResearch);
+            if (snapshot.relicResearch) {
+                for (const [id, data] of Object.entries(snapshot.relicResearch)) Object.assign(relicResearch[id], data);
+            }
+            state.nextWaveSpeedBoostMs = snapshot.nextWaveSpeedBoostMs || 0;
+            if (ui.weapon) ui.weapon.textContent = snapshot.weaponLabel;
+
+            restoreWaveResearchUI();
+            updateUI();
+            updateUpgradeButtons();
+            playSound("pickup");
+        } finally {
+            // Some reconstruction renderers rebuild portions of the menu. Run
+            // once more after rendering, then once on the next microtask, so the
+            // visible label cannot remain stuck on the action just reversed.
+            updateUndoUpgradeButton();
+            queueMicrotask(updateUndoUpgradeButton);
+        }
     }
 
     const END_WAVE_BONUSES = Object.freeze([
@@ -3421,7 +3439,8 @@
      */
     function shootPlayerWeapon(now) {
         if (state.clearPhaseActive) return;
-        if (now - player.lastShotAt < player.fireRate) return;
+        const effectiveFireRate = now < (player.weaponBoostUntil || 0) ? Math.max(55, player.fireRate * 0.68) : player.fireRate;
+        if (now - player.lastShotAt < effectiveFireRate) return;
 
         player.lastShotAt = now;
         player.volleyCounter++;
@@ -3604,25 +3623,27 @@
 
     function updateVerdantCore(now) {
         const stage = getAwakenedRelicStage("relic_green_01");
-        if (!stage) { relicOrbs.length = 0; return; }
-        const desired = Math.min(3, stage);
-        while (relicOrbs.length < desired) relicOrbs.push({ angle: (TWO_PI / desired) * relicOrbs.length, cooldownUntil: 0 });
-        relicOrbs.length = desired;
-        const radius = 72 + stage * 12;
-        for (let i = 0; i < relicOrbs.length; i++) {
-            const orb = relicOrbs[i];
-            orb.angle += 0.026 + stage * 0.004;
-            orb.x = player.x + Math.cos(orb.angle + i * TWO_PI / desired) * radius;
-            orb.y = player.y + Math.sin(orb.angle + i * TWO_PI / desired) * radius;
-            if (now < orb.cooldownUntil) continue;
-            for (let e = enemies.length - 1; e >= 0; e--) {
-                const enemy = enemies[e];
-                if (!enemy || enemy.dead || distance(orb, enemy) > enemy.r + 12) continue;
-                damageEnemy(e, 24 + stage * 16, "relic");
-                explodeAt(orb.x, orb.y, 48 + stage * 10, 12 + stage * 8, enemy);
-                orb.cooldownUntil = now + Math.max(850, 1550 - stage * 180);
-                break;
-            }
+        relicOrbs.length = 0;
+        if (!stage) { relicGreen.appliedStage = 0; return; }
+        if (relicGreen.appliedStage !== stage) {
+            const previousBonus = relicGreen.appliedStage ? 30 + relicGreen.appliedStage * 25 : 0;
+            const newBonus = 30 + stage * 25;
+            player.maxHealth += newBonus - previousBonus;
+            player.health = Math.min(player.maxHealth, player.health + Math.max(0, newBonus - previousBonus));
+            player.maxShield = Math.max(player.maxShield, 35 + stage * 35);
+            player.shield = Math.min(player.maxShield, player.shield + 25 + stage * 20);
+            relicGreen.appliedStage = stage;
+        }
+        if (now < relicGreen.nextRepairAt) return;
+        relicGreen.nextRepairAt = now + Math.max(4200, 8500 - stage * 1100);
+        const heal = 7 + stage * 6;
+        const shieldGain = 12 + stage * 10;
+        const oldHealth = player.health, oldShield = player.shield;
+        player.health = Math.min(player.maxHealth, player.health + heal);
+        player.shield = Math.min(player.maxShield, player.shield + shieldGain);
+        if (player.health > oldHealth || player.shield > oldShield) {
+            particles.push({ x:player.x, y:player.y, dx:0, dy:0, r:player.r*2.1, color:"#62ff9b", life:20, maxLife:20, auraRing:true });
+            addDamageNumber(player.x, player.y - 34, `+${Math.floor(player.health-oldHealth)} HP / +${Math.floor(player.shield-oldShield)} SH`, "#62ff9b");
         }
     }
 
@@ -3655,60 +3676,54 @@
     }
 
     function updateGravityHeart(now) {
-        const stage = getAwakenedRelicStage("relic_blue_01");
-        if (!stage) return;
-        const cooldown = Math.max(5500, 10500 - stage * 1500);
-        if (now < relicPulse.nextAt) return;
-        relicPulse.nextAt = now + cooldown;
-        relicPulse.visualUntil = now + 500;
-        relicPulse.radius = 230 + stage * 70;
-        for (const enemy of enemies) {
-            if (!enemy || enemy.dead) continue;
-            const dx = enemy.x - player.x, dy = enemy.y - player.y;
-            const dist = Math.hypot(dx, dy) || 1;
-            if (dist > relicPulse.radius) continue;
-            const push = (relicPulse.radius - dist) * (0.28 + stage * 0.05);
-            enemy.x = clamp(enemy.x + dx / dist * push, enemy.r, WORLD.width - enemy.r);
-            enemy.y = clamp(enemy.y + dy / dist * push, enemy.r, WORLD.height - enemy.r);
-            enemy.relicSlowUntil = now + 900 + stage * 250;
-        }
-        particles.push({ x: player.x, y: player.y, dx: 0, dy: 0, r: relicPulse.radius, color: "#59c8ff", life: 24, maxLife: 24, auraRing: true });
-        playSound("pickup");
+        // Momentum Veil is event-driven: enemy deaths can drop overdrive fragments.
+        // The runtime update only keeps the compatibility pulse dormant.
+        relicPulse.visualUntil = 0;
     }
 
     function updateEchoingSwarm(now) {
         const stage = getAwakenedRelicStage("relic_purple_01");
-        if (!stage) { relicDrones.length = 0; return; }
-        const desired = Math.min(3, stage);
-        while (relicDrones.length < desired) {
-            relicDrones.push({ id: nextRelicDroneId++, angle: Math.random() * TWO_PI, health: 35 + stage * 20, maxHealth: 35 + stage * 20, expiresAt: now + 15000 + stage * 3000, nextShotAt: now + 400, dead: false });
+        relicDrones.length = 0;
+        if (!stage) { relicRifts.length = 0; return; }
+        const desired = 1 + stage;
+        if (now >= nextRelicRiftAt && relicRifts.length < desired) {
+            const angle = Math.random() * TWO_PI;
+            const distanceFromPlayer = 95 + Math.random() * (85 + stage * 20);
+            relicRifts.push({
+                // Rifts are fixed tears in world space. They spawn near the ship,
+                // but never orbit or follow it after opening.
+                x: player.x + Math.cos(angle) * distanceFromPlayer,
+                y: player.y + Math.sin(angle) * distanceFromPlayer * .72,
+                radius: 34 + stage * 9,
+                bornAt: now,
+                expiresAt: now + 5000 + stage * 1400,
+                nextDamageAt: now,
+                spin: Math.random() < .5 ? -1 : 1,
+                phase: Math.random() * TWO_PI,
+            });
+            nextRelicRiftAt = now + Math.max(900, 2300 - stage * 350);
         }
-        for (const drone of relicDrones) {
-            drone.angle += 0.018 + stage * 0.003;
-            const radius = 105 + (drone.id % 2) * 24;
-            drone.x = player.x + Math.cos(drone.angle) * radius;
-            drone.y = player.y + Math.sin(drone.angle) * radius;
-            if (now >= drone.expiresAt || drone.health <= 0) drone.dead = true;
-            if (drone.dead || now < drone.nextShotAt) continue;
-            let target = null, best = 560;
-            for (const enemy of enemies) {
-                const d = distance(drone, enemy);
-                if (d < best) { best = d; target = enemy; }
-            }
-            if (target) {
-                const angle = Math.atan2(target.y - drone.y, target.x - drone.x);
-                bullets.push({ x: drone.x, y: drone.y, r: 4, dx: Math.cos(angle) * 10, dy: Math.sin(angle) * 10, damage: 9 + stage * 7, color: "#d192ff", explosive: false, relicDroneShot: true });
-                drone.nextShotAt = now + Math.max(360, 760 - stage * 120);
+        for (let i=relicRifts.length-1;i>=0;i--) {
+            const rift=relicRifts[i];
+            if (now >= rift.expiresAt) { relicRifts.splice(i,1); continue; }
+            // Deliberately static in world space: only the internal distortion animates.
+            if (now < rift.nextDamageAt) continue;
+            rift.nextDamageAt = now + Math.max(220, 520 - stage * 70);
+            for (let e=enemies.length-1;e>=0;e--) {
+                const enemy=enemies[e];
+                if (!enemy || enemy.dead || distance(rift,enemy) > rift.radius + enemy.r) continue;
+                damageEnemy(e, 10 + stage * 9, "relic");
+                enemy.riftFlashUntil = now + 160;
             }
         }
-        for (let i = relicDrones.length - 1; i >= 0; i--) if (relicDrones[i].dead) relicDrones.splice(i, 1);
     }
 
     function drawRelicSystems(now = Date.now()) {
         const greenStage = getAwakenedRelicStage("relic_green_01");
-        if (greenStage) for (const orb of relicOrbs) {
-            const ready = now >= orb.cooldownUntil;
-            drawCircle(ctx, orb.x - camera.x, orb.y - camera.y, ready ? 11 : 7, ready ? "#78ff9f" : "rgba(120,255,159,.35)");
+        if (greenStage && player.maxShield > 0) {
+            const ratio = clamp(player.shield / player.maxShield, 0, 1);
+            ctx.save(); ctx.strokeStyle=`rgba(92,255,150,${.18 + ratio*.55})`; ctx.lineWidth=2+greenStage;
+            ctx.beginPath(); ctx.arc(player.x-camera.x, player.y-camera.y, player.r*(1.45+ratio*.1), 0, TWO_PI); ctx.stroke(); ctx.restore();
         }
         if (now < relicLaser.activeUntil) {
             const sx = player.x - camera.x, sy = player.y - camera.y;
@@ -3721,10 +3736,25 @@
             ctx.strokeStyle = "white"; ctx.lineWidth = 3; ctx.stroke();
             ctx.restore();
         }
-        for (const drone of relicDrones) {
-            const x = drone.x - camera.x, y = drone.y - camera.y;
-            ctx.save(); ctx.translate(x,y); ctx.rotate(drone.angle + Math.PI/2);
-            ctx.fillStyle = "#d192ff"; ctx.beginPath(); ctx.moveTo(0,-9); ctx.lineTo(7,7); ctx.lineTo(0,4); ctx.lineTo(-7,7); ctx.closePath(); ctx.fill();
+        for (const rift of relicRifts) {
+            const x=rift.x-camera.x, y=rift.y-camera.y;
+            const remaining=clamp((rift.expiresAt-now)/1800,0,1);
+            const opening=clamp((now-rift.bornAt)/320,0,1);
+            const alpha=Math.min(opening, remaining);
+            const pulse=1 + Math.sin(now/210 + rift.phase) * .07;
+            ctx.save();
+            ctx.translate(x,y);
+            ctx.scale(opening * pulse, opening * pulse);
+            ctx.globalCompositeOperation="lighter";
+            ctx.shadowColor="#c66dff"; ctx.shadowBlur=18 + 8 * pulse;
+            ctx.strokeStyle=`rgba(195,95,255,${(.38+.48*alpha)})`; ctx.lineWidth=5;
+            ctx.rotate((now-rift.bornAt)/900*rift.spin);
+            ctx.beginPath(); ctx.arc(0,0,rift.radius,0,TWO_PI); ctx.stroke();
+            ctx.rotate(-(now-rift.bornAt)/520*rift.spin);
+            ctx.strokeStyle=`rgba(245,220,255,${.55+.35*alpha})`; ctx.lineWidth=1.5;
+            ctx.beginPath(); ctx.arc(0,0,rift.radius*.68,.25,TWO_PI-.65); ctx.stroke();
+            ctx.fillStyle=`rgba(75,10,110,${.18+.18*alpha})`;
+            ctx.beginPath(); ctx.arc(0,0,rift.radius*.48,0,TWO_PI); ctx.fill();
             ctx.restore();
         }
     }
@@ -4840,6 +4870,11 @@
         if (player.shield > 0) {
             const absorbed = Math.min(player.shield, reducedAmount);
             player.shield -= absorbed;
+            if (absorbed > 0 && ui.playerShieldBarWrap) {
+                ui.playerShieldBarWrap.classList.remove("shield-hit");
+                void ui.playerShieldBarWrap.offsetWidth;
+                ui.playerShieldBarWrap.classList.add("shield-hit");
+            }
             amount = reducedAmount - absorbed;
         } else {
             amount = reducedAmount;
@@ -5196,6 +5231,8 @@
 
         maybeDropPickup("health", x, y, dropRates.health, enemyType);
         maybeDropPickup("speed", x, y, dropRates.speed, enemyType, 34);
+        const momentumStage = getAwakenedRelicStage("relic_blue_01");
+        if (momentumStage) maybeDropPickup("overdrive", x, y, 0.018 + momentumStage * 0.014, enemyType, 54);
         maybeDropPickup("harm", x, y, dropRates.harm, enemyType, 46);
         maybeDropPickup("slow", x, y, dropRates.slow, enemyType, 46);
     }
@@ -5253,6 +5290,7 @@
         const stats = {
             health: { amount: isGigaBoss ? 90 : isBoss ? 55 : 22 },
             speed: { duration: isGigaBoss ? 12000 : isBoss ? 9000 : 5500 },
+            overdrive: { duration: (isGigaBoss ? 15000 : isBoss ? 11500 : 6500) + getAwakenedRelicStage("relic_blue_01") * 1800 },
             harm: { amount: isGigaBoss ? 45 : isBoss ? 30 : 14 },
             slow: {
                 duration: isGigaBoss ? 9000 : isBoss ? 7000 : 4200,
@@ -5291,12 +5329,14 @@
      * Advances this subsystem by one simulation step. Respect paused/ended state and avoid unnecessary allocations.
      */
     function updatePickupMagnet(pickup) {
-        const canMagnetize = pickup.type === "health" || pickup.type === "speed";
+        const canMagnetize = pickup.type === "health" || pickup.type === "speed" || pickup.type === "overdrive";
         pickup.magnetized = false;
         if (!canMagnetize || player.pointMagnetRadius <= 0) return;
 
-        const clearBoost = state.clearPhaseActive ? 1.9 : 1;
-        const magnetRadius = player.pointMagnetRadius * 0.5 * clearBoost;
+        const momentumStage = getAwakenedRelicStage("relic_blue_01");
+        const clearBoost = state.clearPhaseActive ? (1.9 + momentumStage * 0.8) : 1;
+        const relicPickupBoost = pickup.type === "overdrive" ? 1.5 + momentumStage * 0.25 : 1;
+        const magnetRadius = player.pointMagnetRadius * 0.5 * clearBoost * relicPickupBoost;
         const distToPlayer = distance(player, pickup);
         if (distToPlayer >= magnetRadius) return;
 
@@ -5327,6 +5367,13 @@
             speed: () => {
                 player.speedBoostUntil = Math.max(player.speedBoostUntil, now + pickup.duration * player.boostDurationMultiplier);
                 spawnPickupBurst(pickup.x, pickup.y, "#63d7ff", 8, false);
+                playSound("speedPickup");
+            },
+            overdrive: () => {
+                player.speedBoostUntil = Math.max(player.speedBoostUntil, now + pickup.duration);
+                player.weaponBoostUntil = Math.max(player.weaponBoostUntil || 0, now + pickup.duration);
+                spawnPickupBurst(pickup.x, pickup.y, "#8cecff", 14, false);
+                addDamageNumber(player.x, player.y - 32, "OVERDRIVE", "#8cecff");
                 playSound("speedPickup");
             },
             harm: () => {
@@ -6239,6 +6286,11 @@
                 ctx.fill();
                 ctx.stroke();
             },
+            overdrive: () => {
+                ctx.save(); ctx.rotate(Date.now()/420); ctx.strokeStyle="#dffcff"; ctx.fillStyle="#58cfff"; ctx.lineWidth=2;
+                ctx.beginPath(); for(let i=0;i<8;i++){const a=i*Math.PI/4,r=i%2?6:13;const x=Math.cos(a)*r,y=Math.sin(a)*r;i?ctx.lineTo(x,y):ctx.moveTo(x,y);} ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.restore();
+                drawCircle(ctx,0,0,4,"#ffffff");
+            },
             harm: () => {
                 drawCircle(ctx, 0, 2, pickup.r, "#ff3030");
                 ctx.fillStyle = "#2a0505";
@@ -6744,6 +6796,7 @@
         const colors = {
             health: "#36ff7a",
             speed: "#63d7ff",
+            overdrive: "#8cecff",
             harm: "#ff3030",
             slow: "#b36bff",
         };
@@ -6839,6 +6892,11 @@
         ui.slowInfo.textContent = slowRemaining > 0 ? `${slowRemaining}s` : "None";
         ui.magnetInfo.textContent = `${Math.floor(player.pointMagnetRadius)} px`;
         ui.bossInfo.textContent = getBossInfoText();
+        const shieldEnabled = player.maxShield > 0;
+        const shieldPercent = shieldEnabled ? clamp(player.shield / player.maxShield, 0, 1) : 0;
+        if (ui.playerShieldBarWrap) ui.playerShieldBarWrap.hidden = !shieldEnabled;
+        if (ui.playerShieldBar) ui.playerShieldBar.style.width = `${shieldPercent * 100}%`;
+        if (ui.playerShieldText) ui.playerShieldText.textContent = shieldEnabled ? `${Math.max(0, Math.floor(player.shield))} / ${Math.floor(player.maxShield)}` : "";
         ui.playerHealthBar.style.width = `${healthPercent * 100}%`;
         ui.playerHealthText.textContent = healthText;
         ui.playerHealthBarWrap.classList.toggle("regen-active", now < player.regenGlowUntil);
@@ -7407,15 +7465,21 @@
     // -------------------------------------------------------------------------
     // Defensive, versioned persistence
     // -------------------------------------------------------------------------
-    const SAVE_SCHEMA_VERSION = 1;
+    const SAVE_SCHEMA_VERSION = 2;
     const SAVE_BUILD = "Pre-Beta Animated Seal";
     const SAVE_KEYS = Object.freeze({
         main: "starwake_save_main",
         temp: "starwake_save_temp",
         backups: ["starwake_save_backup_1", "starwake_save_backup_2", "starwake_save_backup_3"],
+        activity: "starwake_save_activity_log",
     });
+    // Hard cap for Starwake's protected save slots. 256 KiB keeps the browser
+    // footprint predictable while leaving ample room for future schema growth.
+    const SAVE_STORAGE_LIMIT_BYTES = 256 * 1024;
+    const SAVE_ACTIVITY_MAX_ENTRIES = 40;
+    const SAVE_ACTIVITY_MAX_BYTES = 24 * 1024;
     const SAVE_PLAYER_FIELDS = Object.freeze([
-        "x","y","r","speed","health","maxHealth","damage","fireRate","bulletSpeed","bulletsPerShot",
+        "x","y","r","speed","health","maxHealth","damage","fireRate","bulletSpeed","bulletsPerShot","weaponBoostUntil",
         "explosiveLevel","explosiveRadius","explosiveDamageRatio","pointMagnetRadius","pointMagnetStrength",
         "missileLevel","missileCount","missileDamage","missileCooldown","auraLevel","auraDamage","auraRadius",
         "auraTickRate","regenLevel","regenAmount","regenPerSecond","regenTickRate","regenDelayAfterDamage",
@@ -7456,6 +7520,7 @@
         if (!Number.isFinite(run.wave) || run.wave < 1 || run.wave > 100000) return { valid: false, reason: "Impossible wave value" };
         if (!Number.isFinite(run.score) || run.score < 0) return { valid: false, reason: "Impossible score value" };
         if (!DIFFICULTY_DATA[run.difficulty]) return { valid: false, reason: "Unknown difficulty" };
+        if (run.phase != null && run.phase !== "combat" && run.phase !== "upgrade") return { valid: false, reason: "Unknown run phase" };
         return { valid: true, envelope: migrateSave(envelope) };
     }
 
@@ -7464,9 +7529,14 @@
         // object without first cloning it; imported files are untrusted input.
         const migrated = structuredClone(envelope);
         while (migrated.schemaVersion < SAVE_SCHEMA_VERSION) {
-            // Schema 1 is the first public persistence format.
+            if (migrated.schemaVersion === 1) {
+                // Schema 2 records whether the player saved during combat or
+                // during post-wave reconstruction. Legacy saves resume combat.
+                migrated.data.run.phase = "combat";
+            }
             migrated.schemaVersion++;
         }
+        migrated.checksum = saveChecksum(canonicalSavePayload(migrated));
         return migrated;
     }
 
@@ -7479,7 +7549,9 @@
                 lifetimeStats: { highestWave: Math.max(state.wave, Number(safeStorage.get("starwakeHighestWave", 1)) || 1) },
             },
             run: {
-                active: Boolean(state.started && !state.ended), wave: state.wave, score: state.score,
+                active: Boolean(state.started && !state.ended),
+                phase: ui.upgradeMenu?.style.display === "flex" ? "upgrade" : "combat",
+                wave: state.wave, score: state.score,
                 upgradePoints: state.upgradePoints, difficulty: state.difficulty,
                 nextWaveSpeedBoostMs: state.nextWaveSpeedBoostMs || 0,
                 player: playerData, upgradeLevels: { ...upgradeLevels },
@@ -7500,13 +7572,83 @@
     function rawStorageSet(key, value) { try { localStorage.setItem(key, value); return true; } catch (e) { console.warn("Save write failed", e); return false; } }
     function rawStorageRemove(key) { try { localStorage.removeItem(key); } catch {} }
 
+    function readSaveActivity() {
+        const raw = rawStorageGet(SAVE_KEYS.activity);
+        if (!raw) return [];
+        try {
+            const entries = JSON.parse(raw);
+            return Array.isArray(entries) ? entries.filter(entry => entry && typeof entry === "object") : [];
+        } catch {
+            return [];
+        }
+    }
+
+    function writeSaveActivity(entries) {
+        let trimmed = entries.slice(0, SAVE_ACTIVITY_MAX_ENTRIES);
+        let serialized = JSON.stringify(trimmed);
+        while (trimmed.length > 1 && utf8Bytes(serialized) > SAVE_ACTIVITY_MAX_BYTES) {
+            trimmed.pop();
+            serialized = JSON.stringify(trimmed);
+        }
+        return rawStorageSet(SAVE_KEYS.activity, serialized);
+    }
+
+    function logSaveActivity(type, outcome, message, details = {}) {
+        const entries = readSaveActivity();
+        entries.unshift({
+            id: `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
+            at: new Date().toISOString(),
+            type, outcome, message,
+            wave: Number.isFinite(details.wave) ? details.wave : (state?.wave || null),
+            reason: details.reason || null,
+            slot: details.slot || null,
+        });
+        writeSaveActivity(entries);
+        if (!document.getElementById("saveInspectorPanel")?.hidden) renderSaveActivityLog();
+    }
+
+    function utf8Bytes(value) {
+        return new TextEncoder().encode(value || "").byteLength;
+    }
+
+    function saveStorageUsageBytes() {
+        return [SAVE_KEYS.main, SAVE_KEYS.temp, ...SAVE_KEYS.backups, SAVE_KEYS.activity]
+            .reduce((total, key) => total + utf8Bytes(rawStorageGet(key)), 0);
+    }
+
+    function enforceSaveStorageBudget(incomingBytes = 0) {
+        // The oldest backup is expendable first. Main and temporary slots are
+        // never pruned silently; if they alone exceed the cap, the write fails.
+        let pruned = 0;
+        for (let i = SAVE_KEYS.backups.length - 1;
+             i >= 0 && saveStorageUsageBytes() + incomingBytes > SAVE_STORAGE_LIMIT_BYTES;
+             i--) {
+            if (rawStorageGet(SAVE_KEYS.backups[i])) {
+                rawStorageRemove(SAVE_KEYS.backups[i]);
+                pruned++;
+            }
+        }
+        if (pruned) logSaveActivity("Storage pruning", "warning", `${pruned} oldest backup cop${pruned === 1 ? "y was" : "ies were"} removed to stay within the 256 KiB limit.`, { reason: "storage-budget" });
+        return saveStorageUsageBytes() + incomingBytes <= SAVE_STORAGE_LIMIT_BYTES;
+    }
+
+    function formatSaveBytes(bytes) {
+        return bytes < 1024 ? `${bytes} B` : `${(bytes / 1024).toFixed(1)} KiB`;
+    }
+
     function writeValidatedSave(reason = "autosave") {
         if (!state.started || state.ended) return false;
         const envelope = makeSaveEnvelope(capturePersistentData());
         const serialized = JSON.stringify(envelope);
-        if (!rawStorageSet(SAVE_KEYS.temp, serialized)) return false;
+        const incomingBytes = utf8Bytes(serialized);
+        if (incomingBytes > SAVE_STORAGE_LIMIT_BYTES || !enforceSaveStorageBudget(incomingBytes)) {
+            refreshSaveDataPanel(`Save refused: storage budget ${formatSaveBytes(SAVE_STORAGE_LIMIT_BYTES)} exceeded`);
+            logSaveActivity(reason === "autosave" ? "Autosave" : "Save", "failed", "Save refused because the protected storage budget would be exceeded.", { reason: "storage-budget" });
+            return false;
+        }
+        if (!rawStorageSet(SAVE_KEYS.temp, serialized)) { logSaveActivity(reason === "autosave" ? "Autosave" : "Save", "failed", "Temporary validation write failed. Existing progress was preserved.", { reason: "temp-write" }); return false; }
         const tempCheck = parseAndValidateSave(rawStorageGet(SAVE_KEYS.temp));
-        if (!tempCheck.valid) { rawStorageRemove(SAVE_KEYS.temp); return false; }
+        if (!tempCheck.valid) { rawStorageRemove(SAVE_KEYS.temp); logSaveActivity(reason === "autosave" ? "Autosave" : "Save", "failed", `Temporary validation failed: ${tempCheck.reason}. Existing progress was preserved.`, { reason: tempCheck.reason }); return false; }
         const previousMain = rawStorageGet(SAVE_KEYS.main);
         if (previousMain) {
             const b1 = rawStorageGet(SAVE_KEYS.backups[0]);
@@ -7515,10 +7657,20 @@
             if (b1) rawStorageSet(SAVE_KEYS.backups[1], b1);
             rawStorageSet(SAVE_KEYS.backups[0], previousMain);
         }
-        if (!rawStorageSet(SAVE_KEYS.main, serialized)) return false;
+        // Rotation can temporarily increase usage; prune oldest copies until the
+        // protected set is back under budget before promoting the new main save.
+        if (!enforceSaveStorageBudget()) {
+            rawStorageRemove(SAVE_KEYS.temp);
+            refreshSaveDataPanel("Save refused: protected slots exceed storage budget");
+            logSaveActivity(reason === "autosave" ? "Autosave" : "Save", "failed", "Protected copies could not fit inside the storage budget. Existing progress was preserved.", { reason: "storage-budget" });
+            return false;
+        }
+        if (!rawStorageSet(SAVE_KEYS.main, serialized)) { logSaveActivity(reason === "autosave" ? "Autosave" : "Save", "failed", "Main save write failed. Existing backup copies remain available.", { reason: "main-write" }); return false; }
         rawStorageRemove(SAVE_KEYS.temp);
         safeStorage.set("starwakeHighestWave", Math.max(state.wave, Number(safeStorage.get("starwakeHighestWave", 1)) || 1));
         refreshSaveDataPanel(`Saved (${reason})`);
+        const activityType = reason === "autosave" ? "Autosave" : reason === "background" ? "Background save" : reason === "shutdown" ? "Shutdown save" : "Manual save";
+        logSaveActivity(activityType, "success", `Wave ${state.wave} was saved and verified.`, { wave: state.wave, reason });
         return true;
     }
 
@@ -7556,10 +7708,31 @@
         if (ui.points) ui.points.textContent = state.upgradePoints;
         if (ui.health) ui.health.textContent = `${Math.ceil(player.health)} / ${Math.ceil(player.maxHealth)}`;
         restoreWaveResearchUI(); updateUpgradeButtons();
-        state.started = true; state.paused = false; state.manuallyPaused = false;
+        state.started = true; state.ended = false; state.manuallyPaused = false;
         ui.splashScreen.style.display = "none"; ui.startMenu.style.display = "none"; ui.gameOverMenu.style.display = "none";
-        try { resumeAudio(); } catch {}
-        refreshSaveDataPanel("Run restored successfully");
+
+        if (run.phase === "upgrade") {
+            // The completed wave stays completed. Reopen reconstruction exactly
+            // where the save was made without resetting its offered/claimed state.
+            state.musicScene = "upgrade";
+            state.paused = true;
+            state.clearPhaseActive = false;
+            document.body.classList.add("upgrade-menu-open");
+            ui.upgradeMenu.style.display = "flex";
+            ui.upgradeMenu.scrollTop = 0;
+            document.getElementById("upgradeCard")?.scrollTo?.(0, 0);
+            clearReconstructionUndo();
+            restoreWaveResearchUI();
+            updateUpgradeButtons();
+            refreshSaveDataPanel("Reconstruction save restored — cleared wave preserved");
+        } else {
+            state.musicScene = "combat";
+            state.paused = false;
+            ui.upgradeMenu.style.display = "none";
+            document.body.classList.remove("upgrade-menu-open");
+            try { resumeAudio(); } catch {}
+            refreshSaveDataPanel("Combat save restored successfully");
+        }
     }
 
     function exportSaveFile() {
@@ -7571,6 +7744,7 @@
         link.download = `starwake-save-${new Date().toISOString().replace(/[:.]/g,"-")}.json`;
         document.body.appendChild(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(link.href), 1000);
         setSaveStatus("Save exported. Keep it somewhere outside the game folder.", "good");
+        logSaveActivity("Export", "success", `A verified Wave ${slot.result.envelope.data.run.wave} save was exported.`, { wave: slot.result.envelope.data.run.wave });
     }
 
     function rotateSaveBackups(previousMain) {
@@ -7586,12 +7760,18 @@
         if (!file) return;
         let text;
         try { text = await file.text(); }
-        catch { setSaveStatus("Import failed: the selected file could not be read.", "bad"); return; }
+        catch { setSaveStatus("Import failed: the selected file could not be read.", "bad"); logSaveActivity("Import", "failed", "The selected file could not be read. Existing saves were unchanged.", { reason: "file-read" }); return; }
         const result = parseAndValidateSave(text);
-        if (!result.valid) { setSaveStatus(`Import rejected: ${result.reason}. Your existing saves were not changed.`, "bad"); return; }
+        if (!result.valid) { setSaveStatus(`Import rejected: ${result.reason}. Your existing saves were not changed.`, "bad"); logSaveActivity("Import", "failed", `Import rejected: ${result.reason}. Existing saves were unchanged.`, { reason: result.reason }); return; }
         const serialized = JSON.stringify(result.envelope);
+        const importBytes = utf8Bytes(serialized);
+        if (importBytes > SAVE_STORAGE_LIMIT_BYTES || !enforceSaveStorageBudget(importBytes)) {
+            setSaveStatus(`Import rejected: save data exceeds the ${formatSaveBytes(SAVE_STORAGE_LIMIT_BYTES)} storage budget. Existing saves were not changed.`, "bad");
+            return;
+        }
         const current = rawStorageGet(SAVE_KEYS.main);
         rotateSaveBackups(current);
+        enforceSaveStorageBudget();
         if (!rawStorageSet(SAVE_KEYS.main, serialized)) {
             setSaveStatus("Import failed while writing storage. Your previous main save remains in Backup 1.", "bad");
             return;
@@ -7604,10 +7784,132 @@
         }
         const run = installed.envelope.data.run;
         refreshSaveDataPanel(`Imported save verified · Wave ${run.wave}.`);
+        logSaveActivity("Import", "success", `Imported save verified and installed at Wave ${run.wave}.`, { wave: run.wave });
     }
 
     function setSaveStatus(message, level = "") {
         const status = document.getElementById("saveDataStatus"); if (status) { status.textContent = message; status.dataset.level = level; }
+    }
+
+    function calculateSaveIntegrity(slots) {
+        const main = slots[0];
+        const validCount = slots.filter(slot => slot.result.valid).length;
+        let score = 0;
+        if (main.result.valid) score += 65;
+        else if (validCount > 0) score += 35;
+        score += Math.min(30, Math.max(0, validCount - (main.result.valid ? 1 : 0)) * 10);
+        const newest = slots.filter(slot => slot.result.valid)
+            .sort((a,b) => Date.parse(b.result.envelope.savedAt) - Date.parse(a.result.envelope.savedAt))[0];
+        if (newest?.result.envelope.schemaVersion === SAVE_SCHEMA_VERSION) score += 5;
+        return Math.min(100, score);
+    }
+
+    function renderSaveInspector() {
+        const panel = document.getElementById("saveInspectorPanel");
+        if (!panel) return;
+        const slots = inspectSaveSlots();
+        const valid = slots.filter(slot => slot.result.valid);
+        const main = slots[0];
+        const newest = valid.slice().sort((a,b) => Date.parse(b.result.envelope.savedAt) - Date.parse(a.result.envelope.savedAt))[0] || null;
+        const score = calculateSaveIntegrity(slots);
+        if (main.result.valid) setSaveHealthSeal(valid.length >= 2 ? "healthy" : "warning");
+        else if (newest) setSaveHealthSeal("recovery");
+        else setSaveHealthSeal(main.result.reason === "Empty save slot" ? "checking" : "invalid");
+        const meter = document.getElementById("saveIntegrityMeter");
+        const percent = document.getElementById("saveIntegrityPercent");
+        const reassurance = document.getElementById("saveInspectorReassurance");
+        const details = document.getElementById("saveInspectorDetails");
+        const list = document.getElementById("saveSlotList");
+        const advice = document.getElementById("saveInspectorAdvice");
+
+        if (meter) {
+            meter.style.setProperty("--integrity", `${score}%`);
+            meter.setAttribute("aria-valuenow", String(score));
+        }
+        if (percent) percent.textContent = `${score}%`;
+
+        if (reassurance) {
+            if (main.result.valid && valid.length >= 3) reassurance.textContent = "Your progress is healthy and protected by multiple verified copies.";
+            else if (main.result.valid) reassurance.textContent = "Your main save is healthy. More backups will be created as you continue playing.";
+            else if (newest) reassurance.textContent = "Your main save needs attention, but a healthy recovery copy is available.";
+            else reassurance.textContent = "No healthy save was found. Starting a run or importing an export will create one.";
+        }
+
+        if (details) {
+            const envelope = newest?.result.envelope;
+            const run = envelope?.data.run;
+            const rows = [
+                ["Status", main.result.valid ? "Healthy" : newest ? "Recovery available" : "No valid save"],
+                ["Saved", envelope ? new Date(envelope.savedAt).toLocaleString() : "—"],
+                ["Wave", run ? String(run.wave) : "—"],
+                ["Difficulty", run ? (DIFFICULTY_DATA[run.difficulty]?.label || run.difficulty) : "—"],
+                ["Build", envelope?.build || "—"],
+                ["Schema", envelope ? `${envelope.schemaVersion} / ${SAVE_SCHEMA_VERSION}` : `— / ${SAVE_SCHEMA_VERSION}`],
+                ["Storage", `${formatSaveBytes(saveStorageUsageBytes())} / ${formatSaveBytes(SAVE_STORAGE_LIMIT_BYTES)}`],
+                ["Protected copies", `${valid.length} of ${slots.length}`],
+                ["Checksum", envelope?.checksum ? "Verified" : "—"],
+            ];
+            details.replaceChildren(...rows.map(([label,value]) => {
+                const wrapper = document.createElement("div");
+                const dt = document.createElement("dt");
+                const dd = document.createElement("dd");
+                dt.textContent = label; dd.textContent = value;
+                wrapper.append(dt,dd); return wrapper;
+            }));
+        }
+
+        if (list) {
+            list.replaceChildren(...slots.map(slot => {
+                const card = document.createElement("div");
+                const validSlot = slot.result.valid;
+                const empty = slot.result.reason === "Empty save slot";
+                card.className = `save-slot-card ${validSlot ? "good" : empty ? "empty" : "bad"}`;
+                const name = document.createElement("strong"); name.textContent = slot.label;
+                const description = document.createElement("span");
+                const stateLabel = document.createElement("em");
+                if (validSlot) {
+                    const run = slot.result.envelope.data.run;
+                    description.textContent = `Wave ${run.wave} · ${new Date(slot.result.envelope.savedAt).toLocaleString()}`;
+                    stateLabel.textContent = "Healthy";
+                } else {
+                    description.textContent = empty ? "No copy stored yet" : slot.result.reason;
+                    stateLabel.textContent = empty ? "Empty" : "Invalid";
+                }
+                card.append(name, description, stateLabel); return card;
+            }));
+        }
+
+        renderSaveActivityLog();
+
+        if (advice) {
+            if (score === 100) advice.textContent = "Everything looks good. Four validated copies are available, so no action is needed.";
+            else if (main.result.valid && valid.length < 4) advice.textContent = "No progress is in danger. Continue playing or use Save Game to build additional recovery copies.";
+            else if (newest) advice.textContent = "Your progress is still recoverable. Use Recovery to promote the newest healthy backup to the main slot.";
+            else advice.textContent = "No existing progress will be deleted. You can begin a new run or import a previously exported save.";
+        }
+    }
+
+    function renderSaveActivityLog() {
+        const list = document.getElementById("saveActivityList");
+        const empty = document.getElementById("saveActivityEmpty");
+        if (!list) return;
+        const entries = readSaveActivity().slice(0, 20);
+        if (empty) empty.hidden = entries.length > 0;
+        list.replaceChildren(...entries.map(entry => {
+            const item = document.createElement("li");
+            item.className = `save-activity-item ${entry.outcome || ""}`;
+            const heading = document.createElement("div");
+            const type = document.createElement("strong");
+            const time = document.createElement("time");
+            type.textContent = entry.type || "Save activity";
+            time.dateTime = entry.at || "";
+            time.textContent = entry.at ? new Date(entry.at).toLocaleString() : "Unknown time";
+            heading.append(type, time);
+            const message = document.createElement("p");
+            message.textContent = entry.message || "Activity recorded.";
+            item.append(heading, message);
+            return item;
+        }));
     }
 
     function refreshSaveDataPanel(message = "") {
@@ -7626,9 +7928,19 @@
             else { badge.textContent = "No valid save"; badge.classList.add(main.result.reason === "Empty save slot" ? "" : "bad"); }
         }
         if (message) setSaveStatus(message, "good");
+        if (!document.getElementById("saveInspectorPanel")?.hidden) renderSaveInspector();
     }
 
     function initializePersistenceControls() {
+        // Older builds had no explicit budget. Preserve main first, then discard
+        // only the oldest backup copies if legacy data exceeds the current cap.
+        enforceSaveStorageBudget();
+        if (!readSaveActivity().length) logSaveActivity("Save manager", "success", "Save protection initialized. No player progress was changed.");
+        document.getElementById("clearSaveActivityButton")?.addEventListener("click", () => {
+            rawStorageRemove(SAVE_KEYS.activity);
+            logSaveActivity("Save manager", "success", "Older activity history was cleared. Save files were not changed.");
+            renderSaveActivityLog();
+        });
         document.getElementById("continueSavedRunButton")?.addEventListener("click", () => { const slot = newestValidSave(); if (slot) restoreSaveEnvelope(slot.result.envelope); });
         document.getElementById("saveUpgradeMenuButton")?.addEventListener("click", () => {
             const button = document.getElementById("saveUpgradeMenuButton");
@@ -7643,6 +7955,14 @@
                 button.textContent = saved ? "Saved ✓" : "Save Failed";
                 window.setTimeout(() => { button.textContent = original; }, 1800);
             }
+        });
+        document.getElementById("inspectSaveButton")?.addEventListener("click", event => {
+            const panel = document.getElementById("saveInspectorPanel");
+            if (!panel) return;
+            panel.hidden = !panel.hidden;
+            event.currentTarget.setAttribute("aria-expanded", String(!panel.hidden));
+            event.currentTarget.textContent = panel.hidden ? "Inspect Saves" : "Hide Inspector";
+            if (!panel.hidden) renderSaveInspector();
         });
         document.getElementById("exportSaveButton")?.addEventListener("click", exportSaveFile);
         document.getElementById("importSaveButton")?.addEventListener("click", () => document.getElementById("importSaveFile")?.click());
@@ -7669,27 +7989,65 @@
             const confirmed = window.confirm(
                 `Recover ${chosen.label}?\n\nWave ${run.wave} · ${DIFFICULTY_DATA[run.difficulty]?.label || run.difficulty}\nSaved ${savedAt.toLocaleString()}\n\nThis replaces the current main save. The current main save will first be preserved as Backup 1.`
             );
-            if (!confirmed) { setSaveStatus("Recovery cancelled. No save data was changed."); return; }
+            if (!confirmed) { setSaveStatus("Recovery cancelled. No save data was changed."); logSaveActivity("Recovery", "cancelled", "Recovery was cancelled. No save data was changed.", { slot: chosen.label }); return; }
             const currentMain = rawStorageGet(SAVE_KEYS.main);
             rotateSaveBackups(currentMain);
             const serialized = JSON.stringify(chosen.result.envelope);
             if (!rawStorageSet(SAVE_KEYS.main, serialized)) {
                 setSaveStatus("Recovery could not write the restored save. Existing copies were preserved.", "bad");
+                logSaveActivity("Recovery", "failed", "The recovery copy could not be written. Existing copies were preserved.", { slot: chosen.label, reason: "write-failed" });
                 return;
             }
             const verification = parseAndValidateSave(rawStorageGet(SAVE_KEYS.main));
             if (!verification.valid) {
                 if (currentMain) rawStorageSet(SAVE_KEYS.main, currentMain);
                 setSaveStatus("Recovery failed final verification. The previous main save was restored.", "bad");
+                logSaveActivity("Recovery", "failed", "Final verification failed; the previous main save was restored.", { slot: chosen.label, reason: verification.reason });
                 return;
             }
             refreshSaveDataPanel(`Recovery successful · ${chosen.label} · Wave ${run.wave}.${lossText}`);
+            logSaveActivity("Recovery", "success", `${chosen.label} was verified and promoted to Main at Wave ${run.wave}.${lossText}`, { wave: run.wave, slot: chosen.label });
         });
-        window.addEventListener("beforeunload", () => writeValidatedSave("shutdown"));
-        document.addEventListener("visibilitychange", () => { if (document.hidden) writeValidatedSave("background"); });
-        window.setInterval(() => writeValidatedSave("autosave"), 15000);
+        // Browser lifecycle events are not equally reliable. pagehide is the
+        // primary exit checkpoint, visibilitychange covers tab/background
+        // transitions, and freeze covers browsers that suspend a page without
+        // unloading it. A short dedupe window prevents one transition from
+        // rotating several backups in rapid succession.
+        let lastLifecycleCheckpointAt = 0;
+        let lastLifecycleCheckpointReason = "";
+        const requestLifecycleCheckpoint = (reason) => {
+            if (!state.started || state.ended) return false;
+            const now = Date.now();
+            if (now - lastLifecycleCheckpointAt < 1200 && reason !== "autosave") return false;
+            lastLifecycleCheckpointAt = now;
+            lastLifecycleCheckpointReason = reason;
+            return writeValidatedSave(reason);
+        };
+
+        document.addEventListener("visibilitychange", () => {
+            if (document.hidden) requestLifecycleCheckpoint("background");
+            else refreshSaveDataPanel("Save monitoring active");
+        });
+        window.addEventListener("pagehide", () => requestLifecycleCheckpoint("shutdown"));
+        window.addEventListener("beforeunload", () => requestLifecycleCheckpoint("shutdown"));
+        document.addEventListener("freeze", () => requestLifecycleCheckpoint("background"));
+        window.addEventListener("pageshow", () => refreshSaveDataPanel());
+        window.addEventListener("focus", () => refreshSaveDataPanel());
+
+        const autosaveIntervalMs = 15000;
+        window.setInterval(() => requestLifecycleCheckpoint("autosave"), autosaveIntervalMs);
+        if (!readSaveActivity().some(entry => entry.type === "Autosave system")) {
+            logSaveActivity("Autosave system", "success", "Autosave monitoring is active every 15 seconds while a run is in progress. Background and exit checkpoints are also armed.");
+        }
         refreshSaveDataPanel();
-        window.StarwakeSaveSystem = Object.freeze({ saveNow: () => writeValidatedSave("manual"), inspect: inspectSaveSlots, schemaVersion: SAVE_SCHEMA_VERSION });
+        window.StarwakeSaveSystem = Object.freeze({
+            saveNow: () => writeValidatedSave("manual"),
+            inspect: inspectSaveSlots,
+            schemaVersion: SAVE_SCHEMA_VERSION,
+            storageUsageBytes: saveStorageUsageBytes,
+            storageLimitBytes: SAVE_STORAGE_LIMIT_BYTES,
+            activity: readSaveActivity,
+        });
     }
 
     /**

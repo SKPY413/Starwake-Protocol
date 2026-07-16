@@ -2079,3 +2079,205 @@ html.mobile-performance #topRightHud > #minimapWrap #minimap {
 html.mobile-performance #playerHealthBarWrap[hidden] {
     display: none !important;
 }
+
+
+/* ==========================================================================
+   Animated Starwake Seal — splash screen
+   Pure CSS reconstruction of the Mk. I emblem. The geometry remains readable
+   without the reference PNG and scales down for mobile presentation.
+   ========================================================================== */
+.splash-seal {
+    --seal-size: clamp(116px, 19vw, 196px);
+    --seal-cyan: #52d9ff;
+    --seal-white: #f4fbff;
+    position: relative;
+    width: var(--seal-size);
+    height: var(--seal-size);
+    margin: -4px auto 10px;
+    filter: drop-shadow(0 0 16px rgba(82, 217, 255, 0.5));
+    isolation: isolate;
+    pointer-events: none;
+}
+
+.splash-seal-ring,
+.splash-seal-star,
+.splash-seal-core,
+.splash-seal-orb,
+.splash-seal-wake {
+    position: absolute;
+    inset: 50% auto auto 50%;
+    transform: translate(-50%, -50%);
+}
+
+.splash-seal-ring {
+    border-radius: 50%;
+    box-sizing: border-box;
+}
+
+.splash-seal-ring-outer {
+    width: 82%;
+    height: 82%;
+    border: clamp(2px, 0.35vw, 4px) solid rgba(191, 232, 255, 0.76);
+    border-left-color: rgba(82, 217, 255, 0.18);
+    border-right-color: rgba(82, 217, 255, 0.34);
+    box-shadow:
+        0 0 0 clamp(5px, 0.8vw, 9px) rgba(41, 116, 170, 0.18),
+        inset 0 0 20px rgba(82, 217, 255, 0.26),
+        0 0 22px rgba(82, 217, 255, 0.2);
+    animation: sealOuterOrbit 16s linear infinite;
+}
+
+.splash-seal-ring-outer::before,
+.splash-seal-ring-outer::after {
+    content: "";
+    position: absolute;
+    inset: 9%;
+    border-radius: 50%;
+    border: 1px dashed rgba(82, 217, 255, 0.64);
+}
+
+.splash-seal-ring-outer::after {
+    inset: -11%;
+    border-style: dotted;
+    border-width: 2px;
+    opacity: 0.48;
+}
+
+.splash-seal-ring-inner {
+    width: 62%;
+    height: 62%;
+    border: 2px solid rgba(91, 177, 230, 0.58);
+    border-top-color: rgba(239, 251, 255, 0.9);
+    border-bottom-color: rgba(82, 217, 255, 0.18);
+    box-shadow: inset 0 0 16px rgba(82, 217, 255, 0.3);
+    animation: sealInnerOrbit 10s linear infinite reverse;
+}
+
+.splash-seal-star {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, #55748b 0%, var(--seal-white) 46%, #7393aa 58%, #244258 100%);
+    clip-path: polygon(
+        50% 0%, 56% 38%, 100% 50%, 56% 56%,
+        50% 100%, 44% 56%, 0% 50%, 44% 44%
+    );
+    box-shadow: 0 0 18px rgba(82, 217, 255, 0.65);
+    z-index: 2;
+}
+
+.splash-seal-star::after {
+    content: "";
+    position: absolute;
+    inset: 5%;
+    background: linear-gradient(90deg, #152a3b, #b8e5ff 48%, #36566e 54%, #0a1722);
+    clip-path: inherit;
+    opacity: 0.62;
+}
+
+.splash-seal-star-cardinal {
+    transform: translate(-50%, -50%) scale(0.97);
+}
+
+.splash-seal-star-diagonal {
+    transform: translate(-50%, -50%) rotate(45deg) scale(0.71);
+    opacity: 0.92;
+}
+
+.splash-seal-core {
+    width: 40%;
+    height: 40%;
+    border-radius: 50%;
+    z-index: 5;
+    background: radial-gradient(circle, rgba(6, 15, 28, 0.96) 0 38%, rgba(21, 91, 145, 0.9) 40% 55%, rgba(82, 217, 255, 0.8) 58% 62%, rgba(3, 10, 20, 0.98) 65%);
+    box-shadow:
+        0 0 8px rgba(255,255,255,0.9),
+        0 0 25px rgba(82,217,255,0.9),
+        0 0 48px rgba(19,117,255,0.48),
+        inset 0 0 18px rgba(82,217,255,0.72);
+    animation: sealCoreBreathe 2.35s ease-in-out infinite;
+}
+
+.splash-seal-orb {
+    width: 36%;
+    height: 36%;
+    border-radius: 50%;
+    background: radial-gradient(circle at 38% 34%, #dffaff 0 8%, #52d9ff 18%, #1269bd 48%, #061329 72%, #01040a 100%);
+    box-shadow:
+        0 0 7px #e7fbff,
+        0 0 17px rgba(82,217,255,0.95),
+        0 0 35px rgba(36,113,255,0.65);
+    z-index: 6;
+    animation: sealOrbPulse 1.7s ease-in-out infinite;
+}
+
+.splash-seal-wake {
+    width: 68%;
+    height: 27%;
+    border-radius: 50%;
+    border-top: clamp(3px, 0.55vw, 6px) solid rgba(228, 250, 255, 0.98);
+    border-right: clamp(3px, 0.55vw, 6px) solid rgba(82, 217, 255, 0.9);
+    border-bottom: 0;
+    border-left: 0;
+    filter: drop-shadow(0 0 5px rgba(82, 217, 255, 0.98));
+    z-index: 7;
+    transform-origin: center;
+}
+
+.splash-seal-wake.wake-a {
+    animation: sealWakeSpin 3.3s linear infinite;
+}
+.splash-seal-wake.wake-b {
+    transform: translate(-50%, -50%) rotate(120deg);
+    animation: sealWakeSpinB 3.3s linear infinite;
+}
+.splash-seal-wake.wake-c {
+    transform: translate(-50%, -50%) rotate(240deg);
+    animation: sealWakeSpinC 3.3s linear infinite;
+}
+
+@keyframes sealOuterOrbit {
+    to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+@keyframes sealInnerOrbit {
+    to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+@keyframes sealCoreBreathe {
+    0%, 100% { transform: translate(-50%, -50%) scale(0.96); filter: brightness(0.88); }
+    50% { transform: translate(-50%, -50%) scale(1.06); filter: brightness(1.22); }
+}
+@keyframes sealOrbPulse {
+    0%, 100% { transform: translate(-50%, -50%) scale(0.82); opacity: 0.84; }
+    50% { transform: translate(-50%, -50%) scale(1.12); opacity: 1; }
+}
+@keyframes sealWakeSpin {
+    to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+@keyframes sealWakeSpinB {
+    to { transform: translate(-50%, -50%) rotate(480deg); }
+}
+@keyframes sealWakeSpinC {
+    to { transform: translate(-50%, -50%) rotate(600deg); }
+}
+
+@media (max-height: 720px), (max-width: 560px) {
+    .splash-seal {
+        --seal-size: clamp(90px, 22vh, 132px);
+        margin-bottom: 3px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .splash-seal-ring,
+    .splash-seal-core,
+    .splash-seal-orb,
+    .splash-seal-wake {
+        animation: none !important;
+    }
+}
+
+html.mobile-performance .splash-seal-ring,
+html.mobile-performance .splash-seal-core,
+html.mobile-performance .splash-seal-orb,
+html.mobile-performance .splash-seal-wake {
+    animation: none !important;
+}

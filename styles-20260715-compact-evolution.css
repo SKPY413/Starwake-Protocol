@@ -487,18 +487,76 @@
 
     #upgradeMenu, #gameOverMenu { display: none; }
 
-    #playerHealthBarWrap {
+    #playerVitalBars {
         position: absolute;
         left: 50%;
         bottom: 22px;
         transform: translateX(-50%);
         width: min(520px, calc(100vw - 32px));
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        z-index: 8;
+        pointer-events: none;
+    }
+
+    #playerHealthBarWrap {
+        position: relative;
+        width: 100%;
         height: 24px;
         background: rgba(0,0,0,0.55);
         border: 2px solid rgba(255,255,255,0.35);
         border-radius: 999px;
         overflow: hidden;
         box-shadow: 0 0 20px rgba(0,0,0,0.35);
+    }
+
+
+    #playerShieldBarWrap {
+        position: relative;
+        width: 100%;
+        height: 13px;
+        background: rgba(0, 8, 22, 0.72);
+        border: 1px solid rgba(117, 213, 255, 0.68);
+        border-radius: 999px;
+        overflow: hidden;
+        box-shadow: 0 0 13px rgba(54, 174, 255, 0.34);
+        animation: shieldBarOnline 320ms ease-out both;
+    }
+
+    #playerShieldBarWrap[hidden] { display: none !important; }
+
+    #playerShieldBar {
+        width: 0%;
+        height: 100%;
+        background: linear-gradient(90deg, #1779ff, #5ed8ff 58%, #c9f7ff);
+        box-shadow: inset 0 0 7px rgba(255,255,255,.5), 0 0 12px rgba(45,183,255,.55);
+        transition: width 0.12s linear;
+    }
+
+    #playerShieldText {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #e8fbff;
+        font-size: 9px;
+        font-weight: 800;
+        letter-spacing: .08em;
+        text-shadow: 0 1px 3px #00152d;
+    }
+
+    #playerShieldBarWrap.shield-hit { animation: shieldHitFlash 180ms ease-out; }
+
+    @keyframes shieldBarOnline {
+        from { opacity: 0; transform: translateY(5px) scaleX(.92); }
+        to { opacity: 1; transform: translateY(0) scaleX(1); }
+    }
+
+    @keyframes shieldHitFlash {
+        0%,100% { filter: brightness(1); }
+        45% { filter: brightness(2.1); }
     }
 
     #playerHealthBar {
@@ -696,6 +754,7 @@
     body.upgrade-menu-open #topLeftStats,
     body.upgrade-menu-open #topWaveCounter,
     body.upgrade-menu-open #debugPanel,
+    body.upgrade-menu-open #playerVitalBars,
     body.upgrade-menu-open #playerHealthBarWrap,
     body.upgrade-menu-open #minimapWrap {
         pointer-events: none;
@@ -2789,3 +2848,396 @@ html:not(.mobile-performance) body:not(.gameplay-hud-active) #minimapWrap {
         grid-template-columns: 1fr !important;
     }
 }
+\n\n/* Release-stage credits and Developer Seal */\n.credits-overlay {\n    position: fixed;\n    inset: 0;\n    z-index: 12000;\n    display: grid;\n    place-items: center;\n    padding: 20px;\n    background: rgba(2, 5, 12, 0.88);\n    backdrop-filter: blur(8px);\n}\n.credits-overlay[hidden] { display: none !important; }\n.credits-card {\n    position: relative;\n    width: min(520px, 92vw);\n    max-height: 86vh;\n    overflow: auto;\n    padding: 34px 30px 28px;\n    border: 1px solid rgba(89, 188, 255, 0.55);\n    border-radius: 18px;\n    background: linear-gradient(180deg, rgba(8, 20, 39, 0.98), rgba(3, 8, 19, 0.98));\n    box-shadow: 0 0 42px rgba(25, 145, 255, 0.22), inset 0 0 28px rgba(36, 123, 210, 0.08);\n    color: #dcecff;\n    text-align: center;\n}\n.developer-seal {\n    width: 32px;\n    height: 32px;\n    image-rendering: auto;\n    filter: drop-shadow(0 0 8px rgba(79, 190, 255, 0.8));\n}\n.credits-card h1 { margin: 12px 0 8px; letter-spacing: 0.08em; }\n.credits-card p { line-height: 1.55; }\n.credits-divider {\n    width: 72%;\n    height: 1px;\n    margin: 20px auto;\n    background: linear-gradient(90deg, transparent, rgba(105, 204, 255, 0.75), transparent);\n}\n.credits-stage { color: #75d6ff; letter-spacing: 0.12em; text-transform: uppercase; font-size: 12px; margin-top: 22px; }\n.credits-note { color: #8fa5bb; font-size: 12px; }\n.credits-close {\n    position: absolute;\n    top: 10px;\n    right: 12px;\n    width: 34px;\n    height: 34px;\n    border-radius: 50%;\n    font-size: 22px;\n    line-height: 1;\n}\n/* ========================================================================== */
+   Animated Starwake Seal — splash screen
+   Pure CSS reconstruction of the Mk. I emblem. The geometry remains readable
+   without the reference PNG and scales down for mobile presentation.
+   ========================================================================== */
+.splash-seal {
+    --seal-size: clamp(116px, 19vw, 196px);
+    --seal-cyan: #52d9ff;
+    --seal-white: #f4fbff;
+    position: relative;
+    width: var(--seal-size);
+    height: var(--seal-size);
+    margin: -4px auto 10px;
+    filter: drop-shadow(0 0 16px rgba(82, 217, 255, 0.5));
+    isolation: isolate;
+    pointer-events: none;
+}
+
+.splash-seal-ring,
+.splash-seal-star,
+.splash-seal-core,
+.splash-seal-orb,
+.splash-seal-wake {
+    position: absolute;
+    inset: 50% auto auto 50%;
+    transform: translate(-50%, -50%);
+}
+
+.splash-seal-ring {
+    border-radius: 50%;
+    box-sizing: border-box;
+}
+
+.splash-seal-ring-outer {
+    width: 82%;
+    height: 82%;
+    border: clamp(2px, 0.35vw, 4px) solid rgba(191, 232, 255, 0.76);
+    border-left-color: rgba(82, 217, 255, 0.18);
+    border-right-color: rgba(82, 217, 255, 0.34);
+    box-shadow:
+        0 0 0 clamp(5px, 0.8vw, 9px) rgba(41, 116, 170, 0.18),
+        inset 0 0 20px rgba(82, 217, 255, 0.26),
+        0 0 22px rgba(82, 217, 255, 0.2);
+    animation: sealOuterOrbit 16s linear infinite;
+}
+
+.splash-seal-ring-outer::before,
+.splash-seal-ring-outer::after {
+    content: "";
+    position: absolute;
+    inset: 9%;
+    border-radius: 50%;
+    border: 1px dashed rgba(82, 217, 255, 0.64);
+}
+
+.splash-seal-ring-outer::after {
+    inset: -11%;
+    border-style: dotted;
+    border-width: 2px;
+    opacity: 0.48;
+}
+
+.splash-seal-ring-inner {
+    width: 62%;
+    height: 62%;
+    border: 2px solid rgba(91, 177, 230, 0.58);
+    border-top-color: rgba(239, 251, 255, 0.9);
+    border-bottom-color: rgba(82, 217, 255, 0.18);
+    box-shadow: inset 0 0 16px rgba(82, 217, 255, 0.3);
+    animation: sealInnerOrbit 10s linear infinite reverse;
+}
+
+.splash-seal-star {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, #55748b 0%, var(--seal-white) 46%, #7393aa 58%, #244258 100%);
+    clip-path: polygon(
+        50% 0%, 56% 38%, 100% 50%, 56% 56%,
+        50% 100%, 44% 56%, 0% 50%, 44% 44%
+    );
+    box-shadow: 0 0 18px rgba(82, 217, 255, 0.65);
+    z-index: 2;
+}
+
+.splash-seal-star::after {
+    content: "";
+    position: absolute;
+    inset: 5%;
+    background: linear-gradient(90deg, #152a3b, #b8e5ff 48%, #36566e 54%, #0a1722);
+    clip-path: inherit;
+    opacity: 0.62;
+}
+
+.splash-seal-star-cardinal {
+    transform: translate(-50%, -50%) scale(0.97);
+}
+
+.splash-seal-star-diagonal {
+    transform: translate(-50%, -50%) rotate(45deg) scale(0.71);
+    opacity: 0.92;
+}
+
+.splash-seal-core {
+    width: 40%;
+    height: 40%;
+    border-radius: 50%;
+    z-index: 5;
+    background: radial-gradient(circle, rgba(6, 15, 28, 0.96) 0 38%, rgba(21, 91, 145, 0.9) 40% 55%, rgba(82, 217, 255, 0.8) 58% 62%, rgba(3, 10, 20, 0.98) 65%);
+    box-shadow:
+        0 0 8px rgba(255,255,255,0.9),
+        0 0 25px rgba(82,217,255,0.9),
+        0 0 48px rgba(19,117,255,0.48),
+        inset 0 0 18px rgba(82,217,255,0.72);
+    animation: sealCoreBreathe 2.35s ease-in-out infinite;
+}
+
+.splash-seal-orb {
+    width: 36%;
+    height: 36%;
+    border-radius: 50%;
+    background: radial-gradient(circle at 38% 34%, #dffaff 0 8%, #52d9ff 18%, #1269bd 48%, #061329 72%, #01040a 100%);
+    box-shadow:
+        0 0 7px #e7fbff,
+        0 0 17px rgba(82,217,255,0.95),
+        0 0 35px rgba(36,113,255,0.65);
+    z-index: 6;
+    animation: sealOrbPulse 1.7s ease-in-out infinite;
+}
+
+.splash-seal-wake {
+    width: 68%;
+    height: 27%;
+    border-radius: 50%;
+    border-top: clamp(3px, 0.55vw, 6px) solid rgba(228, 250, 255, 0.98);
+    border-right: clamp(3px, 0.55vw, 6px) solid rgba(82, 217, 255, 0.9);
+    border-bottom: 0;
+    border-left: 0;
+    filter: drop-shadow(0 0 5px rgba(82, 217, 255, 0.98));
+    z-index: 7;
+    transform-origin: center;
+}
+
+.splash-seal-wake.wake-a {
+    animation: sealWakeSpin 3.3s linear infinite;
+}
+.splash-seal-wake.wake-b {
+    transform: translate(-50%, -50%) rotate(120deg);
+    animation: sealWakeSpinB 3.3s linear infinite;
+}
+.splash-seal-wake.wake-c {
+    transform: translate(-50%, -50%) rotate(240deg);
+    animation: sealWakeSpinC 3.3s linear infinite;
+}
+
+@keyframes sealOuterOrbit {
+    to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+@keyframes sealInnerOrbit {
+    to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+@keyframes sealCoreBreathe {
+    0%, 100% { transform: translate(-50%, -50%) scale(0.96); filter: brightness(0.88); }
+    50% { transform: translate(-50%, -50%) scale(1.06); filter: brightness(1.22); }
+}
+@keyframes sealOrbPulse {
+    0%, 100% { transform: translate(-50%, -50%) scale(0.82); opacity: 0.84; }
+    50% { transform: translate(-50%, -50%) scale(1.12); opacity: 1; }
+}
+@keyframes sealWakeSpin {
+    to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+@keyframes sealWakeSpinB {
+    to { transform: translate(-50%, -50%) rotate(480deg); }
+}
+@keyframes sealWakeSpinC {
+    to { transform: translate(-50%, -50%) rotate(600deg); }
+}
+
+@media (max-height: 720px), (max-width: 560px) {
+    .splash-seal {
+        --seal-size: clamp(90px, 22vh, 132px);
+        margin-bottom: 3px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .splash-seal-ring,
+    .splash-seal-core,
+    .splash-seal-orb,
+    .splash-seal-wake {
+        animation: none !important;
+    }
+}
+
+html.mobile-performance .splash-seal-ring,
+html.mobile-performance .splash-seal-core,
+html.mobile-performance .splash-seal-orb,
+html.mobile-performance .splash-seal-wake {
+    animation: none !important;
+}
+
+/* ========================================================================== 
+   Animated splash seal — containment correction
+   Keep the emblem in its own layout row and prevent rotating decoration from
+   changing the splash viewport's scrollable overflow bounds.
+   ========================================================================== */
+#splashScreen {
+    overflow: hidden !important;
+    overscroll-behavior: none !important;
+    scrollbar-width: none;
+}
+#splashScreen::-webkit-scrollbar { display: none; }
+
+#splashScreen > .splash-card {
+    overflow: hidden !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+#splashScreen .splash-seal {
+    --seal-size: clamp(86px, 9vw, 118px);
+    position: relative !important;
+    flex: 0 0 var(--seal-size);
+    width: var(--seal-size) !important;
+    height: var(--seal-size) !important;
+    margin: 0 auto 8px !important;
+    z-index: 1;
+    contain: layout paint;
+    overflow: visible;
+}
+
+#splashScreen .splash-kicker,
+#splashScreen .splash-title,
+#splashScreen .splash-tagline,
+#splashScreen .splash-credit,
+#splashScreen .splash-actions {
+    position: relative;
+    z-index: 2;
+    flex: 0 0 auto;
+}
+
+@media (max-height: 760px), (max-width: 900px), (pointer: coarse) {
+    #splashScreen .splash-seal {
+        --seal-size: clamp(68px, 13vh, 94px);
+        margin-bottom: 3px !important;
+    }
+}
+
+
+/* -------------------------------------------------------------------------
+   Defensive persistence controls
+   ------------------------------------------------------------------------- */
+.save-data-panel {
+    margin: 18px 0 4px; padding: 14px; border: 1px solid rgba(105, 205, 255, .28);
+    border-radius: 12px; background: rgba(5, 16, 34, .72); box-shadow: inset 0 0 24px rgba(30, 140, 220, .07);
+}
+.save-data-heading { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
+.save-data-heading strong { display:block; color:#dff7ff; letter-spacing:.08em; text-transform:uppercase; font-size:13px; }
+.save-data-heading span:not(.save-integrity-badge) { display:block; margin-top:4px; color:#94aec4; font-size:12px; line-height:1.35; }
+.save-integrity-badge { flex:0 0 auto; padding:4px 8px; border-radius:999px; font-size:10px; letter-spacing:.08em; text-transform:uppercase; border:1px solid rgba(150,180,200,.3); color:#a9bdcc; }
+.save-integrity-badge.good { color:#79f6bd; border-color:rgba(80,240,175,.45); background:rgba(30,145,105,.12); }
+.save-integrity-badge.warn { color:#ffd27a; border-color:rgba(255,190,75,.45); background:rgba(160,100,20,.13); }
+.save-integrity-badge.bad { color:#ff8d9e; border-color:rgba(255,95,120,.48); background:rgba(160,25,55,.13); }
+.save-data-actions { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; margin-top:12px; }
+.save-data-actions button { min-height:38px; font-size:11px; padding:7px 8px; }
+.save-data-actions button:disabled { opacity:.42; cursor:not-allowed; }
+.save-data-status { min-height:1.25em; margin:9px 0 0; color:#9fc5dc; font-size:11px; line-height:1.35; }
+@media (max-width:700px) { .save-data-actions { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+
+
+/* Upgrade-menu manual save control */
+.upgrade-action-bar {
+    grid-template-columns: minmax(150px, 1fr) minmax(140px, .8fr) minmax(170px, 1fr);
+}
+.upgrade-save-button {
+    border-color: rgba(88, 214, 255, .55);
+    background: linear-gradient(180deg, rgba(24, 105, 145, .92), rgba(10, 47, 76, .96));
+    box-shadow: inset 0 0 18px rgba(69, 202, 255, .12), 0 0 14px rgba(40, 174, 255, .12);
+}
+.upgrade-save-button:hover,
+.upgrade-save-button:focus-visible {
+    border-color: rgba(126, 232, 255, .95);
+    box-shadow: inset 0 0 20px rgba(89, 218, 255, .22), 0 0 18px rgba(61, 190, 255, .28);
+}
+.upgrade-save-status {
+    grid-column: 1 / -1;
+    min-height: 1.1em;
+    text-align: center;
+    font-size: .76rem;
+    letter-spacing: .08em;
+    color: rgba(190, 218, 234, .82);
+}
+.upgrade-save-status[data-level="good"] { color: #8dffd0; }
+.upgrade-save-status[data-level="bad"] { color: #ff9b9b; }
+@media (max-width: 760px) {
+    .upgrade-action-bar { grid-template-columns: 1fr !important; }
+    .upgrade-save-status { grid-column: 1; }
+}
+
+
+/* Save Inspector — Phase 2 */
+.save-inspector-panel { margin-top:10px; padding:12px; border:1px solid rgba(95,205,255,.22); border-radius:12px; background:linear-gradient(180deg,rgba(5,20,32,.88),rgba(3,12,21,.92)); box-shadow:inset 0 1px 0 rgba(255,255,255,.035); }
+.save-inspector-panel[hidden] { display:none !important; }
+.save-inspector-header { display:flex; justify-content:space-between; align-items:center; gap:12px; }
+.save-inspector-header strong { display:block; color:#ddf8ff; letter-spacing:.05em; }
+.save-inspector-header span:not(.save-integrity-meter span) { display:block; margin-top:3px; color:#91afc1; font-size:11px; }
+.save-integrity-meter { --integrity:0%; position:relative; width:62px; height:62px; flex:0 0 62px; display:grid; place-items:center; border-radius:50%; background:conic-gradient(#66e8c0 var(--integrity),rgba(110,150,170,.16) 0); box-shadow:0 0 18px rgba(55,205,190,.12); }
+.save-integrity-meter::before { content:""; position:absolute; inset:6px; border-radius:50%; background:#07131e; border:1px solid rgba(130,215,245,.16); }
+.save-integrity-meter span { position:relative; z-index:1; margin:0; color:#d9fff5; font-size:13px; font-weight:800; }
+.save-inspector-details { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px 14px; margin:12px 0; }
+.save-inspector-details div { min-width:0; padding:7px 8px; border-radius:8px; background:rgba(90,150,180,.07); }
+.save-inspector-details dt { color:#7896aa; font-size:9px; letter-spacing:.1em; text-transform:uppercase; }
+.save-inspector-details dd { margin:2px 0 0; color:#d9edf7; font-size:12px; overflow-wrap:anywhere; }
+.save-slot-list { display:grid; gap:6px; }
+.save-slot-card { display:grid; grid-template-columns:minmax(72px,.8fr) minmax(0,1.7fr) auto; align-items:center; gap:8px; padding:8px 9px; border-radius:8px; border:1px solid rgba(120,170,195,.13); background:rgba(255,255,255,.018); }
+.save-slot-card strong { color:#cfe9f6; font-size:11px; }
+.save-slot-card span { color:#8fa9b9; font-size:10px; line-height:1.25; }
+.save-slot-card em { font-style:normal; font-size:9px; letter-spacing:.08em; text-transform:uppercase; }
+.save-slot-card.good em { color:#6cf0b8; }
+.save-slot-card.bad em { color:#ff8798; }
+.save-slot-card.empty em { color:#8096a5; }
+.save-inspector-advice { margin:10px 0 0; color:#9fb8c8; font-size:11px; line-height:1.4; }
+@media (max-width:620px) { .save-inspector-details { grid-template-columns:1fr; } .save-slot-card { grid-template-columns:72px 1fr; } .save-slot-card em { grid-column:2; } }
+
+/* Phase 4: persistent save activity log */
+.save-activity-panel { margin-top:12px; padding-top:12px; border-top:1px solid rgba(95,205,255,.18); }
+.save-activity-heading { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.save-activity-heading strong { display:block; color:#ddf8ff; letter-spacing:.04em; }
+.save-activity-heading span { display:block; margin-top:3px; color:#7896aa; font-size:10px; }
+.save-activity-heading button { padding:6px 9px; font-size:10px; }
+.save-activity-empty { margin:10px 0 0; color:#7896aa; font-size:11px; }
+.save-activity-list { display:grid; gap:7px; max-height:260px; margin:10px 0 0; padding:0; overflow:auto; list-style:none; }
+.save-activity-item { padding:8px 9px; border:1px solid rgba(120,170,195,.15); border-left:3px solid #668396; border-radius:8px; background:rgba(90,150,180,.055); }
+.save-activity-item.success { border-left-color:#65e6b2; }
+.save-activity-item.warning, .save-activity-item.cancelled { border-left-color:#f1c36b; }
+.save-activity-item.failed { border-left-color:#ff7373; }
+.save-activity-item > div { display:flex; justify-content:space-between; gap:10px; align-items:baseline; }
+.save-activity-item strong { color:#d9edf7; font-size:11px; }
+.save-activity-item time { color:#7896aa; font-size:9px; white-space:nowrap; }
+.save-activity-item p { margin:4px 0 0; color:#9fb8c8; font-size:10px; line-height:1.35; }
+@media (max-width:620px) { .save-activity-heading { align-items:flex-start; } .save-activity-item > div { display:block; } .save-activity-item time { display:block; margin-top:2px; } }
+
+
+/* ========================================================================== */
+/* Phase 5 — Living Seal save-health indicator                                */
+/* ========================================================================== */
+.save-inspector-identity { display:flex; align-items:center; gap:14px; min-width:0; }
+.save-health-seal {
+    --health-color:#63d8ff;
+    --health-soft:rgba(99,216,255,.32);
+    position:relative; width:58px; height:58px; flex:0 0 58px;
+    filter:drop-shadow(0 0 9px var(--health-soft));
+    transition:filter .25s ease, transform .25s ease;
+}
+.save-health-ring,.save-health-star,.save-health-core,.save-health-core>* { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); box-sizing:border-box; }
+.save-health-ring { border-radius:50%; }
+.save-health-ring.ring-outer { width:92%; height:92%; border:2px solid color-mix(in srgb,var(--health-color) 78%,transparent); border-left-color:transparent; animation:saveSealOrbit 8s linear infinite; }
+.save-health-ring.ring-inner { width:70%; height:70%; border:1px dashed color-mix(in srgb,var(--health-color) 75%,transparent); animation:saveSealOrbit 5s linear infinite reverse; }
+.save-health-star { width:80%; height:8px; border-radius:50%; background:linear-gradient(90deg,transparent,var(--health-color),#f7fdff,var(--health-color),transparent); clip-path:polygon(0 50%,42% 35%,50% 0,58% 35%,100% 50%,58% 65%,50% 100%,42% 65%); }
+.save-health-star.star-b { transform:translate(-50%,-50%) rotate(45deg); }
+.save-health-core { width:42%; height:42%; border-radius:50%; background:radial-gradient(circle,#faffff 0 8%,var(--health-color) 22%,color-mix(in srgb,var(--health-color) 35%,#07101d) 60%,#02060c 72%); box-shadow:0 0 12px var(--health-color), inset 0 0 8px rgba(255,255,255,.6); animation:saveSealBreathe 2.1s ease-in-out infinite; }
+.save-health-core i { width:76%; height:32%; border:2px solid var(--health-color); border-left-color:transparent; border-bottom-color:transparent; border-radius:50%; }
+.save-health-core i:nth-child(2){ transform:translate(-50%,-50%) rotate(120deg); }
+.save-health-core i:nth-child(3){ transform:translate(-50%,-50%) rotate(240deg); }
+.save-health-core b { width:7px; height:7px; border-radius:50%; background:#fff; box-shadow:0 0 7px 3px var(--health-color); }
+.save-health-seal.state-healthy { --health-color:#59d8ff; --health-soft:rgba(70,190,255,.45); }
+.save-health-seal.state-saved { --health-color:#67ffab; --health-soft:rgba(61,255,145,.58); }
+.save-health-seal.state-warning,.save-health-seal.state-recovery { --health-color:#ffd45f; --health-soft:rgba(255,194,61,.58); }
+.save-health-seal.state-invalid,.save-health-seal.state-failed { --health-color:#ff6475; --health-soft:rgba(255,70,91,.62); }
+.save-health-seal.state-migration { --health-color:#ba82ff; --health-soft:rgba(165,97,255,.62); }
+.save-health-seal.signal { animation:saveSealSignal .72s ease-out 1; }
+@keyframes saveSealOrbit { to { transform:translate(-50%,-50%) rotate(360deg); } }
+@keyframes saveSealBreathe { 50% { transform:translate(-50%,-50%) scale(1.09); filter:brightness(1.3); } }
+@keyframes saveSealSignal { 0%{transform:scale(1)} 35%{transform:scale(1.22);filter:drop-shadow(0 0 20px var(--health-color))} 100%{transform:scale(1)} }
+@media (max-width:520px){ .save-health-seal{width:48px;height:48px;flex-basis:48px}.save-inspector-identity{gap:10px} }
+@media (prefers-reduced-motion:reduce){ .save-health-seal *,.save-health-seal{animation:none!important} }
+
+
+/* Gameplay seal and pause-glyph correction */
+#topWaveCounter { display:flex; align-items:center; gap:9px; }
+#topWaveCounter .wave-label { color:#d7ecff; white-space:nowrap; }
+#topWaveCounter .wave-label #wave { color:#fff; }
+.gameplay-seal { --seal-size:30px; position:relative; flex:0 0 30px; width:30px!important; height:30px!important; margin:0; overflow:visible; }
+.gameplay-seal .splash-seal-ring-outer { animation-duration:12s; }
+.gameplay-seal .splash-seal-ring-inner { animation-duration:7s; }
+.gameplay-seal .splash-seal-core { animation-duration:2.1s; }
+.gameplay-seal .splash-seal-wake { animation-duration:2.8s; }
+.touch-pause-button { display:grid; place-items:center; line-height:1; font-size:0; overflow:hidden; }
+.touch-pause-button > span { display:block; width:100%; transform:translateY(-1px); text-align:center; font-size:24px; line-height:1; font-weight:900; letter-spacing:-4px; padding-right:4px; }
+@media (max-width:900px), (pointer:coarse) { .gameplay-seal { display:none; } }
+@media (prefers-reduced-motion:reduce) { .gameplay-seal * { animation:none!important; } }
