@@ -7573,37 +7573,13 @@
         setSaveStatus("Save exported. Keep it somewhere outside the game folder.", "good");
     }
 
-    function rotateSaveBackups(previousMain) {
-        if (!previousMain) return;
-        const b1 = rawStorageGet(SAVE_KEYS.backups[0]);
-        const b2 = rawStorageGet(SAVE_KEYS.backups[1]);
-        if (b2) rawStorageSet(SAVE_KEYS.backups[2], b2);
-        if (b1) rawStorageSet(SAVE_KEYS.backups[1], b1);
-        rawStorageSet(SAVE_KEYS.backups[0], previousMain);
-    }
-
     async function importSaveFile(file) {
         if (!file) return;
-        let text;
-        try { text = await file.text(); }
-        catch { setSaveStatus("Import failed: the selected file could not be read.", "bad"); return; }
-        const result = parseAndValidateSave(text);
-        if (!result.valid) { setSaveStatus(`Import rejected: ${result.reason}. Your existing saves were not changed.`, "bad"); return; }
+        const result = parseAndValidateSave(await file.text());
+        if (!result.valid) { setSaveStatus(`Import rejected: ${result.reason}.`, "bad"); return; }
         const serialized = JSON.stringify(result.envelope);
-        const current = rawStorageGet(SAVE_KEYS.main);
-        rotateSaveBackups(current);
-        if (!rawStorageSet(SAVE_KEYS.main, serialized)) {
-            setSaveStatus("Import failed while writing storage. Your previous main save remains in Backup 1.", "bad");
-            return;
-        }
-        const installed = parseAndValidateSave(rawStorageGet(SAVE_KEYS.main));
-        if (!installed.valid) {
-            if (current) rawStorageSet(SAVE_KEYS.main, current);
-            setSaveStatus("Import failed final verification. The previous main save was restored.", "bad");
-            return;
-        }
-        const run = installed.envelope.data.run;
-        refreshSaveDataPanel(`Imported save verified · Wave ${run.wave}.`);
+        const current = rawStorageGet(SAVE_KEYS.main); if (current) rawStorageSet(SAVE_KEYS.backups[0], current);
+        rawStorageSet(SAVE_KEYS.main, serialized); refreshSaveDataPanel("Imported save validated and installed");
     }
 
     function setSaveStatus(message, level = "") {
@@ -7630,60 +7606,14 @@
 
     function initializePersistenceControls() {
         document.getElementById("continueSavedRunButton")?.addEventListener("click", () => { const slot = newestValidSave(); if (slot) restoreSaveEnvelope(slot.result.envelope); });
-        document.getElementById("saveUpgradeMenuButton")?.addEventListener("click", () => {
-            const button = document.getElementById("saveUpgradeMenuButton");
-            const status = document.getElementById("upgradeSaveStatus");
-            const saved = writeValidatedSave("upgrade menu");
-            if (status) {
-                status.textContent = saved ? `Saved · Wave ${state.wave}` : "Save unavailable";
-                status.dataset.level = saved ? "good" : "bad";
-            }
-            if (button) {
-                const original = "Save Game";
-                button.textContent = saved ? "Saved ✓" : "Save Failed";
-                window.setTimeout(() => { button.textContent = original; }, 1800);
-            }
-        });
         document.getElementById("exportSaveButton")?.addEventListener("click", exportSaveFile);
         document.getElementById("importSaveButton")?.addEventListener("click", () => document.getElementById("importSaveFile")?.click());
         document.getElementById("importSaveFile")?.addEventListener("change", event => { importSaveFile(event.target.files?.[0]); event.target.value = ""; });
         document.getElementById("recoverSaveButton")?.addEventListener("click", () => {
-            const slots = inspectSaveSlots();
-            const main = slots[0];
-            const validBackups = slots.slice(1).filter(slot => slot.result.valid)
-                .sort((a,b) => Date.parse(b.result.envelope.savedAt) - Date.parse(a.result.envelope.savedAt));
-            if (!validBackups.length) {
-                if (main.result.valid) setSaveStatus("Your main save is healthy. No valid backup is available or needed.", "good");
-                else setSaveStatus("Recovery found no healthy backup. Import an exported save if one is available.", "bad");
-                return;
-            }
-            const chosen = validBackups[0];
-            const run = chosen.result.envelope.data.run;
-            const savedAt = new Date(chosen.result.envelope.savedAt);
-            const mainTime = main.result.valid ? Date.parse(main.result.envelope.savedAt) : NaN;
-            const backupTime = savedAt.getTime();
-            const minutesLost = Number.isFinite(mainTime) && mainTime > backupTime
-                ? Math.max(0, Math.round((mainTime - backupTime) / 60000))
-                : null;
-            const lossText = minutesLost === null ? "" : minutesLost === 0 ? " No measurable progress lost." : ` Approximately ${minutesLost} minute${minutesLost === 1 ? "" : "s"} may be lost.`;
-            const confirmed = window.confirm(
-                `Recover ${chosen.label}?\n\nWave ${run.wave} · ${DIFFICULTY_DATA[run.difficulty]?.label || run.difficulty}\nSaved ${savedAt.toLocaleString()}\n\nThis replaces the current main save. The current main save will first be preserved as Backup 1.`
-            );
-            if (!confirmed) { setSaveStatus("Recovery cancelled. No save data was changed."); return; }
-            const currentMain = rawStorageGet(SAVE_KEYS.main);
-            rotateSaveBackups(currentMain);
-            const serialized = JSON.stringify(chosen.result.envelope);
-            if (!rawStorageSet(SAVE_KEYS.main, serialized)) {
-                setSaveStatus("Recovery could not write the restored save. Existing copies were preserved.", "bad");
-                return;
-            }
-            const verification = parseAndValidateSave(rawStorageGet(SAVE_KEYS.main));
-            if (!verification.valid) {
-                if (currentMain) rawStorageSet(SAVE_KEYS.main, currentMain);
-                setSaveStatus("Recovery failed final verification. The previous main save was restored.", "bad");
-                return;
-            }
-            refreshSaveDataPanel(`Recovery successful · ${chosen.label} · Wave ${run.wave}.${lossText}`);
+            const slots = inspectSaveSlots(); const valid = slots.filter(s => s.result.valid);
+            if (!valid.length) { setSaveStatus("Recovery found no valid copies.", "bad"); return; }
+            const chosen = valid.sort((a,b) => Date.parse(b.result.envelope.savedAt)-Date.parse(a.result.envelope.savedAt))[0];
+            rawStorageSet(SAVE_KEYS.main, JSON.stringify(chosen.result.envelope)); refreshSaveDataPanel(`Recovered from ${chosen.label}.`);
         });
         window.addEventListener("beforeunload", () => writeValidatedSave("shutdown"));
         document.addEventListener("visibilitychange", () => { if (document.hidden) writeValidatedSave("background"); });

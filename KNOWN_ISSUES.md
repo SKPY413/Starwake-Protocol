@@ -109,3 +109,7 @@ The browser save subsystem is limited to 256 KiB across all protected slots. Bac
 - Overdrive boost timers use runtime clock values; save/resume behavior during an active temporary boost should be verified.
 
 - Rift Tearer balance values remain provisional; verify static rift spawn density, visibility, and damage during crowded waves.
+
+## Evolving Background — Playtest Required
+
+The command-chassis background reveal is newly implemented and requires performance and readability testing on desktop and mobile. The current build treats every wave-20 giga-boss as the end of a repeating visual chapter; a future campaign mode may reserve the complete reveal for one canonical final boss.

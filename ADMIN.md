@@ -432,3 +432,26 @@ Playtest focus:
 - Verify pause icon alignment at multiple desktop/mobile resolutions.
 
 - Implemented conditional blue shield HUD and converted Rift Tearer tears to fixed world-space hazards; internal rings animate but the tears do not orbit or follow the player.
+
+############################################################
+2026-07-16 — EVOLVING BACKGROUND / BOSS REVEAL
+############################################################
+
+Implemented a twenty-wave environmental reveal cycle.
+
+- Large arena structures now change hue and converge after each wave.
+- The scattered structures gradually form a dormant command chassis.
+- On each wave-20 giga-boss encounter, the structures lock around the boss core.
+- Energy braces reveal that the apparent background elements are parts of the boss.
+- Endless mode begins a fresh reveal cycle after each twenty-wave chapter.
+
+Playtest focus:
+- Ensure the late-wave assembly remains readable without hiding enemies.
+- Confirm mobile performance remains stable.
+- Decide whether the reveal should culminate at wave 20 permanently or later move to a dedicated campaign finale.
+
+############################################################
+CURRENT PLAYTEST FOCUS — CARRIER / BOSS PASS
+############################################################
+
+Verify that first-appearance Carriers around waves 11–15 remain threatening without flooding the arena. Confirm that several simultaneous Carriers respect the global launch spacing and that the DEPLOYING tell is readable on desktop and mobile. Test wave 10 and wave 20 warning sequences, especially pause/resume behavior and escalating boss projectile patterns.

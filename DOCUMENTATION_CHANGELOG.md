@@ -103,3 +103,18 @@ Added animated, accessible save-health feedback to the Save Inspector and connec
 ## Shield HUD and Static Rift Pass
 - Added a conditional blue shield bar above hull health.
 - Changed Rift Tearer from orbiting rifts to stationary world-space tears that spawn around the player, animate in place, damage enemies, and fade out.
+
+## 2026-07-16 — Evolving Arena Background
+
+- Added a staged twenty-wave background transformation.
+- Added color evolution, converging chassis fragments, final-wave core glow, and boss-link energy braces.
+- Documented the current endless-mode chapter behavior and future campaign-finale decision.
+
+############################################################
+2026-07-16 — CARRIER AND BOSS MILESTONE PASS
+############################################################
+
+- Reworked Carrier launch doctrine into Scout, standard, and endless scaling phases.
+- Added per-carrier active craft caps and a global launch-spacing cooldown.
+- Added visible deployment telegraphs and stationary launch commitment.
+- Added milestone boss warnings and escalating projectile patterns.

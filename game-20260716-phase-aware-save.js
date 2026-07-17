@@ -2475,6 +2475,7 @@
     const missiles = [];
     const enemyBullets = [];
     const carrierMissiles = [];
+    let carrierGlobalNextLaunchAt = 0;
     const enemies = [];
     const explosions = [];
     const pickups = [];
@@ -2484,6 +2485,7 @@
     const damageNumbers = [];
     const backgroundPanels = [];
     const backgroundStars = [];
+    const backgroundBossFragments = [];
 
     // -------------------------------------------------------------------------
     // Coordinate helpers
@@ -2931,6 +2933,24 @@
     /**
      * Closes upgrade state, reapplies difficulty scaling, and begins the next encounter. This is the canonical wave-transition entry point.
      */
+    function beginBossWarning(nextWave) {
+        const giga = nextWave % 20 === 0;
+        state.paused = true;
+        ui.waveClearOverlay.style.opacity = 0.9;
+        ui.waveClearTitle.textContent = giga ? "ANCHOR CONVERGENCE" : "UNKNOWN SIGNAL DETECTED";
+        ui.waveClearSubtext.textContent = giga ? "FINAL ASSEMBLY IN PROGRESS" : `MILESTONE GUARDIAN ${Math.floor(nextWave / 10)} APPROACHING`;
+        ui.waveClearMessage.classList.add("active");
+        addScreenShake(giga ? 22 : 12);
+        playSound("bossSpawn");
+        setTimeout(() => {
+            if (state.ended) return;
+            ui.waveClearOverlay.style.opacity = 0;
+            ui.waveClearMessage.classList.remove("active");
+            state.paused = false;
+            resumeAudio();
+        }, giga ? 4200 : 3200);
+    }
+
     function startNextWave() {
         clearReconstructionUndo();
         state.musicScene = "combat";
@@ -2961,7 +2981,8 @@
         state.paused = false;
         ui.upgradeMenu.style.display = "none";
         document.body.classList.remove("upgrade-menu-open");
-        resumeAudio();
+        if (isBossWave()) beginBossWarning(state.wave);
+        else resumeAudio();
     }
 
     /**
@@ -3849,13 +3870,15 @@
             carrier: {
                 r: 62,
                 speed: 0.24 + scaledWave * 0.012,
-                health: 1500 + scaledWave * 185,
+                health: (1500 + scaledWave * 185) * (wave <= 15 ? 0.85 : 1),
                 damage: 48,
                 reward: 230 + scaledWave * 12,
                 // The carrier cannon is intentionally independent from its missile factory.
                 shootCooldown: Math.max(620, 1250 - scaledWave * 16),
                 missileInitialVolleyPending: true,
                 nextMissileVolleyAt: 0,
+                launchChargeUntil: 0,
+                pendingLaunchCount: 0,
                 carrierOrbitDirection: Math.random() < 0.5 ? -1 : 1,
                 carrierOrbitPhase: Math.random() * TWO_PI,
             },
@@ -4064,6 +4087,7 @@
             return getFighterMovement(enemy, dx, dy, now);
         }
         if (enemy.type === "carrier") {
+            if (enemy.launchChargeUntil && now < enemy.launchChargeUntil) return { x: 0, y: 0 };
             return getCarrierMovement(enemy, dx, dy, now);
         }
 
@@ -4461,8 +4485,9 @@
         }
 
         const baseAngle = Math.atan2(player.y - enemy.y, player.x - enemy.x);
-        const shotCount = enemy.type === "gigaBoss" ? 9 : enemy.type === "boss" ? 5 : enemy.type === "miniTank" ? 3 : enemy.type === "fighter" ? 2 : 1;
-        const spread = enemy.type === "gigaBoss" ? 0.22 : enemy.type === "boss" ? 0.18 : enemy.type === "miniTank" ? 0.14 : enemy.type === "fighter" ? 0.08 : 0;
+        const bossTier = enemy.type === "boss" ? Math.max(1, Math.floor(state.wave / 10)) : 0;
+        const shotCount = enemy.type === "gigaBoss" ? 11 : enemy.type === "boss" ? Math.min(9, 3 + bossTier * 2) : enemy.type === "miniTank" ? 3 : enemy.type === "fighter" ? 2 : 1;
+        const spread = enemy.type === "gigaBoss" ? 0.24 : enemy.type === "boss" ? Math.min(0.28, 0.13 + bossTier * 0.025) : enemy.type === "miniTank" ? 0.14 : enemy.type === "fighter" ? 0.08 : 0;
         const centerOffset = (shotCount - 1) / 2;
 
         for (let i = 0; i < shotCount; i++) {
@@ -4496,20 +4521,22 @@
      * enter after the player has had time to assemble a powerful build.
      */
     function getCarrierDoctrine() {
+        const scout = state.wave <= 15;
+        const veteran = state.wave >= 21;
         const profiles = {
-            easy:       { initial: 8,  volley: 6,  activeCap: 16, volleyCooldown: 2550, cannonShots: 1, cannonSpread: 0.00 },
-            medium:     { initial: 10, volley: 8,  activeCap: 20, volleyCooldown: 2150, cannonShots: 2, cannonSpread: 0.08 },
-            hard:       { initial: 12, volley: 10, activeCap: 26, volleyCooldown: 1750, cannonShots: 3, cannonSpread: 0.10 },
-            impossible: { initial: 16, volley: 14, activeCap: 34, volleyCooldown: 1350, cannonShots: 4, cannonSpread: 0.11 },
+            easy:       scout ? { initial: 1, volley: 1, activeCap: 2, volleyCooldown: 8000, cannonShots: 1, cannonSpread: 0.00 } : { initial: 2, volley: 1, activeCap: 4, volleyCooldown: 6200, cannonShots: 1, cannonSpread: 0.00 },
+            medium:     scout ? { initial: 1, volley: 1, activeCap: 2, volleyCooldown: 7200, cannonShots: 1, cannonSpread: 0.00 } : { initial: 2, volley: 1, activeCap: 4, volleyCooldown: 5600, cannonShots: 2, cannonSpread: 0.08 },
+            hard:       scout ? { initial: 1, volley: 1, activeCap: 3, volleyCooldown: 6500, cannonShots: 2, cannonSpread: 0.07 } : { initial: 2, volley: 2, activeCap: 5, volleyCooldown: 5000, cannonShots: 2, cannonSpread: 0.09 },
+            impossible: scout ? { initial: 2, volley: 1, activeCap: 4, volleyCooldown: 5800, cannonShots: 2, cannonSpread: 0.08 } : { initial: 3, volley: 2, activeCap: 6, volleyCooldown: 4400, cannonShots: 3, cannonSpread: 0.10 },
         };
         const base = profiles[state.difficulty] || profiles.medium;
-        const waveBonus = Math.min(8, Math.floor(Math.max(0, state.wave - 14) / 5));
+        const endlessSteps = veteran ? Math.floor((state.wave - 20) / 10) : 0;
         return {
             ...base,
-            initial: base.initial + waveBonus,
-            volley: base.volley + Math.floor(waveBonus * 0.75),
-            activeCap: base.activeCap + waveBonus,
-            volleyCooldown: Math.max(900, base.volleyCooldown - waveBonus * 55),
+            activeCap: Math.min(10, base.activeCap + endlessSteps),
+            volleyCooldown: Math.max(3200, base.volleyCooldown - endlessSteps * 300),
+            globalCooldown: 1800,
+            chargeTime: 1200,
         };
     }
 
@@ -4520,23 +4547,32 @@
     function updateCarrierSystems(enemy, now) {
         const doctrine = getCarrierDoctrine();
         const activeOwned = carrierMissiles.reduce(
-            (count, missile) => count + (missile && !missile.dead && missile.owner === enemy ? 1 : 0),
-            0
+            (count, missile) => count + (missile && !missile.dead && missile.owner === enemy ? 1 : 0), 0
         );
 
-        if (enemy.missileInitialVolleyPending) {
-            launchCarrierVolley(enemy, Math.min(doctrine.initial, doctrine.activeCap));
+        // Visible deployment commitment: the carrier charges in place before launch.
+        if (enemy.launchChargeUntil) {
+            if (now < enemy.launchChargeUntil) return;
+            if (now < carrierGlobalNextLaunchAt) {
+                enemy.launchChargeUntil = carrierGlobalNextLaunchAt + 120;
+                return;
+            }
+            const roomForCarrier = Math.max(0, doctrine.activeCap - activeOwned);
+            const roomGlobal = Math.max(0, PERFORMANCE_LIMITS.maxCarrierMissiles - carrierMissiles.filter(m => m && !m.dead).length);
+            const launchCount = Math.min(enemy.pendingLaunchCount || 1, roomForCarrier, roomGlobal);
+            if (launchCount > 0) launchCarrierVolley(enemy, launchCount);
+            enemy.launchChargeUntil = 0;
+            enemy.pendingLaunchCount = 0;
             enemy.missileInitialVolleyPending = false;
-            enemy.nextMissileVolleyAt = now + doctrine.volleyCooldown * 0.72;
+            carrierGlobalNextLaunchAt = now + doctrine.globalCooldown;
+            enemy.nextMissileVolleyAt = now + doctrine.volleyCooldown * randomRange(0.92, 1.08);
             return;
         }
 
-        if (now < enemy.nextMissileVolleyAt || activeOwned >= doctrine.activeCap) return;
-        const roomForCarrier = doctrine.activeCap - activeOwned;
-        const roomGlobal = Math.max(0, PERFORMANCE_LIMITS.maxCarrierMissiles - carrierMissiles.filter(m => m && !m.dead).length);
-        const launchCount = Math.min(doctrine.volley, roomForCarrier, roomGlobal);
-        if (launchCount > 0) launchCarrierVolley(enemy, launchCount);
-        enemy.nextMissileVolleyAt = now + doctrine.volleyCooldown;
+        if (activeOwned >= doctrine.activeCap || now < enemy.nextMissileVolleyAt || now < carrierGlobalNextLaunchAt) return;
+        enemy.pendingLaunchCount = enemy.missileInitialVolleyPending ? doctrine.initial : doctrine.volley;
+        enemy.launchChargeUntil = now + doctrine.chargeTime;
+        playSound("miniBossSpawn");
     }
 
     /**
@@ -5526,6 +5562,41 @@
                 alpha: randomRange(0.15, 0.6),
             });
         }
+
+        // The arena's largest background structures are fragments of a dormant
+        // command chassis. Across each 20-wave chapter they converge until the
+        // giga-boss reveals that the scenery was part of its body all along.
+        backgroundBossFragments.length = 0;
+        const targetLayout = [
+            { x: -250, y: -120, w: 190, h: 54, rotation: -0.32 },
+            { x: 250, y: -120, w: 190, h: 54, rotation: 0.32 },
+            { x: -315, y: 0, w: 175, h: 48, rotation: -0.08 },
+            { x: 315, y: 0, w: 175, h: 48, rotation: 0.08 },
+            { x: -245, y: 125, w: 185, h: 50, rotation: 0.28 },
+            { x: 245, y: 125, w: 185, h: 50, rotation: -0.28 },
+            { x: -105, y: -205, w: 84, h: 180, rotation: -0.12 },
+            { x: 105, y: -205, w: 84, h: 180, rotation: 0.12 },
+            { x: -105, y: 205, w: 84, h: 180, rotation: 0.12 },
+            { x: 105, y: 205, w: 84, h: 180, rotation: -0.12 },
+            { x: 0, y: -300, w: 120, h: 100, rotation: 0 },
+            { x: 0, y: 300, w: 120, h: 100, rotation: Math.PI },
+        ];
+
+        targetLayout.forEach((target, index) => {
+            const angle = (index / targetLayout.length) * TWO_PI + randomRange(-0.24, 0.24);
+            const distanceFromCenter = randomRange(900, 1550);
+            backgroundBossFragments.push({
+                startX: WORLD.width * 0.5 + Math.cos(angle) * distanceFromCenter,
+                startY: WORLD.height * 0.5 + Math.sin(angle) * distanceFromCenter,
+                startRotation: randomRange(-Math.PI, Math.PI),
+                targetX: target.x,
+                targetY: target.y,
+                targetRotation: target.rotation,
+                w: target.w,
+                h: target.h,
+                phase: randomRange(0, TWO_PI),
+            });
+        });
     }
 
     // -------------------------------------------------------------------------
@@ -5571,6 +5642,7 @@
         drawBackgroundStars();
         drawBackgroundGrid();
         drawBackgroundPanels();
+        drawBackgroundBossAssembly();
         drawWorldBounds();
     }
 
@@ -5621,14 +5693,15 @@
             const screen = worldToScreen(panel);
             if (screen.x + panel.w < -50 || screen.x > getVisibleWorldWidth() + 50 || screen.y + panel.h < -50 || screen.y > getVisibleWorldHeight() + 50) continue;
 
-            ctx.fillStyle = `rgba(30, 70, 110, ${0.12 + panel.glow * 0.08})`;
+            const revealFade = 1 - getBackgroundRevealProgress() * 0.48;
+            ctx.fillStyle = `rgba(30, 70, 110, ${(0.12 + panel.glow * 0.08) * revealFade})`;
             ctx.fillRect(screen.x, screen.y, panel.w, panel.h);
 
-            ctx.strokeStyle = `rgba(90, 200, 255, ${0.14 + panel.glow * 0.16})`;
+            ctx.strokeStyle = `rgba(90, 200, 255, ${(0.14 + panel.glow * 0.16) * revealFade})`;
             ctx.lineWidth = 2;
             ctx.strokeRect(screen.x, screen.y, panel.w, panel.h);
 
-            ctx.strokeStyle = `rgba(120, 255, 230, ${0.1 + panel.glow * 0.1})`;
+            ctx.strokeStyle = `rgba(120, 255, 230, ${(0.1 + panel.glow * 0.1) * revealFade})`;
             ctx.lineWidth = 1;
             ctx.beginPath();
             ctx.moveTo(screen.x + 12, screen.y + panel.h * 0.5);
@@ -5637,6 +5710,119 @@
             ctx.lineTo(screen.x + panel.w * 0.5, screen.y + panel.h - 12);
             ctx.stroke();
         }
+    }
+
+    function getBackgroundRevealProgress() {
+        // Every twenty waves form one visual chapter. Wave 1 begins scattered;
+        // wave 20 is the complete boss reveal. Endless play starts a new cycle.
+        const chapterWave = ((Math.max(1, state.wave) - 1) % 20) + 1;
+        return clamp((chapterWave - 1) / 19, 0, 1);
+    }
+
+    function smoothReveal(value) {
+        return value * value * (3 - 2 * value);
+    }
+
+    function drawBackgroundBossAssembly() {
+        if (!backgroundBossFragments.length) return;
+
+        const progress = smoothReveal(getBackgroundRevealProgress());
+        const finalBoss = enemies.find(enemy => enemy && !enemy.dead && enemy.type === "gigaBoss");
+        const anchor = finalBoss
+            ? { x: finalBoss.x, y: finalBoss.y }
+            : { x: WORLD.width * 0.5, y: WORLD.height * 0.5 };
+        const now = performance.now();
+        const hue = 202 + progress * 82;
+        const screenAnchor = worldToScreen(anchor);
+
+        ctx.save();
+        ctx.globalCompositeOperation = "lighter";
+
+        // A faint central silhouette becomes readable only near the reveal.
+        if (progress > 0.68) {
+            const silhouetteAlpha = (progress - 0.68) / 0.32;
+            const pulse = 0.88 + Math.sin(now / 520) * 0.08;
+            const coreRadius = 82 + progress * 42;
+            const coreGradient = ctx.createRadialGradient(
+                screenAnchor.x, screenAnchor.y, 8,
+                screenAnchor.x, screenAnchor.y, coreRadius * 1.7
+            );
+            coreGradient.addColorStop(0, `hsla(${hue}, 95%, 72%, ${0.14 * silhouetteAlpha})`);
+            coreGradient.addColorStop(0.45, `hsla(${hue + 24}, 88%, 50%, ${0.07 * silhouetteAlpha})`);
+            coreGradient.addColorStop(1, `hsla(${hue + 40}, 80%, 30%, 0)`);
+            ctx.fillStyle = coreGradient;
+            ctx.beginPath();
+            ctx.arc(screenAnchor.x, screenAnchor.y, coreRadius * 1.7 * pulse, 0, TWO_PI);
+            ctx.fill();
+
+            ctx.strokeStyle = `hsla(${hue}, 90%, 70%, ${0.15 * silhouetteAlpha})`;
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(screenAnchor.x, screenAnchor.y, coreRadius, now / 2400, now / 2400 + Math.PI * 1.55);
+            ctx.stroke();
+        }
+
+        for (const fragment of backgroundBossFragments) {
+            const x = fragment.startX + (anchor.x + fragment.targetX - fragment.startX) * progress;
+            const y = fragment.startY + (anchor.y + fragment.targetY - fragment.startY) * progress;
+            const rotation = fragment.startRotation + (fragment.targetRotation - fragment.startRotation) * progress;
+            const screen = worldToScreen({ x, y });
+            if (screen.x < -420 || screen.x > getVisibleWorldWidth() + 420 || screen.y < -420 || screen.y > getVisibleWorldHeight() + 420) continue;
+
+            const wake = Math.sin(now / 620 + fragment.phase) * (1 - progress) * 8;
+            const alpha = 0.12 + progress * 0.34;
+            ctx.save();
+            ctx.translate(screen.x, screen.y + wake);
+            ctx.rotate(rotation);
+
+            const panelGradient = ctx.createLinearGradient(-fragment.w / 2, 0, fragment.w / 2, 0);
+            panelGradient.addColorStop(0, `hsla(${hue + 18}, 70%, 22%, ${alpha * 0.45})`);
+            panelGradient.addColorStop(0.5, `hsla(${hue}, 76%, 38%, ${alpha})`);
+            panelGradient.addColorStop(1, `hsla(${hue + 38}, 72%, 20%, ${alpha * 0.5})`);
+            ctx.fillStyle = panelGradient;
+            ctx.strokeStyle = `hsla(${hue}, 96%, 72%, ${0.18 + progress * 0.48})`;
+            ctx.lineWidth = 2 + progress * 1.5;
+
+            ctx.beginPath();
+            ctx.moveTo(-fragment.w * 0.5, -fragment.h * 0.22);
+            ctx.lineTo(-fragment.w * 0.34, -fragment.h * 0.5);
+            ctx.lineTo(fragment.w * 0.36, -fragment.h * 0.42);
+            ctx.lineTo(fragment.w * 0.5, 0);
+            ctx.lineTo(fragment.w * 0.34, fragment.h * 0.5);
+            ctx.lineTo(-fragment.w * 0.38, fragment.h * 0.4);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.strokeStyle = `hsla(${hue + 38}, 100%, 78%, ${0.12 + progress * 0.34})`;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(-fragment.w * 0.32, 0);
+            ctx.lineTo(fragment.w * 0.32, 0);
+            ctx.moveTo(0, -fragment.h * 0.3);
+            ctx.lineTo(0, fragment.h * 0.3);
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        // At the final boss, energy braces reveal that every fragment is linked
+        // to the enemy core rather than being unrelated arena decoration.
+        if (progress > 0.84) {
+            const linkAlpha = (progress - 0.84) / 0.16;
+            ctx.strokeStyle = `hsla(${hue + 20}, 100%, 76%, ${0.08 + linkAlpha * 0.18})`;
+            ctx.lineWidth = 1.5;
+            for (const fragment of backgroundBossFragments) {
+                const x = fragment.startX + (anchor.x + fragment.targetX - fragment.startX) * progress;
+                const y = fragment.startY + (anchor.y + fragment.targetY - fragment.startY) * progress;
+                const screen = worldToScreen({ x, y });
+                ctx.beginPath();
+                ctx.moveTo(screenAnchor.x, screenAnchor.y);
+                ctx.lineTo(screen.x, screen.y);
+                ctx.stroke();
+            }
+        }
+
+        ctx.restore();
     }
 
     /**
@@ -6627,6 +6813,18 @@
 
             if (enemy.type === "boss" || enemy.type === "gigaBoss") drawBossDetails(enemy, screen);
             if (enemy.type === "miniTank") drawMiniTankDetails(enemy, screen);
+            if (enemy.type === "carrier" && enemy.launchChargeUntil) {
+                const remaining = Math.max(0, enemy.launchChargeUntil - Date.now());
+                const pulse = 0.55 + Math.sin(Date.now() / 90) * 0.25;
+                ctx.save();
+                ctx.strokeStyle = `rgba(90,220,255,${pulse})`;
+                ctx.lineWidth = 5;
+                ctx.beginPath(); ctx.arc(screen.x, screen.y, enemy.r + 12 + remaining / 160, 0, TWO_PI); ctx.stroke();
+                ctx.fillStyle = "rgba(120,235,255,.85)";
+                ctx.font = "bold 11px monospace"; ctx.textAlign = "center";
+                ctx.fillText("DEPLOYING", screen.x, screen.y - enemy.r - 22);
+                ctx.restore();
+            }
 
             drawEnemyHealthBar(enemy, screen);
         }
