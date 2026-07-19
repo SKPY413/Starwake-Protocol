@@ -118,3 +118,15 @@ Added animated, accessible save-health feedback to the Save Inspector and connec
 - Added per-carrier active craft caps and a global launch-spacing cooldown.
 - Added visible deployment telegraphs and stationary launch commitment.
 - Added milestone boss warnings and escalating projectile patterns.
+
+## Enemy Evolution and Combat Numbers
+- Added ten-wave enemy technology generations.
+- Added selective blink, bomb, burst-fire, and spread-fire mutations.
+- Added mutation telegraphs and evolved-unit visual accents.
+- Increased floating combat text size and added large-to-small entrance scaling.
+
+## Combat Text Comfort and Living Background Pass
+- Reduced floating combat-number lifetime from 48 frames to 26 frames.
+- Tightened the oversized entrance animation and accelerated the fade after the initial impact read.
+- Added slow chapter-aware background hue drift, softly animated aurora fields, star twinkle, grid pulse, and panel shimmer.
+- Preserved the twenty-wave boss-assembly color progression while allowing endless chapters to begin from different color families.

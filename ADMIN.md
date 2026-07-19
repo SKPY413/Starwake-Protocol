@@ -455,3 +455,24 @@ CURRENT PLAYTEST FOCUS — CARRIER / BOSS PASS
 ############################################################
 
 Verify that first-appearance Carriers around waves 11–15 remain threatening without flooding the arena. Confirm that several simultaneous Carriers respect the global launch spacing and that the DEPLOYING tell is readable on desktop and mobile. Test wave 10 and wave 20 warning sequences, especially pause/resume behavior and escalating boss projectile patterns.
+
+############################################################
+ENEMY EVOLUTION + COMBAT NUMBER READABILITY PASS
+############################################################
+
+Implemented a generation-based enemy adaptation system.
+
+- Waves 1-10 remain Generation I and teach core archetypes.
+- Later ten-wave generations selectively add mutations rather than only increasing counts.
+- Blink-capable enemies telegraph briefly and escape away from nearby danger or low-health situations.
+- Bomb-capable enemies leave timed, clearly marked area hazards with visible blast radii.
+- Weapon mutations add compact burst-fire and spread-fire patterns without adding new enemy bodies.
+- Mutations are restricted by archetype and capped so every enemy does not receive every power.
+- Evolved enemies receive a subtle generation ring; blink charging receives a stronger cyan tell.
+- Damage/status numbers now enter oversized, rapidly settle to normal size, drift, and fade.
+
+PLAYTEST PRIORITIES
+- Confirm bombs remain readable during dense waves and provide enough escape time.
+- Confirm blink is evasive rather than frustrating or excessively frequent.
+- Watch Generation III+ projectile pressure on mobile and Impossible difficulty.
+- Verify large damage numbers improve readability without covering targets for too long.

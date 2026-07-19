@@ -1,0 +1,7 @@
+STARWAKE PROTOCOL — EVOLUTION PROJECTILE FIX
+
+- Fixed Generation III mutation-only shooters producing a continuous line of enemy balls around wave 20–21.
+- Basic enemy archetypes without a native shootCooldown now receive a finite 1.45–1.90 second evolution-weapon cooldown.
+- Added recovery for invalid/NaN lastShotAt values so old loaded runs cannot remain stuck in frame-by-frame firing.
+- Removed the cooldown offset that could calculate with an undefined value.
+- Boss, carrier, fighter, and mini-tank native firing cadence remains unchanged.

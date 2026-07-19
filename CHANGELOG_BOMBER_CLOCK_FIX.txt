@@ -1,0 +1,7 @@
+BOMBER CLOCK FIX
+
+- Fixed bomber mines using two incompatible clocks.
+- Mine spawn, arming, proximity detection, fuse expiration, and rendering now use the same Date.now() timeline.
+- Mines arm after 0.55 seconds.
+- Armed mines detonate when the player enters the trigger radius.
+- Mines also detonate automatically after the 2.4-second fuse.

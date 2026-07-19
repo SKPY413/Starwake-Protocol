@@ -1,0 +1,9 @@
+STARWAKE PROTOCOL — AEGIS GENERATOR
+
+- Added a late-game Aegis Generator beginning around Wave 35.
+- Only one natural Aegis Generator may be active at a time.
+- Its large field protects every enemy inside it from player weapon and ability damage while the player remains outside.
+- The generator itself follows the same rule: the player must enter the field to damage and destroy it.
+- The field becomes more transparent while the player is inside and displays GENERATOR EXPOSED.
+- Generator movement holds a medium engagement distance and slowly orbits rather than rushing the player.
+- Added a cache-busted game script filename for reliable deployment testing.

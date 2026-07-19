@@ -418,7 +418,7 @@
             <div class="upgrade-action-bar">
                 <button id="undoUpgradeButton" type="button" disabled>Undo Choices</button>
                 <button id="saveUpgradeMenuButton" class="upgrade-save-button" type="button">Save Game</button>
-                <button id="skipUpgradeButton">Skip / Next Wave</button>
+                <button id="skipUpgradeButton" disabled>Select a Relic First</button>
                 <span id="upgradeSaveStatus" class="upgrade-save-status" role="status" aria-live="polite"></span>
             </div>
         </div>
@@ -503,7 +503,7 @@
 <!-- Script order matters: the optional music API is exposed before game.js attempts to use it. -->
 <script src="musicEngine-20260715-compact-evolution.js"></script>
 <!-- game.js owns the authoritative game state and must remain able to boot without music. -->
-<script src="game-20260716-phase-aware-save.js"></script>
+<script src="game-20260719-aegis-generator.js"></script>
 <script>
 window.addEventListener("load", () => {
     const button = document.getElementById("startButton");

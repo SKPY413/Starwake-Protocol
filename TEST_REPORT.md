@@ -174,3 +174,12 @@ Highest-priority finding:
 Recommended next action:
 
 -
+
+############################################################
+COMBAT TEXT / LIVING BACKGROUND PASS
+############################################################
+- Do damage numbers communicate the hit without lingering in the aiming area?
+- Are critical moments still readable on desktop and mobile?
+- Does the slow hue drift feel alive rather than distracting?
+- Check low-performance mobile devices for excessive background cost.
+- Confirm enemies and projectiles remain distinct over every background color phase.

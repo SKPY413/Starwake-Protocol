@@ -148,6 +148,7 @@
         miniTank: "#d58bff",
         fighter: "#55d7ff",
         carrier: "#7b6cff",
+        aegis: "#59b8ff",
         dodger: "#7cffd4",
         boss: "#ff2b2b",
         gigaBoss: "#f7f7ff",
@@ -2442,8 +2443,21 @@
         waveResearch.selectedId = id;
         renderRelicResearchChoices();
         document.querySelector(".wave-research-panel")?.classList.add("claimed");
+        updateRelicRequirementUI();
         updateUI();
         writeValidatedSave("relic research");
+    }
+
+    function updateRelicRequirementUI() {
+        const nextButton = document.getElementById("skipUpgradeButton");
+        const status = document.getElementById("upgradeSaveStatus");
+        if (nextButton) {
+            nextButton.disabled = !waveResearch.claimed;
+            nextButton.textContent = waveResearch.claimed ? "Begin Next Wave" : "Select a Relic First";
+            nextButton.setAttribute("aria-disabled", String(!waveResearch.claimed));
+        }
+        if (status && !waveResearch.claimed) status.textContent = "A relic fragment must be assigned before reconstruction can continue.";
+        else if (status && status.textContent.includes("relic fragment")) status.textContent = "Relic fragment assigned. Next wave unlocked.";
     }
 
     function renderRelicResearchChoices() {
@@ -2931,6 +2945,7 @@
         waveResearch.selectedId = null;
         renderRelicResearchChoices();
         document.querySelector(".wave-research-panel")?.classList.remove("claimed");
+        updateRelicRequirementUI();
     }
 
     function claimEndWaveResearch(id) {
@@ -2976,6 +2991,12 @@
     }
 
     function startNextWave() {
+        if (!waveResearch.claimed) {
+            updateRelicRequirementUI();
+            document.querySelector(".wave-research-panel")?.scrollIntoView({ behavior: "smooth", block: "center" });
+            playSound("harmPickup");
+            return;
+        }
         clearReconstructionUndo();
         state.musicScene = "combat";
         state.wave++;
@@ -3061,9 +3082,14 @@
     function clearWaveEndCombatClutter() {
         bullets.length = 0;
         missiles.length = 0;
+        enemyBullets.length = 0;
+        carrierMissiles.length = 0;
         particles.length = 0;
         explosions.length = 0;
         damageNumbers.length = 0;
+        lifeStealOrbs.length = 0;
+        relicRifts.length = 0;
+        relicDrones.length = 0;
         playerDamageTotals.weapon = 0;
         playerDamageTotals.ability = 0;
     }
@@ -3835,7 +3861,7 @@
     }
 
     function assignEnemyMutations(type, generation) {
-        if (["boss", "gigaBoss", "carrier"].includes(type)) return [];
+        if (["boss", "gigaBoss", "carrier", "aegis"].includes(type)) return [];
         const pool = getEnemyMutationPool(type, generation);
         if (!pool.length) return [];
         const desired = generation >= 4 ? 2 : 1;
@@ -3934,6 +3960,14 @@
                 orbitDirection: Math.random() < 0.5 ? -1 : 1,
                 orbitPhase: Math.random() * TWO_PI,
             },
+            aegis: {
+                r: 34,
+                speed: 0.42 + scaledWave * 0.018,
+                health: 720 + scaledWave * 78,
+                damage: 12,
+                reward: 150 + scaledWave * 8,
+                shieldRadius: 255,
+            },
             carrier: {
                 r: 62,
                 speed: 0.24 + scaledWave * 0.012,
@@ -4017,6 +4051,7 @@
         if (isGigaBossWave() && spawnNumber === 0) return "gigaBoss";
         if (isGigaBossWave() && (spawnNumber === 1 || spawnNumber === 2)) return "boss";
         if (isBossWave() && spawnNumber === 0) return "boss";
+        if (state.wave >= unlock(35) && spawnNumber > 7 && spawnNumber % 22 === 0 && !enemies.some(enemy => enemy && !enemy.dead && enemy.type === "aegis")) return "aegis";
         if (state.wave >= unlock(14) && spawnNumber > 5 && spawnNumber % 18 === 0) return "carrier";
         if (state.wave >= unlock(10) && spawnNumber > 2 && spawnNumber % 14 === 0) return "miniTank";
         if (state.wave >= unlock(11) && roll < difficulty.miniTankChance) return "miniTank";
@@ -4141,7 +4176,11 @@
                 x: enemy.x, y: enemy.y, r: 11, dx: 0, dy: 0,
                 damage: Math.max(8, Math.round(enemy.damage * 0.72)),
                 color: "#ff9d46", isBomb: true,
-                bornAt: now, explodeAt: now + 1900, blastRadius: 82,
+                bornAt: now,
+                armedAt: now + 550,
+                explodeAt: now + 2400,
+                triggerRadius: 108,
+                blastRadius: 88,
             });
         }
     }
@@ -4190,6 +4229,12 @@
         }
         if (enemy.type === "fighter") {
             return getFighterMovement(enemy, dx, dy, now);
+        }
+        if (enemy.type === "aegis") {
+            const desired = 330;
+            if (length < desired - 45) return addEnemySeparationSteering(enemy, -dx, -dy);
+            if (length > desired + 80) return addEnemySeparationSteering(enemy, dx, dy);
+            return addEnemySeparationSteering(enemy, -dy * 0.28, dx * 0.28);
         }
         if (enemy.type === "carrier") {
             if (enemy.launchChargeUntil && now < enemy.launchChargeUntil) return { x: 0, y: 0 };
@@ -4579,8 +4624,23 @@
      * Handles the shootEnemy operation. Keep its responsibilities narrow and update this comment when behavior changes.
      */
     function shootEnemy(enemy, now) {
-        if (now - enemy.lastShotAt < enemy.shootCooldown) return;
+        // Mutation-only shooters (normal, runner, dodger, etc.) do not always
+        // have a native shootCooldown. Using an undefined cooldown made the
+        // comparison fail and eventually poisoned lastShotAt with NaN, allowing
+        // them to fire every simulation frame around Generation III.
+        const hasEvolutionWeapon = (enemy.mutations || []).includes("burst") || (enemy.mutations || []).includes("spread");
+        const nativeCooldown = Number.isFinite(enemy.shootCooldown) ? enemy.shootCooldown : null;
+        const shootCooldown = nativeCooldown ?? (hasEvolutionWeapon ? randomRange(1450, 1900) : 1600);
+        if (!Number.isFinite(enemy.lastShotAt)) enemy.lastShotAt = now;
+        if (now - enemy.lastShotAt < shootCooldown) return;
         if (distance(enemy, player) > 760) return;
+
+        const activeEnemyProjectiles = enemyBullets.reduce((count, projectile) => count + (projectile && !projectile.dead && !projectile.isBomb ? 1 : 0), 0);
+        const enemyProjectileBudget = Math.min(PERFORMANCE_LIMITS.maxEnemyBullets, 150);
+        if (activeEnemyProjectiles >= enemyProjectileBudget) {
+            enemy.lastShotAt = now - Math.max(0, shootCooldown - 260);
+            return;
+        }
 
         enemy.lastShotAt = now;
         playSound("enemyShoot");
@@ -4595,11 +4655,15 @@
         const mutations = enemy.mutations || [];
         const evolvedBurst = mutations.includes("burst");
         const evolvedSpread = mutations.includes("spread");
-        const shotCount = enemy.type === "gigaBoss" ? 11 : enemy.type === "boss" ? Math.min(9, 3 + bossTier * 2) : enemy.type === "miniTank" ? 3 : enemy.type === "fighter" ? 2 : evolvedSpread ? 3 : evolvedBurst ? 3 : 1;
-        const spread = enemy.type === "gigaBoss" ? 0.24 : enemy.type === "boss" ? Math.min(0.28, 0.13 + bossTier * 0.025) : enemy.type === "miniTank" ? 0.14 : enemy.type === "fighter" ? 0.08 : evolvedSpread ? 0.18 : evolvedBurst ? 0.035 : 0;
+        const shotCount = enemy.type === "gigaBoss" ? 11 : enemy.type === "boss" ? Math.min(9, 3 + bossTier * 2) : enemy.type === "miniTank" ? 3 : enemy.type === "fighter" ? 2 : evolvedSpread ? 3 : evolvedBurst ? 2 : 1;
+        const spread = enemy.type === "gigaBoss" ? 0.24 : enemy.type === "boss" ? Math.min(0.28, 0.13 + bossTier * 0.025) : enemy.type === "miniTank" ? 0.14 : enemy.type === "fighter" ? 0.08 : evolvedSpread ? 0.18 : evolvedBurst ? 0.045 : 0;
+        // Mutation-only shooters use the local finite cooldown above. Never
+        // offset lastShotAt with enemy.shootCooldown here: many basic archetypes
+        // intentionally lack that property, which previously produced NaN and a
+        // continuous line of projectiles.
         const centerOffset = (shotCount - 1) / 2;
 
-        for (let i = 0; i < shotCount; i++) {
+        for (let i = 0; i < shotCount && activeEnemyProjectiles + i < enemyProjectileBudget; i++) {
             createEnemyBullet(enemy, baseAngle + (i - centerOffset) * spread);
         }
     }
@@ -4971,12 +5035,37 @@
         }
     }
 
+
+    function getProtectingAegis(enemy) {
+        if (!enemy || enemy.dead) return null;
+        for (const generator of enemies) {
+            if (!generator || generator.dead || generator.type !== "aegis") continue;
+            const radius = generator.shieldRadius || 255;
+            if (distance(enemy, generator) <= radius + enemy.r) return generator;
+        }
+        return null;
+    }
+
+    function isPlayerInsideAegis(generator) {
+        return !!generator && distance(player, generator) <= (generator.shieldRadius || 255) + player.r;
+    }
+
+    function isEnemyAegisProtected(enemy) {
+        const generator = getProtectingAegis(enemy);
+        return !!generator && !isPlayerInsideAegis(generator);
+    }
+
     /**
      * Applies damage through the shared combat rules. Route new damage sources here to preserve effects and death handling.
      */
     function damageEnemy(index, amount, source = "bullet") {
         const enemy = enemies[index];
         if (!enemy) return false;
+
+        if (isEnemyAegisProtected(enemy)) {
+            enemy.shieldFlashUntil = Date.now() + 120;
+            return false;
+        }
 
         const damageClass = classifyPlayerDamage(source);
         const style = PLAYER_DAMAGE_STYLE[damageClass];
@@ -5072,8 +5161,8 @@
     /**
      * Advances this subsystem by one simulation step. Respect paused/ended state and avoid unnecessary allocations.
      */
-    function updateBullets() {
-        updateEnemyBombs(performance.now());
+    function updateBullets(now) {
+        updateEnemyBombs(now);
         updateProjectileList(bullets, 40);
         updateMissiles();
         updateProjectileList(enemyBullets, 60);
@@ -5087,10 +5176,19 @@
      * Advances this subsystem by one simulation step. Respect paused/ended state and avoid unnecessary allocations.
      */
     function updateEnemyBombs(now) {
+        // Bomb timestamps are created from the main loop's Date.now() clock.
+        // Never compare them to performance.now(); mixing the two clock origins
+        // prevents mines from arming or reaching their fuse deadline.
         for (const bomb of enemyBullets) {
-            if (!bomb || bomb.dead || !bomb.isBomb || now < bomb.explodeAt) continue;
+            if (!bomb || bomb.dead || !bomb.isBomb) continue;
+            const armed = now >= (bomb.armedAt || bomb.bornAt || 0);
+            const proximityTriggered = armed && distance(bomb, player) <= (bomb.triggerRadius || 100) + player.r;
+            const timerTriggered = now >= bomb.explodeAt;
+            if (!proximityTriggered && !timerTriggered) continue;
+
             bomb.dead = true;
             explosions.push({ x: bomb.x, y: bomb.y, radius: bomb.blastRadius, life: 16, maxLife: 16 });
+            spawnPickupBurst(bomb.x, bomb.y, "#ff7a45", 10, true);
             addScreenShake(6);
             playSound("explosion");
             if (distance(bomb, player) < bomb.blastRadius + player.r) {
@@ -6481,7 +6579,7 @@
             if (!isInView(bullet, 30)) continue;
             const screen = worldToScreen(bullet);
             if (bullet.isBomb) {
-                const remaining = Math.max(0, bullet.explodeAt - performance.now());
+                const remaining = Math.max(0, bullet.explodeAt - Date.now());
                 const pulse = 0.72 + Math.sin(performance.now() / Math.max(45, remaining / 8)) * 0.22;
                 ctx.save();
                 ctx.fillStyle = `rgba(255,120,55,${pulse})`;
@@ -6787,6 +6885,7 @@
         else if (enemy.type === "miniTank") drawMiniTankShip(radius, color, stroke);
         else if (enemy.type === "fighter") drawFighterShip(radius, color, stroke);
         else if (enemy.type === "carrier") drawCarrierShip(radius, color, stroke);
+        else if (enemy.type === "aegis") drawMiniTankShip(radius, color, stroke);
         else if (enemy.type === "brute") drawBruteShip(radius, color, stroke);
         else if (enemy.type === "dodger") drawDodgerShip(radius, color, stroke);
         else if (enemy.type === "boss") drawBossShip(radius, color, stroke);
@@ -7046,11 +7145,12 @@
             if (!isInView(enemy, 100)) continue;
 
             const screen = worldToScreen(enemy);
+            if (enemy.type === "aegis") drawAegisField(enemy, screen);
             drawEnemyShip(enemy, screen);
 
             if (enemy.type === "boss" || enemy.type === "gigaBoss") drawBossDetails(enemy, screen);
             if (enemy.type === "miniTank") drawMiniTankDetails(enemy, screen);
-            if ((enemy.generation || 1) > 1 && !["boss", "gigaBoss", "carrier"].includes(enemy.type)) {
+            if ((enemy.generation || 1) > 1 && !["boss", "gigaBoss", "carrier", "aegis"].includes(enemy.type)) {
                 const generationAlpha = 0.22 + Math.min(0.46, enemy.generation * 0.08);
                 ctx.save();
                 ctx.strokeStyle = `rgba(145,205,255,${generationAlpha})`;
@@ -7079,6 +7179,33 @@
 
             drawEnemyHealthBar(enemy, screen);
         }
+    }
+
+    function drawAegisField(enemy, screen) {
+        const radius = enemy.shieldRadius || 255;
+        const playerInside = isPlayerInsideAegis(enemy);
+        const pulse = 0.5 + 0.5 * Math.sin(Date.now() / 280);
+        ctx.save();
+        ctx.globalCompositeOperation = "lighter";
+        ctx.fillStyle = `rgba(70,165,255,${playerInside ? 0.035 : 0.075})`;
+        ctx.strokeStyle = `rgba(105,205,255,${0.48 + pulse * 0.28})`;
+        ctx.lineWidth = playerInside ? 2 : 4;
+        ctx.setLineDash([14, 9]);
+        ctx.beginPath();
+        ctx.arc(screen.x, screen.y, radius, 0, TWO_PI);
+        ctx.fill();
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.strokeStyle = `rgba(190,235,255,${0.22 + pulse * 0.18})`;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(screen.x, screen.y, radius - 7, 0, TWO_PI);
+        ctx.stroke();
+        ctx.fillStyle = playerInside ? "rgba(190,245,255,.9)" : "rgba(100,205,255,.92)";
+        ctx.font = "bold 12px monospace";
+        ctx.textAlign = "center";
+        ctx.fillText(playerInside ? "GENERATOR EXPOSED" : "AEGIS FIELD", screen.x, screen.y - radius - 12);
+        ctx.restore();
     }
 
     /**
@@ -7426,7 +7553,7 @@
         if (!state.clearPhaseActive) {
             shootPlayerWeapon(now);
             updateAutoMissiles(now);
-            updateBullets();
+            updateBullets(now);
             updateDamageAura(now);
             updateRelicSystems(now);
             updateEnemies(now);
