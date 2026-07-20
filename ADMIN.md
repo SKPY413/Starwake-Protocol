@@ -476,3 +476,24 @@ PLAYTEST PRIORITIES
 - Confirm blink is evasive rather than frustrating or excessively frequent.
 - Watch Generation III+ projectile pressure on mobile and Impossible difficulty.
 - Verify large damage numbers improve readability without covering targets for too long.
+
+
+############################################################
+CARRIER ASSAULT / EVOLVED ARMY BALANCE PASS
+############################################################
+
+- Carriers now deploy 24-unit assault waves on a 2.75-second base cadence.
+- Carrier wave size scales +3% per wave after unlock, capped at 56.
+- Carrier cadence accelerates by 1% per wave, capped at 1.8 seconds.
+- Global and per-carrier active caps prevent runaway object counts.
+- Evolved low-tier enemies grow physically by generation: 110%, 120%, 135%, and 150%.
+- Evolution rings are larger and now include a visible generation label.
+- Blink has a larger displacement, arrival burst, and shockwave.
+- Bomb mutations have a larger trigger and blast radius with stronger damage.
+- Burst/spread projectiles are larger, faster, and stronger without adding projectile count.
+- Mini-boss density is reduced sharply from waves 20-40 so regular minions remain the army majority.
+
+PLAYTEST PRIORITIES
+- Test several simultaneous carriers for frame stability and readable assault-wave formations.
+- Verify evolved hull sizes remain navigable in crowded rooms.
+- Confirm waves 20-40 contain noticeably more minions and fewer mini-bosses.
