@@ -89,6 +89,10 @@
         mapInfo: document.getElementById("mapInfo"),
         finalScore: document.getElementById("finalScore"),
         finalWave: document.getElementById("finalWave"),
+        playerVitalBars: document.getElementById("playerVitalBars"),
+        playerShieldBarWrap: document.getElementById("playerShieldBarWrap"),
+        playerShieldBar: document.getElementById("playerShieldBar"),
+        playerShieldText: document.getElementById("playerShieldText"),
         playerHealthBarWrap: document.getElementById("playerHealthBarWrap"),
         playerHealthBar: document.getElementById("playerHealthBar"),
         regenHealthTick: document.getElementById("regenHealthTick"),
@@ -144,6 +148,7 @@
         miniTank: "#d58bff",
         fighter: "#55d7ff",
         carrier: "#7b6cff",
+        aegis: "#59b8ff",
         dodger: "#7cffd4",
         boss: "#ff2b2b",
         gigaBoss: "#f7f7ff",
@@ -240,6 +245,8 @@
 
         autoMissile:    { label: "QUANTUM MISSILES", icon: "➹", system: "purple", tier: "core", category: "special", accent: "#c675ff", description: "Quantum processors launch autonomous homing missiles.", baseCost: 180, growth: 1.48 },
         damageAura:     { label: "ORBITAL FIELD", icon: "◎", system: "purple", tier: "core", category: "special", accent: "#aa78ff", description: "Autonomous energy damages nearby threats.", baseCost: 165, growth: 1.42 },
+        riftPower:      { label: "RIFT INTENSITY", icon: "◌", system: "purple", tier: "core", category: "special", accent: "#7ee7ff", description: "Raises the damage of Quantum Rift event horizons.", baseCost: 210, growth: 1.52 },
+        riftFrequency:  { label: "RIFT CASCADE", icon: "⌁", system: "purple", tier: "core", category: "special", accent: "#9bcfff", description: "Rifts open faster and remain active longer.", baseCost: 245, growth: 1.58 },
 
         adaptivePlating: { label: "ADAPTIVE PLATING", icon: "⬢", system: "green", tier: "advanced", category: "defense", accent: "#52f18b", description: "Advanced nanobots reduce all incoming damage by 10%.", baseCost: 420, growth: 1, maxLevel: 1, requires: { system: "green", investment: 3 } },
         combatNanobots: { label: "COMBAT NANOBOTS", icon: "✚", system: "green", tier: "experimental", category: "defense", accent: "#33ff77", description: "Repair delay shortens and regeneration becomes stronger.", baseCost: 760, growth: 1, maxLevel: 1, requires: { system: "green", investment: 6, upgrade: "adaptivePlating" } },
@@ -2206,6 +2213,7 @@
         explosiveRadius: 0,
         explosiveDamageRatio: 0.45,
         speedBoostUntil: 0,
+        weaponBoostUntil: 0,
         slowUntil: 0,
         slowMultiplier: 1,
         pointMagnetRadius: 95,
@@ -2301,13 +2309,13 @@
     const RELIC_DEFINITIONS = Object.freeze({
         relic_green_01: {
             system: "green",
-            name: "VERDANT CORE",
-            hint: "A patient orbit waits beneath the hull.",
+            name: "VERDANT AEGIS",
+            hint: "The hull remembers how to remain whole.",
             thresholds: [5, 10, 15],
             reveals: [
-                { title: "ORBITAL ENERGY SPHERE ONLINE", description: "A verdant energy sphere now circles the ship and detonates when it collides with an enemy.", next: "Resonant research increases sphere count, impact damage, and recovery speed." },
-                { title: "VERDANT CORE — RESONANT", description: "The orbital defense gains additional coverage and strikes with greater force.", next: "Ascendant research further expands the living orbital array." },
-                { title: "VERDANT CORE — ASCENDANT", description: "The orbital energy array reaches its highest known combat configuration.", next: "Further fragments refine damage and uptime." },
+                { title: "VERDANT AEGIS ONLINE", description: "The relic reinforces maximum hull, creates a rechargeable shield, and performs periodic emergency repairs.", next: "Resonant research strengthens shield capacity, healing, and recharge frequency." },
+                { title: "VERDANT AEGIS — RESONANT", description: "Hull reinforcement and shield recovery become substantially stronger.", next: "Ascendant research completes the defensive lattice." },
+                { title: "VERDANT AEGIS — ASCENDANT", description: "The ship reaches the relic's highest known health, shield, and self-repair configuration.", next: "Further fragments refine defensive efficiency." },
             ],
         },
         relic_red_01: {
@@ -2323,24 +2331,24 @@
         },
         relic_blue_01: {
             system: "blue",
-            name: "GRAVITY HEART",
-            hint: "Space folds, then remembers its shape.",
+            name: "MOMENTUM VEIL",
+            hint: "Defeated signals leave motion behind.",
             thresholds: [5, 10, 15],
             reveals: [
-                { title: "GRAVITY PULSE ONLINE", description: "The Gravity Heart now releases an automatic pulse that pushes nearby enemies away and briefly slows them.", next: "Resonant research increases pulse radius, force, slow duration, and activation frequency." },
-                { title: "GRAVITY HEART — RESONANT", description: "Gravity pulses cover more space, trigger more often, and hold enemies in a weakened movement state for longer.", next: "Ascendant research further strengthens battlefield control." },
-                { title: "GRAVITY HEART — ASCENDANT", description: "The gravity pulse reaches its highest known radius, force, and control frequency.", next: "Further fragments continue refining pulse efficiency." },
+                { title: "HIDDEN OVERDRIVE DROPS ONLINE", description: "Enemies can release concealed overdrive fragments that boost both movement speed and weapon cycle speed.", next: "Resonant research improves drop rate, duration, and end-of-wave pickup reach." },
+                { title: "MOMENTUM VEIL — RESONANT", description: "Overdrive fragments appear more often, last longer, and are drawn from farther away after a wave ends.", next: "Ascendant research completes the momentum recovery system." },
+                { title: "MOMENTUM VEIL — ASCENDANT", description: "Hidden boost drops and end-of-wave collection reach reach their highest known efficiency.", next: "Further fragments refine overdrive frequency and duration." },
             ],
         },
         relic_purple_01: {
             system: "purple",
-            name: "ECHOING SWARM",
-            hint: "Small voices answer from outside the signal.",
+            name: "RIFT TEARER",
+            hint: "The system opens where reality is weakest.",
             thresholds: [5, 10, 15],
             reveals: [
-                { title: "COMBAT DRONE WING ONLINE", description: "Temporary autonomous followers now orbit the ship, acquire nearby targets, and fire independently. They can be destroyed and are rebuilt automatically.", next: "Resonant research increases drone count, durability, lifetime, and weapon damage." },
-                { title: "ECHOING SWARM — RESONANT", description: "The drone wing fields stronger, longer-lived followers with improved weapons and battlefield presence.", next: "Ascendant research expands the swarm to its highest known configuration." },
-                { title: "ECHOING SWARM — ASCENDANT", description: "The combat-drone wing reaches its highest known count, durability, lifetime, and damage output.", next: "Further fragments continue refining swarm performance." },
+                { title: "RIFT TEARER ONLINE", description: "Unstable rifts open around the ship and repeatedly damage enemies that cross their event horizons.", next: "Resonant research adds rifts, increases their size, and intensifies their damage." },
+                { title: "RIFT TEARER — RESONANT", description: "More persistent tears surround the ship with wider and more destructive event horizons.", next: "Ascendant research pushes local space toward controlled collapse." },
+                { title: "RIFT TEARER — ASCENDANT", description: "The rift array reaches its highest known count, radius, duration, and damage output.", next: "Further fragments refine spatial instability." },
             ],
         },
     });
@@ -2351,10 +2359,13 @@
         awakened: false,
     }]));
 
-    const relicOrbs = [];
-    const relicDrones = [];
+    const relicOrbs = []; // retained for save compatibility; no longer used by Verdant Aegis
+    const relicDrones = []; // retained for save compatibility; replaced by Rift Tearer
     const relicLaser = { nextAt: 0, activeUntil: 0, angle: 0, hitIds: new Set() };
-    const relicPulse = { nextAt: 0, visualUntil: 0, radius: 0 };
+    const relicPulse = { nextAt: 0, visualUntil: 0, radius: 0 }; // retained for compatibility
+    const relicGreen = { nextRepairAt: 0, appliedStage: 0 };
+    const relicRifts = [];
+    let nextRelicRiftAt = 0;
     let nextRelicDroneId = 1;
 
     function getRelicThreshold(id) {
@@ -2434,8 +2445,21 @@
         waveResearch.selectedId = id;
         renderRelicResearchChoices();
         document.querySelector(".wave-research-panel")?.classList.add("claimed");
+        updateRelicRequirementUI();
         updateUI();
         writeValidatedSave("relic research");
+    }
+
+    function updateRelicRequirementUI() {
+        const nextButton = document.getElementById("skipUpgradeButton");
+        const status = document.getElementById("upgradeSaveStatus");
+        if (nextButton) {
+            nextButton.disabled = !waveResearch.claimed;
+            nextButton.textContent = waveResearch.claimed ? "Begin Next Wave" : "Select a Relic First";
+            nextButton.setAttribute("aria-disabled", String(!waveResearch.claimed));
+        }
+        if (status && !waveResearch.claimed) status.textContent = "A relic fragment must be assigned before reconstruction can continue.";
+        else if (status && status.textContent.includes("relic fragment")) status.textContent = "Relic fragment assigned. Next wave unlocked.";
     }
 
     function renderRelicResearchChoices() {
@@ -2467,6 +2491,7 @@
     const missiles = [];
     const enemyBullets = [];
     const carrierMissiles = [];
+    let carrierGlobalNextLaunchAt = 0;
     const enemies = [];
     const explosions = [];
     const pickups = [];
@@ -2474,8 +2499,41 @@
     const lifeStealOrbs = [];
     const particles = [];
     const damageNumbers = [];
+
+    // Player damage is divided by origin so combat feedback communicates whether
+    // direct weapon fire or autonomous systems are carrying the current build.
+    const PLAYER_DAMAGE_STYLE = Object.freeze({
+        weapon: Object.freeze({
+            color: "#fff0c2",
+            outline: "rgba(92,35,8,0.92)",
+            startScale: 1.78,
+            settleScale: 0.94,
+            drift: "punch",
+        }),
+        ability: Object.freeze({
+            color: "#d98cff",
+            outline: "rgba(49,10,72,0.94)",
+            startScale: 1.66,
+            settleScale: 0.90,
+            drift: "energy",
+        }),
+        quantum: Object.freeze({
+            color: "#72e8ff",
+            outline: "rgba(8,45,74,0.96)",
+            startScale: 1.82,
+            settleScale: 0.92,
+            drift: "quantum",
+        }),
+    });
+
+    const playerDamageTotals = {
+        weapon: 0,
+        ability: 0,
+        quantum: 0,
+    };
     const backgroundPanels = [];
     const backgroundStars = [];
+    const backgroundBossFragments = [];
 
     // -------------------------------------------------------------------------
     // Coordinate helpers
@@ -2807,14 +2865,13 @@
     /**
      * Pauses wave progression and exposes the upgrade flow. Keep menu audio and UI changes reversible when the next wave starts.
      */
-    // Single-step reconstruction undo. The snapshot is intentionally scoped to
-    // upgrade-menu state only: player build data, currency, research selection,
-    // and the displayed weapon label. It is cleared when the menu opens or the
-    // next wave begins so combat state can never be rewound accidentally.
-    let lastReconstructionAction = null;
+    // Reconstruction undo history is scoped to the current upgrade-menu visit.
+    // Every committed choice pushes a snapshot, allowing the player to walk all
+    // the way back to the state in which the menu opened without rewinding combat.
+    const reconstructionUndoStack = [];
 
     function captureReconstructionSnapshot(label) {
-        lastReconstructionAction = {
+        reconstructionUndoStack.push({
             label,
             player: { ...player },
             upgradeLevels: { ...upgradeLevels },
@@ -2823,21 +2880,22 @@
             relicResearch: structuredClone(relicResearch),
             nextWaveSpeedBoostMs: state.nextWaveSpeedBoostMs,
             weaponLabel: ui.weapon?.textContent ?? "",
-        };
+        });
         updateUndoUpgradeButton();
     }
 
     function clearReconstructionUndo() {
-        lastReconstructionAction = null;
+        reconstructionUndoStack.length = 0;
         updateUndoUpgradeButton();
     }
 
     function updateUndoUpgradeButton() {
         if (!ui.undoUpgradeButton) return;
-        ui.undoUpgradeButton.disabled = !lastReconstructionAction;
-        ui.undoUpgradeButton.textContent = lastReconstructionAction
-            ? `Undo: ${lastReconstructionAction.label}`
-            : "Undo Last Choice";
+        const latest = reconstructionUndoStack.at(-1);
+        ui.undoUpgradeButton.disabled = !latest;
+        ui.undoUpgradeButton.textContent = latest
+            ? `Undo: ${latest.label} (${reconstructionUndoStack.length} left)`
+            : "Undo Choices";
     }
 
     function restoreWaveResearchUI() {
@@ -2847,28 +2905,38 @@
     }
 
     function undoLastReconstructionAction() {
-        if (!lastReconstructionAction) return;
-        const snapshot = lastReconstructionAction;
-        lastReconstructionAction = null;
+        const snapshot = reconstructionUndoStack.pop();
+        if (!snapshot) return;
 
-        for (const key of Object.keys(player)) {
-            if (!(key in snapshot.player)) delete player[key];
-        }
-        Object.assign(player, snapshot.player);
-        Object.assign(upgradeLevels, snapshot.upgradeLevels);
-        state.upgradePoints = snapshot.upgradePoints;
-        Object.assign(waveResearch, snapshot.waveResearch);
-        if (snapshot.relicResearch) {
-            for (const [id, data] of Object.entries(snapshot.relicResearch)) Object.assign(relicResearch[id], data);
-        }
-        state.nextWaveSpeedBoostMs = snapshot.nextWaveSpeedBoostMs || 0;
-        if (ui.weapon) ui.weapon.textContent = snapshot.weaponLabel;
-
-        restoreWaveResearchUI();
-        updateUI();
-        updateUpgradeButtons();
+        // Refresh immediately after popping so the button always describes the
+        // new top of the stack, even if a later UI renderer encounters an error.
         updateUndoUpgradeButton();
-        playSound("pickup");
+
+        try {
+            for (const key of Object.keys(player)) {
+                if (!(key in snapshot.player)) delete player[key];
+            }
+            Object.assign(player, snapshot.player);
+            Object.assign(upgradeLevels, snapshot.upgradeLevels);
+            state.upgradePoints = snapshot.upgradePoints;
+            Object.assign(waveResearch, snapshot.waveResearch);
+            if (snapshot.relicResearch) {
+                for (const [id, data] of Object.entries(snapshot.relicResearch)) Object.assign(relicResearch[id], data);
+            }
+            state.nextWaveSpeedBoostMs = snapshot.nextWaveSpeedBoostMs || 0;
+            if (ui.weapon) ui.weapon.textContent = snapshot.weaponLabel;
+
+            restoreWaveResearchUI();
+            updateUI();
+            updateUpgradeButtons();
+            playSound("pickup");
+        } finally {
+            // Some reconstruction renderers rebuild portions of the menu. Run
+            // once more after rendering, then once on the next microtask, so the
+            // visible label cannot remain stuck on the action just reversed.
+            updateUndoUpgradeButton();
+            queueMicrotask(updateUndoUpgradeButton);
+        }
     }
 
     const END_WAVE_BONUSES = Object.freeze([
@@ -2887,6 +2955,7 @@
         waveResearch.selectedId = null;
         renderRelicResearchChoices();
         document.querySelector(".wave-research-panel")?.classList.remove("claimed");
+        updateRelicRequirementUI();
     }
 
     function claimEndWaveResearch(id) {
@@ -2913,7 +2982,31 @@
     /**
      * Closes upgrade state, reapplies difficulty scaling, and begins the next encounter. This is the canonical wave-transition entry point.
      */
+    function beginBossWarning(nextWave) {
+        const giga = nextWave % 20 === 0;
+        state.paused = true;
+        ui.waveClearOverlay.style.opacity = 0.9;
+        ui.waveClearTitle.textContent = giga ? "ANCHOR CONVERGENCE" : "UNKNOWN SIGNAL DETECTED";
+        ui.waveClearSubtext.textContent = giga ? "FINAL ASSEMBLY IN PROGRESS" : `MILESTONE GUARDIAN ${Math.floor(nextWave / 10)} APPROACHING`;
+        ui.waveClearMessage.classList.add("active");
+        addScreenShake(giga ? 22 : 12);
+        playSound("bossSpawn");
+        setTimeout(() => {
+            if (state.ended) return;
+            ui.waveClearOverlay.style.opacity = 0;
+            ui.waveClearMessage.classList.remove("active");
+            state.paused = false;
+            resumeAudio();
+        }, giga ? 4200 : 3200);
+    }
+
     function startNextWave() {
+        if (!waveResearch.claimed) {
+            updateRelicRequirementUI();
+            document.querySelector(".wave-research-panel")?.scrollIntoView({ behavior: "smooth", block: "center" });
+            playSound("harmPickup");
+            return;
+        }
         clearReconstructionUndo();
         state.musicScene = "combat";
         state.wave++;
@@ -2931,6 +3024,9 @@
         lifeStealOrbs.length = 0;
         particles.length = 0;
         damageNumbers.length = 0;
+        playerDamageTotals.weapon = 0;
+        playerDamageTotals.ability = 0;
+        playerDamageTotals.quantum = 0;
         state.clearPhaseActive = false;
         ui.waveClearOverlay.style.opacity = 0;
         ui.waveClearMessage.classList.remove("active");
@@ -2943,7 +3039,8 @@
         state.paused = false;
         ui.upgradeMenu.style.display = "none";
         document.body.classList.remove("upgrade-menu-open");
-        resumeAudio();
+        if (isBossWave()) beginBossWarning(state.wave);
+        else resumeAudio();
     }
 
     /**
@@ -2996,9 +3093,17 @@
     function clearWaveEndCombatClutter() {
         bullets.length = 0;
         missiles.length = 0;
+        enemyBullets.length = 0;
+        carrierMissiles.length = 0;
         particles.length = 0;
         explosions.length = 0;
         damageNumbers.length = 0;
+        lifeStealOrbs.length = 0;
+        relicRifts.length = 0;
+        relicDrones.length = 0;
+        playerDamageTotals.weapon = 0;
+        playerDamageTotals.ability = 0;
+        playerDamageTotals.quantum = 0;
     }
 
     /**
@@ -3113,6 +3218,9 @@
         lifeStealOrbs.length = 0;
         particles.length = 0;
         damageNumbers.length = 0;
+        playerDamageTotals.weapon = 0;
+        playerDamageTotals.ability = 0;
+        playerDamageTotals.quantum = 0;
 
         ui.pauseOverlay.style.display = "none";
         ui.upgradeMenu.style.display = "none";
@@ -3246,6 +3354,8 @@
                 player.auraRadius = 135 + Math.floor((player.auraLevel - 1) / 4) * 28;
                 ui.weapon.textContent = `Aura ${player.auraRadius}px / ${player.auraDamage} dmg`;
             },
+            riftPower: () => { ui.weapon.textContent = `Rift intensity ${upgradeLevels.riftPower + 1}`; },
+            riftFrequency: () => { ui.weapon.textContent = `Rift cascade ${upgradeLevels.riftFrequency + 1}`; },
             healthRegen: () => {
                 player.regenLevel++;
                 player.regenPerSecond = player.regenLevel * 0.15;
@@ -3313,6 +3423,8 @@
                 const damage = player.auraDamage + (next ? 22 : 0);
                 return `${next ? "Next" : "Current"}: ${damage} dmg / ${radius}px radius`;
             },
+            riftPower: () => `${next ? "Next" : "Current"}: ${Math.round((1 + (upgradeLevels.riftPower + (next ? 1 : 0)) * 0.16) * 100)}% quantum damage`,
+            riftFrequency: () => `${next ? "Next" : "Current"}: ${upgradeLevels.riftFrequency + (next ? 1 : 0)} cascade investment`,
             healthRegen: () => `${next ? "Next" : "Current"}: ${(player.regenPerSecond + (next ? 0.15 : 0)).toFixed(2)} HP/s`,
             lifeSteal: () => `${next ? "Next" : "Current"}: ${player.lifeStealAmount + (next ? 1 : 0)}% weapon steal`,
             maxHealth: () => `${next ? "Next" : "Current"}: ${value(player.maxHealth, 15)} max HP`,
@@ -3421,7 +3533,8 @@
      */
     function shootPlayerWeapon(now) {
         if (state.clearPhaseActive) return;
-        if (now - player.lastShotAt < player.fireRate) return;
+        const effectiveFireRate = now < (player.weaponBoostUntil || 0) ? Math.max(55, player.fireRate * 0.68) : player.fireRate;
+        if (now - player.lastShotAt < effectiveFireRate) return;
 
         player.lastShotAt = now;
         player.volleyCounter++;
@@ -3604,25 +3717,27 @@
 
     function updateVerdantCore(now) {
         const stage = getAwakenedRelicStage("relic_green_01");
-        if (!stage) { relicOrbs.length = 0; return; }
-        const desired = Math.min(3, stage);
-        while (relicOrbs.length < desired) relicOrbs.push({ angle: (TWO_PI / desired) * relicOrbs.length, cooldownUntil: 0 });
-        relicOrbs.length = desired;
-        const radius = 72 + stage * 12;
-        for (let i = 0; i < relicOrbs.length; i++) {
-            const orb = relicOrbs[i];
-            orb.angle += 0.026 + stage * 0.004;
-            orb.x = player.x + Math.cos(orb.angle + i * TWO_PI / desired) * radius;
-            orb.y = player.y + Math.sin(orb.angle + i * TWO_PI / desired) * radius;
-            if (now < orb.cooldownUntil) continue;
-            for (let e = enemies.length - 1; e >= 0; e--) {
-                const enemy = enemies[e];
-                if (!enemy || enemy.dead || distance(orb, enemy) > enemy.r + 12) continue;
-                damageEnemy(e, 24 + stage * 16, "relic");
-                explodeAt(orb.x, orb.y, 48 + stage * 10, 12 + stage * 8, enemy);
-                orb.cooldownUntil = now + Math.max(850, 1550 - stage * 180);
-                break;
-            }
+        relicOrbs.length = 0;
+        if (!stage) { relicGreen.appliedStage = 0; return; }
+        if (relicGreen.appliedStage !== stage) {
+            const previousBonus = relicGreen.appliedStage ? 30 + relicGreen.appliedStage * 25 : 0;
+            const newBonus = 30 + stage * 25;
+            player.maxHealth += newBonus - previousBonus;
+            player.health = Math.min(player.maxHealth, player.health + Math.max(0, newBonus - previousBonus));
+            player.maxShield = Math.max(player.maxShield, 35 + stage * 35);
+            player.shield = Math.min(player.maxShield, player.shield + 25 + stage * 20);
+            relicGreen.appliedStage = stage;
+        }
+        if (now < relicGreen.nextRepairAt) return;
+        relicGreen.nextRepairAt = now + Math.max(4200, 8500 - stage * 1100);
+        const heal = 7 + stage * 6;
+        const shieldGain = 12 + stage * 10;
+        const oldHealth = player.health, oldShield = player.shield;
+        player.health = Math.min(player.maxHealth, player.health + heal);
+        player.shield = Math.min(player.maxShield, player.shield + shieldGain);
+        if (player.health > oldHealth || player.shield > oldShield) {
+            particles.push({ x:player.x, y:player.y, dx:0, dy:0, r:player.r*2.1, color:"#62ff9b", life:20, maxLife:20, auraRing:true });
+            addDamageNumber(player.x, player.y - 34, `+${Math.floor(player.health-oldHealth)} HP / +${Math.floor(player.shield-oldShield)} SH`, "#62ff9b");
         }
     }
 
@@ -3655,60 +3770,54 @@
     }
 
     function updateGravityHeart(now) {
-        const stage = getAwakenedRelicStage("relic_blue_01");
-        if (!stage) return;
-        const cooldown = Math.max(5500, 10500 - stage * 1500);
-        if (now < relicPulse.nextAt) return;
-        relicPulse.nextAt = now + cooldown;
-        relicPulse.visualUntil = now + 500;
-        relicPulse.radius = 230 + stage * 70;
-        for (const enemy of enemies) {
-            if (!enemy || enemy.dead) continue;
-            const dx = enemy.x - player.x, dy = enemy.y - player.y;
-            const dist = Math.hypot(dx, dy) || 1;
-            if (dist > relicPulse.radius) continue;
-            const push = (relicPulse.radius - dist) * (0.28 + stage * 0.05);
-            enemy.x = clamp(enemy.x + dx / dist * push, enemy.r, WORLD.width - enemy.r);
-            enemy.y = clamp(enemy.y + dy / dist * push, enemy.r, WORLD.height - enemy.r);
-            enemy.relicSlowUntil = now + 900 + stage * 250;
-        }
-        particles.push({ x: player.x, y: player.y, dx: 0, dy: 0, r: relicPulse.radius, color: "#59c8ff", life: 24, maxLife: 24, auraRing: true });
-        playSound("pickup");
+        // Momentum Veil is event-driven: enemy deaths can drop overdrive fragments.
+        // The runtime update only keeps the compatibility pulse dormant.
+        relicPulse.visualUntil = 0;
     }
 
     function updateEchoingSwarm(now) {
         const stage = getAwakenedRelicStage("relic_purple_01");
-        if (!stage) { relicDrones.length = 0; return; }
-        const desired = Math.min(3, stage);
-        while (relicDrones.length < desired) {
-            relicDrones.push({ id: nextRelicDroneId++, angle: Math.random() * TWO_PI, health: 35 + stage * 20, maxHealth: 35 + stage * 20, expiresAt: now + 15000 + stage * 3000, nextShotAt: now + 400, dead: false });
+        relicDrones.length = 0;
+        if (!stage) { relicRifts.length = 0; return; }
+        const desired = 1 + stage;
+        if (now >= nextRelicRiftAt && relicRifts.length < desired) {
+            const angle = Math.random() * TWO_PI;
+            const distanceFromPlayer = 95 + Math.random() * (85 + stage * 20);
+            relicRifts.push({
+                // Rifts are fixed tears in world space. They spawn near the ship,
+                // but never orbit or follow it after opening.
+                x: player.x + Math.cos(angle) * distanceFromPlayer,
+                y: player.y + Math.sin(angle) * distanceFromPlayer * .72,
+                radius: 34 + stage * 9,
+                bornAt: now,
+                expiresAt: now + 5000 + stage * 1400 + (upgradeLevels.riftFrequency || 0) * 500,
+                nextDamageAt: now,
+                spin: Math.random() < .5 ? -1 : 1,
+                phase: Math.random() * TWO_PI,
+            });
+            nextRelicRiftAt = now + Math.max(650, 2300 - stage * 350 - (upgradeLevels.riftFrequency || 0) * 120);
         }
-        for (const drone of relicDrones) {
-            drone.angle += 0.018 + stage * 0.003;
-            const radius = 105 + (drone.id % 2) * 24;
-            drone.x = player.x + Math.cos(drone.angle) * radius;
-            drone.y = player.y + Math.sin(drone.angle) * radius;
-            if (now >= drone.expiresAt || drone.health <= 0) drone.dead = true;
-            if (drone.dead || now < drone.nextShotAt) continue;
-            let target = null, best = 560;
-            for (const enemy of enemies) {
-                const d = distance(drone, enemy);
-                if (d < best) { best = d; target = enemy; }
-            }
-            if (target) {
-                const angle = Math.atan2(target.y - drone.y, target.x - drone.x);
-                bullets.push({ x: drone.x, y: drone.y, r: 4, dx: Math.cos(angle) * 10, dy: Math.sin(angle) * 10, damage: 9 + stage * 7, color: "#d192ff", explosive: false, relicDroneShot: true });
-                drone.nextShotAt = now + Math.max(360, 760 - stage * 120);
+        for (let i=relicRifts.length-1;i>=0;i--) {
+            const rift=relicRifts[i];
+            if (now >= rift.expiresAt) { relicRifts.splice(i,1); continue; }
+            // Deliberately static in world space: only the internal distortion animates.
+            if (now < rift.nextDamageAt) continue;
+            rift.nextDamageAt = now + Math.max(220, 520 - stage * 70);
+            for (let e=enemies.length-1;e>=0;e--) {
+                const enemy=enemies[e];
+                if (!enemy || enemy.dead || distance(rift,enemy) > rift.radius + enemy.r) continue;
+                damageEnemy(e, (10 + stage * 9) * (1 + (upgradeLevels.riftPower || 0) * 0.16), "quantum");
+                enemy.riftFlashUntil = now + 160;
             }
         }
-        for (let i = relicDrones.length - 1; i >= 0; i--) if (relicDrones[i].dead) relicDrones.splice(i, 1);
     }
 
     function drawRelicSystems(now = Date.now()) {
         const greenStage = getAwakenedRelicStage("relic_green_01");
-        if (greenStage) for (const orb of relicOrbs) {
-            const ready = now >= orb.cooldownUntil;
-            drawCircle(ctx, orb.x - camera.x, orb.y - camera.y, ready ? 11 : 7, ready ? "#78ff9f" : "rgba(120,255,159,.35)");
+        if (greenStage && player.maxShield > 0) {
+            const ratio = clamp(player.shield / player.maxShield, 0, 1);
+            ctx.save(); ctx.strokeStyle=`rgba(92,255,150,${.18 + ratio*.55})`; ctx.lineWidth=2+greenStage;
+            ctx.beginPath(); ctx.arc(player.x-camera.x, player.y-camera.y, player.r*(1.45+ratio*.1), 0, TWO_PI); ctx.stroke(); ctx.restore();
         }
         if (now < relicLaser.activeUntil) {
             const sx = player.x - camera.x, sy = player.y - camera.y;
@@ -3721,10 +3830,25 @@
             ctx.strokeStyle = "white"; ctx.lineWidth = 3; ctx.stroke();
             ctx.restore();
         }
-        for (const drone of relicDrones) {
-            const x = drone.x - camera.x, y = drone.y - camera.y;
-            ctx.save(); ctx.translate(x,y); ctx.rotate(drone.angle + Math.PI/2);
-            ctx.fillStyle = "#d192ff"; ctx.beginPath(); ctx.moveTo(0,-9); ctx.lineTo(7,7); ctx.lineTo(0,4); ctx.lineTo(-7,7); ctx.closePath(); ctx.fill();
+        for (const rift of relicRifts) {
+            const x=rift.x-camera.x, y=rift.y-camera.y;
+            const remaining=clamp((rift.expiresAt-now)/1800,0,1);
+            const opening=clamp((now-rift.bornAt)/320,0,1);
+            const alpha=Math.min(opening, remaining);
+            const pulse=1 + Math.sin(now/210 + rift.phase) * .07;
+            ctx.save();
+            ctx.translate(x,y);
+            ctx.scale(opening * pulse, opening * pulse);
+            ctx.globalCompositeOperation="lighter";
+            ctx.shadowColor="#c66dff"; ctx.shadowBlur=18 + 8 * pulse;
+            ctx.strokeStyle=`rgba(195,95,255,${(.38+.48*alpha)})`; ctx.lineWidth=5;
+            ctx.rotate((now-rift.bornAt)/900*rift.spin);
+            ctx.beginPath(); ctx.arc(0,0,rift.radius,0,TWO_PI); ctx.stroke();
+            ctx.rotate(-(now-rift.bornAt)/520*rift.spin);
+            ctx.strokeStyle=`rgba(245,220,255,${.55+.35*alpha})`; ctx.lineWidth=1.5;
+            ctx.beginPath(); ctx.arc(0,0,rift.radius*.68,.25,TWO_PI-.65); ctx.stroke();
+            ctx.fillStyle=`rgba(75,10,110,${.18+.18*alpha})`;
+            ctx.beginPath(); ctx.arc(0,0,rift.radius*.48,0,TWO_PI); ctx.fill();
             ctx.restore();
         }
     }
@@ -3737,17 +3861,89 @@
      */
     let nextBossCommandId = 1;
 
+    // Enemy technology advances in ten-wave generations. Mutations are assigned
+    // selectively so later combat gains new decisions without making every unit
+    // visually or mechanically identical.
+    function getEnemyGeneration() {
+        return Math.max(1, Math.min(5, 1 + Math.floor((state.wave - 1) / 10)));
+    }
+
+    function getEnemyMutationPool(type, generation) {
+        const pool = [];
+        if (generation >= 2 && ["normal", "runner", "dodger", "fighter"].includes(type)) pool.push("blink");
+        if (generation >= 2 && ["fighter", "dodger"].includes(type)) pool.push("bomb");
+        if (generation >= 3 && ["normal", "brute", "fighter", "dodger"].includes(type)) pool.push("burst");
+        if (generation >= 3 && ["brute", "tank", "miniTank", "fighter"].includes(type)) pool.push("spread");
+        return pool;
+    }
+
+    function assignEnemyMutations(type, generation) {
+        if (["boss", "gigaBoss", "carrier", "aegis"].includes(type)) return [];
+        const pool = getEnemyMutationPool(type, generation);
+        if (!pool.length) return [];
+        const desired = generation >= 4 ? 2 : 1;
+        const mutations = [];
+        while (pool.length && mutations.length < desired) {
+            const index = Math.floor(Math.random() * pool.length);
+            mutations.push(pool.splice(index, 1)[0]);
+        }
+        return mutations;
+    }
+
     function makeEnemy(type, position) {
         const stats = getEnemyStats(type);
+        const generation = getEnemyGeneration();
         const enemy = {
             type,
             x: position.x,
             y: position.y,
             color: ENEMY_COLORS[type],
+            generation,
+            mutations: assignEnemyMutations(type, generation),
             lastHitAt: 0,
             lastShotAt: 0,
+            nextBlinkAt: performance.now() + randomRange(3800, 7200),
+            blinkChargeUntil: 0,
+            blinkTargetX: 0,
+            blinkTargetY: 0,
+            nextBombAt: performance.now() + randomRange(3800, 6500),
             ...stats,
         };
+
+        // Late-game Quantum Null adaptation. These enemies force the player to
+        // rely on primary weapons or conventional autonomous systems instead of
+        // allowing Rift Tearer to solve every formation.
+        if (state.wave >= 32 && !["boss", "gigaBoss", "aegis"].includes(type)) {
+            const nullChance = Math.min(0.34, 0.10 + (state.wave - 32) * 0.008);
+            enemy.quantumImmune = Math.random() < nullChance;
+        }
+
+        if (type === "miniTank") {
+            const roles = ["healer", "superTank", "sniper"];
+            enemy.miniBossRole = roles[Math.floor(Math.random() * roles.length)];
+            enemy.nextSupportAt = performance.now() + randomRange(1800, 3200);
+
+            if (enemy.miniBossRole === "healer") {
+                enemy.color = "#72f0a6";
+                enemy.health = Math.round(enemy.health * 0.82);
+                enemy.maxHealth = enemy.health;
+                enemy.shootCooldown = 2100;
+                enemy.healRadius = 285;
+            } else if (enemy.miniBossRole === "superTank") {
+                enemy.color = "#b878ff";
+                enemy.health = Math.round(enemy.health * 1.85);
+                enemy.maxHealth = enemy.health;
+                enemy.speed *= 0.62;
+                enemy.shootCooldown = 1750;
+            } else {
+                enemy.color = "#ffcf70";
+                enemy.health = Math.round(enemy.health * 0.72);
+                enemy.maxHealth = enemy.health;
+                enemy.speed *= 0.82;
+                enemy.shootCooldown = 2500;
+                enemy.sniperRange = 1120;
+            }
+        }
 
         if (type === "boss" || type === "gigaBoss") {
             enemy.commandId = nextBossCommandId++;
@@ -3816,16 +4012,26 @@
                 orbitDirection: Math.random() < 0.5 ? -1 : 1,
                 orbitPhase: Math.random() * TWO_PI,
             },
+            aegis: {
+                r: 34,
+                speed: 0.42 + scaledWave * 0.018,
+                health: 720 + scaledWave * 78,
+                damage: 12,
+                reward: 150 + scaledWave * 8,
+                shieldRadius: 430,
+            },
             carrier: {
                 r: 62,
                 speed: 0.24 + scaledWave * 0.012,
-                health: 1500 + scaledWave * 185,
+                health: (1500 + scaledWave * 185) * (wave <= 15 ? 0.85 : 1),
                 damage: 48,
                 reward: 230 + scaledWave * 12,
                 // The carrier cannon is intentionally independent from its missile factory.
                 shootCooldown: Math.max(620, 1250 - scaledWave * 16),
                 missileInitialVolleyPending: true,
                 nextMissileVolleyAt: 0,
+                launchChargeUntil: 0,
+                pendingLaunchCount: 0,
                 carrierOrbitDirection: Math.random() < 0.5 ? -1 : 1,
                 carrierOrbitPhase: Math.random() * TWO_PI,
             },
@@ -3897,6 +4103,7 @@
         if (isGigaBossWave() && spawnNumber === 0) return "gigaBoss";
         if (isGigaBossWave() && (spawnNumber === 1 || spawnNumber === 2)) return "boss";
         if (isBossWave() && spawnNumber === 0) return "boss";
+        if (state.wave >= unlock(35) && spawnNumber > 7 && spawnNumber % 22 === 0 && !enemies.some(enemy => enemy && !enemy.dead && enemy.type === "aegis")) return "aegis";
         if (state.wave >= unlock(14) && spawnNumber > 5 && spawnNumber % 18 === 0) return "carrier";
         if (state.wave >= unlock(10) && spawnNumber > 2 && spawnNumber % 14 === 0) return "miniTank";
         if (state.wave >= unlock(11) && roll < difficulty.miniTankChance) return "miniTank";
@@ -3990,17 +4197,59 @@
     /**
      * Advances this subsystem by one simulation step. Respect paused/ended state and avoid unnecessary allocations.
      */
+    function updateEnemyEvolution(enemy, now) {
+        const mutations = enemy.mutations || [];
+
+        if (mutations.includes("blink")) {
+            if (enemy.blinkChargeUntil && now >= enemy.blinkChargeUntil) {
+                enemy.x = clamp(enemy.blinkTargetX, enemy.r, WORLD.width - enemy.r);
+                enemy.y = clamp(enemy.blinkTargetY, enemy.r, WORLD.height - enemy.r);
+                enemy.blinkChargeUntil = 0;
+                enemy.nextBlinkAt = now + randomRange(6200, 9800);
+                spawnPickupBurst(enemy.x, enemy.y, "#8cecff", 8, false);
+            } else if (!enemy.blinkChargeUntil && now >= enemy.nextBlinkAt) {
+                const healthRatio = enemy.health / Math.max(1, enemy.maxHealth);
+                const closeDanger = distance(enemy, player) < 230;
+                if (healthRatio < 0.58 || closeDanger) {
+                    const away = Math.atan2(enemy.y - player.y, enemy.x - player.x) + randomRange(-0.55, 0.55);
+                    const blinkDistance = randomRange(150, 255);
+                    enemy.blinkTargetX = enemy.x + Math.cos(away) * blinkDistance;
+                    enemy.blinkTargetY = enemy.y + Math.sin(away) * blinkDistance;
+                    enemy.blinkChargeUntil = now + 260;
+                } else {
+                    enemy.nextBlinkAt = now + 1200;
+                }
+            }
+        }
+
+        if (mutations.includes("bomb") && now >= enemy.nextBombAt && distance(enemy, player) < 620) {
+            enemy.nextBombAt = now + randomRange(6200, 9200);
+            enemyBullets.push({
+                x: enemy.x, y: enemy.y, r: 11, dx: 0, dy: 0,
+                damage: Math.max(8, Math.round(enemy.damage * 0.72)),
+                color: "#ff9d46", isBomb: true,
+                bornAt: now,
+                armedAt: now + 550,
+                explodeAt: now + 2400,
+                triggerRadius: 108,
+                blastRadius: 88,
+            });
+        }
+    }
+
     function updateEnemies(now) {
         updateEnemySpawning();
 
         for (const enemy of enemies) {
             if (!enemy || enemy.dead) continue;
 
+            updateEnemyEvolution(enemy, now);
             const movement = getEnemyMovement(enemy, now);
             const speedMultiplier = (enemy.speedMultiplier || 1) * (now < (enemy.relicSlowUntil || 0) ? 0.55 : 1);
+            const evolutionMoveMultiplier = enemy.blinkChargeUntil ? 0.18 : 1;
 
-            enemy.x = clamp(enemy.x + movement.x * enemy.speed * speedMultiplier, enemy.r, WORLD.width - enemy.r);
-            enemy.y = clamp(enemy.y + movement.y * enemy.speed * speedMultiplier, enemy.r, WORLD.height - enemy.r);
+            enemy.x = clamp(enemy.x + movement.x * enemy.speed * speedMultiplier * evolutionMoveMultiplier, enemy.r, WORLD.width - enemy.r);
+            enemy.y = clamp(enemy.y + movement.y * enemy.speed * speedMultiplier * evolutionMoveMultiplier, enemy.r, WORLD.height - enemy.r);
         }
 
         resolveEnemyCrowding();
@@ -4008,6 +4257,7 @@
         for (const enemy of enemies) {
             if (!enemy || enemy.dead) continue;
             if (enemy.type === "carrier") updateCarrierSystems(enemy, now);
+            if (enemy.type === "miniTank") updateMiniBossSystems(enemy, now);
             if (enemy.type === "boss" || enemy.type === "gigaBoss") updateBossCommandSystems(enemy, now);
             if (canEnemyShoot(enemy)) shootEnemy(enemy, now);
             damagePlayerOnTouch(enemy, now);
@@ -4027,13 +4277,26 @@
             dy /= length;
         }
 
+        if (enemy.type === "miniTank") {
+            const desired = enemy.miniBossRole === "sniper" ? 720 : enemy.miniBossRole === "healer" ? 420 : 250;
+            if (length < desired - 55) return addEnemySeparationSteering(enemy, -dx, -dy);
+            if (length > desired + 80) return addEnemySeparationSteering(enemy, dx, dy);
+            return addEnemySeparationSteering(enemy, -dy * 0.22, dx * 0.22);
+        }
         if (enemy.type === "dodger") {
             return getDodgerMovement(enemy, dx, dy, now);
         }
         if (enemy.type === "fighter") {
             return getFighterMovement(enemy, dx, dy, now);
         }
+        if (enemy.type === "aegis") {
+            const desired = 330;
+            if (length < desired - 45) return addEnemySeparationSteering(enemy, -dx, -dy);
+            if (length > desired + 80) return addEnemySeparationSteering(enemy, dx, dy);
+            return addEnemySeparationSteering(enemy, -dy * 0.28, dx * 0.28);
+        }
         if (enemy.type === "carrier") {
+            if (enemy.launchChargeUntil && now < enemy.launchChargeUntil) return { x: 0, y: 0 };
             return getCarrierMovement(enemy, dx, dy, now);
         }
 
@@ -4411,16 +4674,52 @@
     /**
      * Handles the canEnemyShoot operation. Keep its responsibilities narrow and update this comment when behavior changes.
      */
+    function updateMiniBossSystems(enemy, now) {
+        if (enemy.miniBossRole !== "healer" || now < (enemy.nextSupportAt || 0)) return;
+        enemy.nextSupportAt = now + randomRange(3600, 4800);
+        const radius = enemy.healRadius || 285;
+        let healed = 0;
+        for (const ally of enemies) {
+            if (!ally || ally.dead || ally === enemy || distance(enemy, ally) > radius) continue;
+            if (ally.health >= ally.maxHealth) continue;
+            const amount = Math.max(10, Math.round(ally.maxHealth * 0.12));
+            ally.health = Math.min(ally.maxHealth, ally.health + amount);
+            ally.auraFlashUntil = Date.now() + 260;
+            healed++;
+            if (healed >= 7) break;
+        }
+        if (healed > 0) {
+            spawnPickupBurst(enemy.x, enemy.y, "#72f0a6", 12, false);
+            explosions.push({ x: enemy.x, y: enemy.y, radius, life: 12, maxLife: 12, harmless: true, supportPulse: true });
+        }
+    }
+
     function canEnemyShoot(enemy) {
-        return enemy.type === "brute" || enemy.type === "miniTank" || enemy.type === "fighter" || enemy.type === "carrier" || enemy.type === "boss" || enemy.type === "gigaBoss";
+        return enemy.type === "brute" || enemy.type === "miniTank" || enemy.type === "fighter" || enemy.type === "carrier" || enemy.type === "boss" || enemy.type === "gigaBoss" ||
+            (enemy.mutations || []).includes("burst") || (enemy.mutations || []).includes("spread");
     }
 
     /**
      * Handles the shootEnemy operation. Keep its responsibilities narrow and update this comment when behavior changes.
      */
     function shootEnemy(enemy, now) {
-        if (now - enemy.lastShotAt < enemy.shootCooldown) return;
-        if (distance(enemy, player) > 760) return;
+        // Mutation-only shooters (normal, runner, dodger, etc.) do not always
+        // have a native shootCooldown. Using an undefined cooldown made the
+        // comparison fail and eventually poisoned lastShotAt with NaN, allowing
+        // them to fire every simulation frame around Generation III.
+        const hasEvolutionWeapon = (enemy.mutations || []).includes("burst") || (enemy.mutations || []).includes("spread");
+        const nativeCooldown = Number.isFinite(enemy.shootCooldown) ? enemy.shootCooldown : null;
+        const shootCooldown = nativeCooldown ?? (hasEvolutionWeapon ? randomRange(1450, 1900) : 1600);
+        if (!Number.isFinite(enemy.lastShotAt)) enemy.lastShotAt = now;
+        if (now - enemy.lastShotAt < shootCooldown) return;
+        if (distance(enemy, player) > (enemy.miniBossRole === "sniper" ? (enemy.sniperRange || 1120) : 760)) return;
+
+        const activeEnemyProjectiles = enemyBullets.reduce((count, projectile) => count + (projectile && !projectile.dead && !projectile.isBomb ? 1 : 0), 0);
+        const enemyProjectileBudget = Math.min(PERFORMANCE_LIMITS.maxEnemyBullets, 150);
+        if (activeEnemyProjectiles >= enemyProjectileBudget) {
+            enemy.lastShotAt = now - Math.max(0, shootCooldown - 260);
+            return;
+        }
 
         enemy.lastShotAt = now;
         playSound("enemyShoot");
@@ -4431,11 +4730,19 @@
         }
 
         const baseAngle = Math.atan2(player.y - enemy.y, player.x - enemy.x);
-        const shotCount = enemy.type === "gigaBoss" ? 9 : enemy.type === "boss" ? 5 : enemy.type === "miniTank" ? 3 : enemy.type === "fighter" ? 2 : 1;
-        const spread = enemy.type === "gigaBoss" ? 0.22 : enemy.type === "boss" ? 0.18 : enemy.type === "miniTank" ? 0.14 : enemy.type === "fighter" ? 0.08 : 0;
+        const bossTier = enemy.type === "boss" ? Math.max(1, Math.floor(state.wave / 10)) : 0;
+        const mutations = enemy.mutations || [];
+        const evolvedBurst = mutations.includes("burst");
+        const evolvedSpread = mutations.includes("spread");
+        const shotCount = enemy.type === "gigaBoss" ? 11 : enemy.type === "boss" ? Math.min(9, 3 + bossTier * 2) : enemy.type === "miniTank" ? (enemy.miniBossRole === "sniper" ? 1 : enemy.miniBossRole === "healer" ? 2 : 3) : enemy.type === "fighter" ? 2 : evolvedSpread ? 3 : evolvedBurst ? 2 : 1;
+        const spread = enemy.type === "gigaBoss" ? 0.24 : enemy.type === "boss" ? Math.min(0.28, 0.13 + bossTier * 0.025) : enemy.type === "miniTank" ? (enemy.miniBossRole === "sniper" ? 0 : enemy.miniBossRole === "healer" ? 0.09 : 0.14) : enemy.type === "fighter" ? 0.08 : evolvedSpread ? 0.18 : evolvedBurst ? 0.045 : 0;
+        // Mutation-only shooters use the local finite cooldown above. Never
+        // offset lastShotAt with enemy.shootCooldown here: many basic archetypes
+        // intentionally lack that property, which previously produced NaN and a
+        // continuous line of projectiles.
         const centerOffset = (shotCount - 1) / 2;
 
-        for (let i = 0; i < shotCount; i++) {
+        for (let i = 0; i < shotCount && activeEnemyProjectiles + i < enemyProjectileBudget; i++) {
             createEnemyBullet(enemy, baseAngle + (i - centerOffset) * spread);
         }
     }
@@ -4448,16 +4755,16 @@
         const isBoss = enemy.type === "boss";
         const isMiniTank = enemy.type === "miniTank";
         const isCarrier = enemy.type === "carrier";
-        const speed = isGigaBoss ? 5.8 : isBoss ? 5.2 : isCarrier ? 5.35 : isMiniTank ? 4.9 : 4.6;
+        const speed = isGigaBoss ? 5.8 : isBoss ? 5.2 : isCarrier ? 5.35 : isMiniTank ? (enemy.miniBossRole === "sniper" ? 8.6 : 4.9) : 4.6;
 
         enemyBullets.push({
             x: enemy.x + Math.cos(angle) * (enemy.r + 8),
             y: enemy.y + Math.sin(angle) * (enemy.r + 8),
-            r: isGigaBoss ? 11 : isBoss ? 8 : isCarrier ? 7 : isMiniTank ? 7 : 6,
+            r: isGigaBoss ? 11 : isBoss ? 8 : isCarrier ? 7 : isMiniTank ? (enemy.miniBossRole === "sniper" ? 5 : 7) : 6,
             dx: Math.cos(angle) * speed,
             dy: Math.sin(angle) * speed,
-            damage: isGigaBoss ? 28 : isBoss ? 18 : isCarrier ? Math.round(13 * getDifficulty().enemyDamage) : isMiniTank ? 14 : 10,
-            color: isGigaBoss ? "#ffffff" : isBoss ? "#ff3535" : isCarrier ? "#62d9ff" : isMiniTank ? "#d58bff" : "#ff79c6",
+            damage: isGigaBoss ? 28 : isBoss ? 18 : isCarrier ? Math.round(13 * getDifficulty().enemyDamage) : isMiniTank ? (enemy.miniBossRole === "sniper" ? Math.max(24, Math.round(enemy.damage * 0.92)) : enemy.miniBossRole === "superTank" ? 16 : 11) : Math.max(7, Math.round((enemy.damage || 12) * 0.62)),
+            color: isGigaBoss ? "#ffffff" : isBoss ? "#ff3535" : isCarrier ? "#62d9ff" : isMiniTank ? (enemy.miniBossRole === "sniper" ? "#ffcf70" : enemy.miniBossRole === "healer" ? "#72f0a6" : "#b878ff") : (enemy.generation >= 4 ? "#c68cff" : "#ff79c6"),
         });
     }
 
@@ -4466,20 +4773,22 @@
      * enter after the player has had time to assemble a powerful build.
      */
     function getCarrierDoctrine() {
+        const scout = state.wave <= 15;
+        const veteran = state.wave >= 21;
         const profiles = {
-            easy:       { initial: 8,  volley: 6,  activeCap: 16, volleyCooldown: 2550, cannonShots: 1, cannonSpread: 0.00 },
-            medium:     { initial: 10, volley: 8,  activeCap: 20, volleyCooldown: 2150, cannonShots: 2, cannonSpread: 0.08 },
-            hard:       { initial: 12, volley: 10, activeCap: 26, volleyCooldown: 1750, cannonShots: 3, cannonSpread: 0.10 },
-            impossible: { initial: 16, volley: 14, activeCap: 34, volleyCooldown: 1350, cannonShots: 4, cannonSpread: 0.11 },
+            easy:       scout ? { initial: 1, volley: 1, activeCap: 2, volleyCooldown: 8000, cannonShots: 1, cannonSpread: 0.00 } : { initial: 2, volley: 1, activeCap: 4, volleyCooldown: 6200, cannonShots: 1, cannonSpread: 0.00 },
+            medium:     scout ? { initial: 1, volley: 1, activeCap: 2, volleyCooldown: 7200, cannonShots: 1, cannonSpread: 0.00 } : { initial: 2, volley: 1, activeCap: 4, volleyCooldown: 5600, cannonShots: 2, cannonSpread: 0.08 },
+            hard:       scout ? { initial: 1, volley: 1, activeCap: 3, volleyCooldown: 6500, cannonShots: 2, cannonSpread: 0.07 } : { initial: 2, volley: 2, activeCap: 5, volleyCooldown: 5000, cannonShots: 2, cannonSpread: 0.09 },
+            impossible: scout ? { initial: 2, volley: 1, activeCap: 4, volleyCooldown: 5800, cannonShots: 2, cannonSpread: 0.08 } : { initial: 3, volley: 2, activeCap: 6, volleyCooldown: 4400, cannonShots: 3, cannonSpread: 0.10 },
         };
         const base = profiles[state.difficulty] || profiles.medium;
-        const waveBonus = Math.min(8, Math.floor(Math.max(0, state.wave - 14) / 5));
+        const endlessSteps = veteran ? Math.floor((state.wave - 20) / 10) : 0;
         return {
             ...base,
-            initial: base.initial + waveBonus,
-            volley: base.volley + Math.floor(waveBonus * 0.75),
-            activeCap: base.activeCap + waveBonus,
-            volleyCooldown: Math.max(900, base.volleyCooldown - waveBonus * 55),
+            activeCap: Math.min(10, base.activeCap + endlessSteps),
+            volleyCooldown: Math.max(3200, base.volleyCooldown - endlessSteps * 300),
+            globalCooldown: 1800,
+            chargeTime: 1200,
         };
     }
 
@@ -4490,23 +4799,32 @@
     function updateCarrierSystems(enemy, now) {
         const doctrine = getCarrierDoctrine();
         const activeOwned = carrierMissiles.reduce(
-            (count, missile) => count + (missile && !missile.dead && missile.owner === enemy ? 1 : 0),
-            0
+            (count, missile) => count + (missile && !missile.dead && missile.owner === enemy ? 1 : 0), 0
         );
 
-        if (enemy.missileInitialVolleyPending) {
-            launchCarrierVolley(enemy, Math.min(doctrine.initial, doctrine.activeCap));
+        // Visible deployment commitment: the carrier charges in place before launch.
+        if (enemy.launchChargeUntil) {
+            if (now < enemy.launchChargeUntil) return;
+            if (now < carrierGlobalNextLaunchAt) {
+                enemy.launchChargeUntil = carrierGlobalNextLaunchAt + 120;
+                return;
+            }
+            const roomForCarrier = Math.max(0, doctrine.activeCap - activeOwned);
+            const roomGlobal = Math.max(0, PERFORMANCE_LIMITS.maxCarrierMissiles - carrierMissiles.filter(m => m && !m.dead).length);
+            const launchCount = Math.min(enemy.pendingLaunchCount || 1, roomForCarrier, roomGlobal);
+            if (launchCount > 0) launchCarrierVolley(enemy, launchCount);
+            enemy.launchChargeUntil = 0;
+            enemy.pendingLaunchCount = 0;
             enemy.missileInitialVolleyPending = false;
-            enemy.nextMissileVolleyAt = now + doctrine.volleyCooldown * 0.72;
+            carrierGlobalNextLaunchAt = now + doctrine.globalCooldown;
+            enemy.nextMissileVolleyAt = now + doctrine.volleyCooldown * randomRange(0.92, 1.08);
             return;
         }
 
-        if (now < enemy.nextMissileVolleyAt || activeOwned >= doctrine.activeCap) return;
-        const roomForCarrier = doctrine.activeCap - activeOwned;
-        const roomGlobal = Math.max(0, PERFORMANCE_LIMITS.maxCarrierMissiles - carrierMissiles.filter(m => m && !m.dead).length);
-        const launchCount = Math.min(doctrine.volley, roomForCarrier, roomGlobal);
-        if (launchCount > 0) launchCarrierVolley(enemy, launchCount);
-        enemy.nextMissileVolleyAt = now + doctrine.volleyCooldown;
+        if (activeOwned >= doctrine.activeCap || now < enemy.nextMissileVolleyAt || now < carrierGlobalNextLaunchAt) return;
+        enemy.pendingLaunchCount = enemy.missileInitialVolleyPending ? doctrine.initial : doctrine.volley;
+        enemy.launchChargeUntil = now + doctrine.chargeTime;
+        playSound("miniBossSpawn");
     }
 
     /**
@@ -4776,14 +5094,78 @@
     }
 
     /**
+     * Separates direct trigger-fired weapon damage from autonomous ability damage.
+     * Rockets, auras, rifts, drones, and relic systems are intentionally abilities.
+     */
+    function classifyPlayerDamage(source) {
+        switch (source) {
+            case "missile":
+            case "aura":
+            case "relic":
+            case "rift":
+            case "quantum":
+                return "quantum";
+            case "drone":
+            case "ability":
+                return "ability";
+            case "bullet":
+            case "explosion":
+            case "weapon":
+            default:
+                return "weapon";
+        }
+    }
+
+
+    function getProtectingAegis(enemy) {
+        if (!enemy || enemy.dead) return null;
+        for (const generator of enemies) {
+            if (!generator || generator.dead || generator.type !== "aegis") continue;
+            const radius = generator.shieldRadius || 430;
+            if (distance(enemy, generator) <= radius + enemy.r) return generator;
+        }
+        return null;
+    }
+
+    function isPlayerInsideAegis(generator) {
+        return !!generator && distance(player, generator) <= (generator.shieldRadius || 430) + player.r;
+    }
+
+    function isEnemyAegisProtected(enemy) {
+        const generator = getProtectingAegis(enemy);
+        return !!generator && !isPlayerInsideAegis(generator);
+    }
+
+    /**
      * Applies damage through the shared combat rules. Route new damage sources here to preserve effects and death handling.
      */
     function damageEnemy(index, amount, source = "bullet") {
         const enemy = enemies[index];
         if (!enemy) return false;
 
+        if (isEnemyAegisProtected(enemy)) {
+            enemy.shieldFlashUntil = Date.now() + 120;
+            return false;
+        }
+
+        const damageClass = classifyPlayerDamage(source);
+        if (damageClass === "quantum" && enemy.quantumImmune) {
+            enemy.quantumFlashUntil = Date.now() + 180;
+            addDamageNumber(enemy.x, enemy.y - enemy.r, "NULL", "#72e8ff", {
+                category: "quantum", outline: "rgba(8,45,74,0.96)", startScale: 1.35, settleScale: 0.88, drift: "quantum"
+            });
+            return false;
+        }
+        const style = PLAYER_DAMAGE_STYLE[damageClass];
         enemy.health -= amount;
-        addDamageNumber(enemy.x, enemy.y - enemy.r, amount);
+        playerDamageTotals[damageClass] += Math.max(0, Number(amount) || 0);
+        addDamageNumber(enemy.x, enemy.y - enemy.r, amount, style.color, {
+            category: damageClass,
+            outline: style.outline,
+            startScale: style.startScale,
+            settleScale: style.settleScale,
+            drift: style.drift,
+        });
         playSound("hit");
 
         if (enemy.health > 0) return false;
@@ -4840,6 +5222,11 @@
         if (player.shield > 0) {
             const absorbed = Math.min(player.shield, reducedAmount);
             player.shield -= absorbed;
+            if (absorbed > 0 && ui.playerShieldBarWrap) {
+                ui.playerShieldBarWrap.classList.remove("shield-hit");
+                void ui.playerShieldBarWrap.offsetWidth;
+                ui.playerShieldBarWrap.classList.add("shield-hit");
+            }
             amount = reducedAmount - absorbed;
         } else {
             amount = reducedAmount;
@@ -4862,7 +5249,8 @@
     /**
      * Advances this subsystem by one simulation step. Respect paused/ended state and avoid unnecessary allocations.
      */
-    function updateBullets() {
+    function updateBullets(now) {
+        updateEnemyBombs(now);
         updateProjectileList(bullets, 40);
         updateMissiles();
         updateProjectileList(enemyBullets, 60);
@@ -4875,10 +5263,33 @@
     /**
      * Advances this subsystem by one simulation step. Respect paused/ended state and avoid unnecessary allocations.
      */
+    function updateEnemyBombs(now) {
+        // Bomb timestamps are created from the main loop's Date.now() clock.
+        // Never compare them to performance.now(); mixing the two clock origins
+        // prevents mines from arming or reaching their fuse deadline.
+        for (const bomb of enemyBullets) {
+            if (!bomb || bomb.dead || !bomb.isBomb) continue;
+            const armed = now >= (bomb.armedAt || bomb.bornAt || 0);
+            const proximityTriggered = armed && distance(bomb, player) <= (bomb.triggerRadius || 100) + player.r;
+            const timerTriggered = now >= bomb.explodeAt;
+            if (!proximityTriggered && !timerTriggered) continue;
+
+            bomb.dead = true;
+            explosions.push({ x: bomb.x, y: bomb.y, radius: bomb.blastRadius, life: 16, maxLife: 16 });
+            spawnPickupBurst(bomb.x, bomb.y, "#ff7a45", 10, true);
+            addScreenShake(6);
+            playSound("explosion");
+            if (distance(bomb, player) < bomb.blastRadius + player.r) {
+                damagePlayer(bomb.damage);
+                addDamageNumber(player.x, player.y - 28, `-${bomb.damage}`, "#ff7a45");
+            }
+        }
+    }
+
     function updateProjectileList(projectiles, despawnMargin) {
         for (let i = projectiles.length - 1; i >= 0; i--) {
             const projectile = projectiles[i];
-            if (!projectile || projectile.dead) continue;
+            if (!projectile || projectile.dead || projectile.isBomb) continue;
 
             projectile.x += projectile.dx;
             projectile.y += projectile.dy;
@@ -4905,7 +5316,7 @@
     function checkEnemyBulletHits() {
         for (let i = enemyBullets.length - 1; i >= 0; i--) {
             const bullet = enemyBullets[i];
-            if (!bullet || bullet.dead) continue;
+            if (!bullet || bullet.dead || bullet.isBomb) continue;
             let interceptedByDrone = false;
             for (const drone of relicDrones) {
                 if (drone.dead || distance(drone, bullet) >= 10 + bullet.r) continue;
@@ -5196,6 +5607,8 @@
 
         maybeDropPickup("health", x, y, dropRates.health, enemyType);
         maybeDropPickup("speed", x, y, dropRates.speed, enemyType, 34);
+        const momentumStage = getAwakenedRelicStage("relic_blue_01");
+        if (momentumStage) maybeDropPickup("overdrive", x, y, 0.018 + momentumStage * 0.014, enemyType, 54);
         maybeDropPickup("harm", x, y, dropRates.harm, enemyType, 46);
         maybeDropPickup("slow", x, y, dropRates.slow, enemyType, 46);
     }
@@ -5253,6 +5666,7 @@
         const stats = {
             health: { amount: isGigaBoss ? 90 : isBoss ? 55 : 22 },
             speed: { duration: isGigaBoss ? 12000 : isBoss ? 9000 : 5500 },
+            overdrive: { duration: (isGigaBoss ? 15000 : isBoss ? 11500 : 6500) + getAwakenedRelicStage("relic_blue_01") * 1800 },
             harm: { amount: isGigaBoss ? 45 : isBoss ? 30 : 14 },
             slow: {
                 duration: isGigaBoss ? 9000 : isBoss ? 7000 : 4200,
@@ -5291,12 +5705,14 @@
      * Advances this subsystem by one simulation step. Respect paused/ended state and avoid unnecessary allocations.
      */
     function updatePickupMagnet(pickup) {
-        const canMagnetize = pickup.type === "health" || pickup.type === "speed";
+        const canMagnetize = pickup.type === "health" || pickup.type === "speed" || pickup.type === "overdrive";
         pickup.magnetized = false;
         if (!canMagnetize || player.pointMagnetRadius <= 0) return;
 
-        const clearBoost = state.clearPhaseActive ? 1.9 : 1;
-        const magnetRadius = player.pointMagnetRadius * 0.5 * clearBoost;
+        const momentumStage = getAwakenedRelicStage("relic_blue_01");
+        const clearBoost = state.clearPhaseActive ? (1.9 + momentumStage * 0.8) : 1;
+        const relicPickupBoost = pickup.type === "overdrive" ? 1.5 + momentumStage * 0.25 : 1;
+        const magnetRadius = player.pointMagnetRadius * 0.5 * clearBoost * relicPickupBoost;
         const distToPlayer = distance(player, pickup);
         if (distToPlayer >= magnetRadius) return;
 
@@ -5327,6 +5743,13 @@
             speed: () => {
                 player.speedBoostUntil = Math.max(player.speedBoostUntil, now + pickup.duration * player.boostDurationMultiplier);
                 spawnPickupBurst(pickup.x, pickup.y, "#63d7ff", 8, false);
+                playSound("speedPickup");
+            },
+            overdrive: () => {
+                player.speedBoostUntil = Math.max(player.speedBoostUntil, now + pickup.duration);
+                player.weaponBoostUntil = Math.max(player.weaponBoostUntil || 0, now + pickup.duration);
+                spawnPickupBurst(pickup.x, pickup.y, "#8cecff", 14, false);
+                addDamageNumber(player.x, player.y - 32, "OVERDRIVE", "#8cecff");
                 playSound("speedPickup");
             },
             harm: () => {
@@ -5410,7 +5833,16 @@
             }
             number.x += number.dx;
             number.y += number.dy;
-            number.dy -= 0.006;
+            if (number.drift === "quantum") {
+                number.x += Math.sin(number.life * 0.75) * 0.55;
+                number.y -= 1.45;
+            } else if (number.drift === "energy") {
+                number.phase += 0.34;
+                number.x += Math.sin(number.phase) * 0.22;
+                number.dy *= 0.965;
+            } else {
+                number.dy -= 0.006;
+            }
         }
     }
 
@@ -5438,16 +5870,23 @@
     /**
      * Handles the addDamageNumber operation. Keep its responsibilities narrow and update this comment when behavior changes.
      */
-    function addDamageNumber(x, y, value, color = "#ffffff") {
+    function addDamageNumber(x, y, value, color = "#ffffff", options = {}) {
+        const isAbility = options.drift === "energy";
         damageNumbers.push({
             x: x + randomRange(-8, 8),
             y: y + randomRange(-6, 4),
-            dx: randomRange(-0.35, 0.35),
-            dy: randomRange(-1.35, -0.75),
+            dx: randomRange(isAbility ? -0.18 : -0.35, isAbility ? 0.18 : 0.35),
+            dy: randomRange(isAbility ? -1.05 : -1.35, isAbility ? -0.62 : -0.75),
             text: String(value),
             color,
-            life: 42,
-            maxLife: 42,
+            outline: options.outline || "rgba(0,0,0,0.82)",
+            category: options.category || "neutral",
+            drift: options.drift || "punch",
+            phase: Math.random() * TWO_PI,
+            life: 26,
+            maxLife: 26,
+            startScale: options.startScale || 1.72,
+            settleScale: options.settleScale || 0.92,
         });
     }
 
@@ -5468,6 +5907,7 @@
                 w: randomRange(90, 320),
                 h: randomRange(50, 200),
                 glow: Math.random(),
+                phase: randomRange(0, TWO_PI),
             });
         }
 
@@ -5477,8 +5917,44 @@
                 y: Math.random() * WORLD.height,
                 r: randomRange(0.6, 2.4),
                 alpha: randomRange(0.15, 0.6),
+                phase: randomRange(0, TWO_PI),
             });
         }
+
+        // The arena's largest background structures are fragments of a dormant
+        // command chassis. Across each 20-wave chapter they converge until the
+        // giga-boss reveals that the scenery was part of its body all along.
+        backgroundBossFragments.length = 0;
+        const targetLayout = [
+            { x: -250, y: -120, w: 190, h: 54, rotation: -0.32 },
+            { x: 250, y: -120, w: 190, h: 54, rotation: 0.32 },
+            { x: -315, y: 0, w: 175, h: 48, rotation: -0.08 },
+            { x: 315, y: 0, w: 175, h: 48, rotation: 0.08 },
+            { x: -245, y: 125, w: 185, h: 50, rotation: 0.28 },
+            { x: 245, y: 125, w: 185, h: 50, rotation: -0.28 },
+            { x: -105, y: -205, w: 84, h: 180, rotation: -0.12 },
+            { x: 105, y: -205, w: 84, h: 180, rotation: 0.12 },
+            { x: -105, y: 205, w: 84, h: 180, rotation: 0.12 },
+            { x: 105, y: 205, w: 84, h: 180, rotation: -0.12 },
+            { x: 0, y: -300, w: 120, h: 100, rotation: 0 },
+            { x: 0, y: 300, w: 120, h: 100, rotation: Math.PI },
+        ];
+
+        targetLayout.forEach((target, index) => {
+            const angle = (index / targetLayout.length) * TWO_PI + randomRange(-0.24, 0.24);
+            const distanceFromCenter = randomRange(900, 1550);
+            backgroundBossFragments.push({
+                startX: WORLD.width * 0.5 + Math.cos(angle) * distanceFromCenter,
+                startY: WORLD.height * 0.5 + Math.sin(angle) * distanceFromCenter,
+                startRotation: randomRange(-Math.PI, Math.PI),
+                targetX: target.x,
+                targetY: target.y,
+                targetRotation: target.rotation,
+                w: target.w,
+                h: target.h,
+                phase: randomRange(0, TWO_PI),
+            });
+        });
     }
 
     // -------------------------------------------------------------------------
@@ -5514,27 +5990,63 @@
             Math.max(viewWidth, viewHeight) * 0.75
         );
 
-        gradient.addColorStop(0, "#151e34");
-        gradient.addColorStop(0.55, "#0d1220");
-        gradient.addColorStop(1, "#080a10");
+        const backgroundHue = getBackgroundHue();
+        gradient.addColorStop(0, `hsl(${backgroundHue}, 42%, 15%)`);
+        gradient.addColorStop(0.55, `hsl(${(backgroundHue + 18) % 360}, 34%, 9%)`);
+        gradient.addColorStop(1, `hsl(${(backgroundHue + 34) % 360}, 28%, 4%)`);
 
         ctx.fillStyle = gradient;
         ctx.fillRect(0, 0, viewWidth, viewHeight);
 
-        drawBackgroundStars();
+        drawBackgroundAurora(backgroundHue);
+        drawBackgroundStars(backgroundHue);
         drawBackgroundGrid();
         drawBackgroundPanels();
+        drawBackgroundBossAssembly();
         drawWorldBounds();
     }
 
     /**
      * Renders a visual element on the canvas. Do not change gameplay state from rendering code.
      */
-    function drawBackgroundStars() {
+    function getBackgroundHue() {
+        const chapterProgress = getBackgroundRevealProgress();
+        const chapterIndex = Math.floor((Math.max(1, state.wave) - 1) / 20);
+        const timeDrift = (performance.now() / 1000) * 0.7;
+        return (202 + chapterProgress * 82 + chapterIndex * 31 + timeDrift) % 360;
+    }
+
+    function drawBackgroundAurora(hue) {
+        const viewWidth = getVisibleWorldWidth();
+        const viewHeight = getVisibleWorldHeight();
+        const now = performance.now();
+        const pulse = 0.5 + 0.5 * Math.sin(now / 2400);
+        const centerX = viewWidth * (0.5 + Math.sin(now / 7000) * 0.08);
+        const centerY = viewHeight * (0.5 + Math.cos(now / 8200) * 0.07);
+
+        ctx.save();
+        ctx.globalCompositeOperation = "lighter";
+        for (let i = 0; i < 3; i++) {
+            const radius = Math.max(viewWidth, viewHeight) * (0.24 + i * 0.15 + pulse * 0.015);
+            const aurora = ctx.createRadialGradient(centerX, centerY, radius * 0.2, centerX, centerY, radius);
+            aurora.addColorStop(0, `hsla(${(hue + i * 28) % 360}, 85%, 58%, ${0.028 - i * 0.005})`);
+            aurora.addColorStop(0.58, `hsla(${(hue + 42 + i * 20) % 360}, 78%, 48%, ${0.014 - i * 0.002})`);
+            aurora.addColorStop(1, `hsla(${hue}, 70%, 30%, 0)`);
+            ctx.fillStyle = aurora;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, TWO_PI);
+            ctx.fill();
+        }
+        ctx.restore();
+    }
+
+    function drawBackgroundStars(hue) {
+        const now = performance.now();
         for (const star of backgroundStars) {
             if (!isInView(star, 10)) continue;
             const screen = worldToScreen(star);
-            drawCircle(ctx, screen.x, screen.y, star.r, `rgba(130, 210, 255, ${star.alpha})`);
+            const twinkle = 0.72 + Math.sin(now / 520 + star.phase) * 0.28;
+            drawCircle(ctx, screen.x, screen.y, star.r * (0.9 + twinkle * 0.12), `hsla(${(hue + 18) % 360}, 85%, 78%, ${star.alpha * twinkle})`);
         }
     }
 
@@ -5546,7 +6058,9 @@
         const startX = Math.floor(camera.x / gridSize) * gridSize;
         const startY = Math.floor(camera.y / gridSize) * gridSize;
 
-        ctx.strokeStyle = "rgba(80, 170, 255, 0.12)";
+        const hue = getBackgroundHue();
+        const pulse = 0.09 + (0.025 * (0.5 + 0.5 * Math.sin(performance.now() / 1700)));
+        ctx.strokeStyle = `hsla(${hue}, 82%, 68%, ${pulse})`;
         ctx.lineWidth = 1;
 
         for (let x = startX; x <= camera.x + getVisibleWorldWidth() + gridSize; x += gridSize) {
@@ -5574,14 +6088,17 @@
             const screen = worldToScreen(panel);
             if (screen.x + panel.w < -50 || screen.x > getVisibleWorldWidth() + 50 || screen.y + panel.h < -50 || screen.y > getVisibleWorldHeight() + 50) continue;
 
-            ctx.fillStyle = `rgba(30, 70, 110, ${0.12 + panel.glow * 0.08})`;
+            const revealFade = 1 - getBackgroundRevealProgress() * 0.48;
+            const hue = getBackgroundHue();
+            const shimmer = 0.82 + Math.sin(performance.now() / 1100 + panel.phase) * 0.18;
+            ctx.fillStyle = `hsla(${(hue + 8) % 360}, 58%, 27%, ${(0.10 + panel.glow * 0.07) * revealFade * shimmer})`;
             ctx.fillRect(screen.x, screen.y, panel.w, panel.h);
 
-            ctx.strokeStyle = `rgba(90, 200, 255, ${0.14 + panel.glow * 0.16})`;
+            ctx.strokeStyle = `hsla(${hue}, 88%, 70%, ${(0.13 + panel.glow * 0.15) * revealFade * shimmer})`;
             ctx.lineWidth = 2;
             ctx.strokeRect(screen.x, screen.y, panel.w, panel.h);
 
-            ctx.strokeStyle = `rgba(120, 255, 230, ${0.1 + panel.glow * 0.1})`;
+            ctx.strokeStyle = `hsla(${(hue + 46) % 360}, 90%, 72%, ${(0.08 + panel.glow * 0.09) * revealFade * shimmer})`;
             ctx.lineWidth = 1;
             ctx.beginPath();
             ctx.moveTo(screen.x + 12, screen.y + panel.h * 0.5);
@@ -5590,6 +6107,119 @@
             ctx.lineTo(screen.x + panel.w * 0.5, screen.y + panel.h - 12);
             ctx.stroke();
         }
+    }
+
+    function getBackgroundRevealProgress() {
+        // Every twenty waves form one visual chapter. Wave 1 begins scattered;
+        // wave 20 is the complete boss reveal. Endless play starts a new cycle.
+        const chapterWave = ((Math.max(1, state.wave) - 1) % 20) + 1;
+        return clamp((chapterWave - 1) / 19, 0, 1);
+    }
+
+    function smoothReveal(value) {
+        return value * value * (3 - 2 * value);
+    }
+
+    function drawBackgroundBossAssembly() {
+        if (!backgroundBossFragments.length) return;
+
+        const progress = smoothReveal(getBackgroundRevealProgress());
+        const finalBoss = enemies.find(enemy => enemy && !enemy.dead && enemy.type === "gigaBoss");
+        const anchor = finalBoss
+            ? { x: finalBoss.x, y: finalBoss.y }
+            : { x: WORLD.width * 0.5, y: WORLD.height * 0.5 };
+        const now = performance.now();
+        const hue = 202 + progress * 82;
+        const screenAnchor = worldToScreen(anchor);
+
+        ctx.save();
+        ctx.globalCompositeOperation = "lighter";
+
+        // A faint central silhouette becomes readable only near the reveal.
+        if (progress > 0.68) {
+            const silhouetteAlpha = (progress - 0.68) / 0.32;
+            const pulse = 0.88 + Math.sin(now / 520) * 0.08;
+            const coreRadius = 82 + progress * 42;
+            const coreGradient = ctx.createRadialGradient(
+                screenAnchor.x, screenAnchor.y, 8,
+                screenAnchor.x, screenAnchor.y, coreRadius * 1.7
+            );
+            coreGradient.addColorStop(0, `hsla(${hue}, 95%, 72%, ${0.14 * silhouetteAlpha})`);
+            coreGradient.addColorStop(0.45, `hsla(${hue + 24}, 88%, 50%, ${0.07 * silhouetteAlpha})`);
+            coreGradient.addColorStop(1, `hsla(${hue + 40}, 80%, 30%, 0)`);
+            ctx.fillStyle = coreGradient;
+            ctx.beginPath();
+            ctx.arc(screenAnchor.x, screenAnchor.y, coreRadius * 1.7 * pulse, 0, TWO_PI);
+            ctx.fill();
+
+            ctx.strokeStyle = `hsla(${hue}, 90%, 70%, ${0.15 * silhouetteAlpha})`;
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(screenAnchor.x, screenAnchor.y, coreRadius, now / 2400, now / 2400 + Math.PI * 1.55);
+            ctx.stroke();
+        }
+
+        for (const fragment of backgroundBossFragments) {
+            const x = fragment.startX + (anchor.x + fragment.targetX - fragment.startX) * progress;
+            const y = fragment.startY + (anchor.y + fragment.targetY - fragment.startY) * progress;
+            const rotation = fragment.startRotation + (fragment.targetRotation - fragment.startRotation) * progress;
+            const screen = worldToScreen({ x, y });
+            if (screen.x < -420 || screen.x > getVisibleWorldWidth() + 420 || screen.y < -420 || screen.y > getVisibleWorldHeight() + 420) continue;
+
+            const wake = Math.sin(now / 620 + fragment.phase) * (1 - progress) * 8;
+            const alpha = 0.12 + progress * 0.34;
+            ctx.save();
+            ctx.translate(screen.x, screen.y + wake);
+            ctx.rotate(rotation);
+
+            const panelGradient = ctx.createLinearGradient(-fragment.w / 2, 0, fragment.w / 2, 0);
+            panelGradient.addColorStop(0, `hsla(${hue + 18}, 70%, 22%, ${alpha * 0.45})`);
+            panelGradient.addColorStop(0.5, `hsla(${hue}, 76%, 38%, ${alpha})`);
+            panelGradient.addColorStop(1, `hsla(${hue + 38}, 72%, 20%, ${alpha * 0.5})`);
+            ctx.fillStyle = panelGradient;
+            ctx.strokeStyle = `hsla(${hue}, 96%, 72%, ${0.18 + progress * 0.48})`;
+            ctx.lineWidth = 2 + progress * 1.5;
+
+            ctx.beginPath();
+            ctx.moveTo(-fragment.w * 0.5, -fragment.h * 0.22);
+            ctx.lineTo(-fragment.w * 0.34, -fragment.h * 0.5);
+            ctx.lineTo(fragment.w * 0.36, -fragment.h * 0.42);
+            ctx.lineTo(fragment.w * 0.5, 0);
+            ctx.lineTo(fragment.w * 0.34, fragment.h * 0.5);
+            ctx.lineTo(-fragment.w * 0.38, fragment.h * 0.4);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.strokeStyle = `hsla(${hue + 38}, 100%, 78%, ${0.12 + progress * 0.34})`;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(-fragment.w * 0.32, 0);
+            ctx.lineTo(fragment.w * 0.32, 0);
+            ctx.moveTo(0, -fragment.h * 0.3);
+            ctx.lineTo(0, fragment.h * 0.3);
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        // At the final boss, energy braces reveal that every fragment is linked
+        // to the enemy core rather than being unrelated arena decoration.
+        if (progress > 0.84) {
+            const linkAlpha = (progress - 0.84) / 0.16;
+            ctx.strokeStyle = `hsla(${hue + 20}, 100%, 76%, ${0.08 + linkAlpha * 0.18})`;
+            ctx.lineWidth = 1.5;
+            for (const fragment of backgroundBossFragments) {
+                const x = fragment.startX + (anchor.x + fragment.targetX - fragment.startX) * progress;
+                const y = fragment.startY + (anchor.y + fragment.targetY - fragment.startY) * progress;
+                const screen = worldToScreen({ x, y });
+                ctx.beginPath();
+                ctx.moveTo(screenAnchor.x, screenAnchor.y);
+                ctx.lineTo(screen.x, screen.y);
+                ctx.stroke();
+            }
+        }
+
+        ctx.restore();
     }
 
     /**
@@ -6039,6 +6669,20 @@
         for (const bullet of enemyBullets) {
             if (!isInView(bullet, 30)) continue;
             const screen = worldToScreen(bullet);
+            if (bullet.isBomb) {
+                const remaining = Math.max(0, bullet.explodeAt - Date.now());
+                const pulse = 0.72 + Math.sin(performance.now() / Math.max(45, remaining / 8)) * 0.22;
+                ctx.save();
+                ctx.fillStyle = `rgba(255,120,55,${pulse})`;
+                ctx.strokeStyle = "rgba(255,225,155,.9)";
+                ctx.lineWidth = 3;
+                ctx.beginPath(); ctx.arc(screen.x, screen.y, bullet.r, 0, TWO_PI); ctx.fill(); ctx.stroke();
+                ctx.strokeStyle = `rgba(255,95,45,${0.28 + pulse * 0.35})`;
+                ctx.lineWidth = 2;
+                ctx.beginPath(); ctx.arc(screen.x, screen.y, bullet.blastRadius, 0, TWO_PI); ctx.stroke();
+                ctx.restore();
+                continue;
+            }
 
             const angle = Math.atan2(bullet.dy, bullet.dx);
             ctx.save();
@@ -6087,15 +6731,30 @@
     function drawDamageNumbers() {
         ctx.save();
         ctx.textAlign = "center";
-        ctx.font = "bold 17px Arial, sans-serif";
-        ctx.lineWidth = 4;
+        ctx.lineWidth = 5;
         for (const number of damageNumbers) {
             if (!number || number.dead || !isInView(number, 80)) continue;
             const screen = worldToScreen(number);
             const alpha = clamp(number.life / number.maxLife, 0, 1);
-            ctx.globalAlpha = alpha;
-            ctx.strokeStyle = "rgba(0,0,0,0.75)";
+            const age = 1 - alpha;
+            const settle = clamp(age / 0.22, 0, 1);
+            const scale = (number.startScale || 1.85) + ((number.settleScale || 1) - (number.startScale || 1.85)) * (1 - Math.pow(1 - settle, 3));
+            const baseSize = number.text.length > 5 ? 20 : 24;
+            ctx.font = `bold ${Math.round(baseSize * scale)}px Arial, sans-serif`;
+            const fade = age < 0.38 ? 1 : clamp((1 - age) / 0.62, 0, 1);
+            ctx.globalAlpha = fade;
+            ctx.strokeStyle = number.outline || "rgba(0,0,0,0.82)";
             ctx.fillStyle = number.color;
+            if (number.category === "ability") {
+                ctx.save();
+                ctx.globalAlpha = fade * 0.24;
+                ctx.lineWidth = 9;
+                ctx.strokeStyle = number.color;
+                ctx.strokeText(number.text, screen.x, screen.y);
+                ctx.restore();
+                ctx.globalAlpha = fade;
+            }
+            ctx.lineWidth = number.category === "weapon" ? 5 : 4;
             ctx.strokeText(number.text, screen.x, screen.y);
             ctx.fillText(number.text, screen.x, screen.y);
         }
@@ -6239,6 +6898,11 @@
                 ctx.fill();
                 ctx.stroke();
             },
+            overdrive: () => {
+                ctx.save(); ctx.rotate(Date.now()/420); ctx.strokeStyle="#dffcff"; ctx.fillStyle="#58cfff"; ctx.lineWidth=2;
+                ctx.beginPath(); for(let i=0;i<8;i++){const a=i*Math.PI/4,r=i%2?6:13;const x=Math.cos(a)*r,y=Math.sin(a)*r;i?ctx.lineTo(x,y):ctx.moveTo(x,y);} ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.restore();
+                drawCircle(ctx,0,0,4,"#ffffff");
+            },
             harm: () => {
                 drawCircle(ctx, 0, 2, pickup.r, "#ff3030");
                 ctx.fillStyle = "#2a0505";
@@ -6312,6 +6976,7 @@
         else if (enemy.type === "miniTank") drawMiniTankShip(radius, color, stroke);
         else if (enemy.type === "fighter") drawFighterShip(radius, color, stroke);
         else if (enemy.type === "carrier") drawCarrierShip(radius, color, stroke);
+        else if (enemy.type === "aegis") drawMiniTankShip(radius, color, stroke);
         else if (enemy.type === "brute") drawBruteShip(radius, color, stroke);
         else if (enemy.type === "dodger") drawDodgerShip(radius, color, stroke);
         else if (enemy.type === "boss") drawBossShip(radius, color, stroke);
@@ -6571,13 +7236,87 @@
             if (!isInView(enemy, 100)) continue;
 
             const screen = worldToScreen(enemy);
+            if (enemy.type === "aegis") drawAegisField(enemy, screen);
             drawEnemyShip(enemy, screen);
 
             if (enemy.type === "boss" || enemy.type === "gigaBoss") drawBossDetails(enemy, screen);
-            if (enemy.type === "miniTank") drawMiniTankDetails(enemy, screen);
+            if (enemy.type === "miniTank") {
+                drawMiniTankDetails(enemy, screen);
+                ctx.save();
+                ctx.textAlign = "center";
+                ctx.font = "bold 11px system-ui";
+                ctx.fillStyle = enemy.miniBossRole === "healer" ? "#72f0a6" : enemy.miniBossRole === "sniper" ? "#ffcf70" : "#d9b5ff";
+                ctx.fillText((enemy.miniBossRole || "superTank").toUpperCase(), screen.x, screen.y - enemy.r - 18);
+                ctx.restore();
+            }
+            if (enemy.quantumImmune) {
+                ctx.save();
+                const flash = enemy.quantumFlashUntil && enemy.quantumFlashUntil > Date.now();
+                ctx.strokeStyle = flash ? "rgba(130,245,255,.98)" : "rgba(70,205,255,.68)";
+                ctx.lineWidth = flash ? 5 : 2;
+                ctx.setLineDash([3, 6]);
+                ctx.beginPath(); ctx.arc(screen.x, screen.y, enemy.r + 10, 0, TWO_PI); ctx.stroke();
+                ctx.setLineDash([]);
+                ctx.font = "bold 9px system-ui"; ctx.textAlign = "center"; ctx.fillStyle = "#86ecff";
+                ctx.fillText("Q-NULL", screen.x, screen.y - enemy.r - 14);
+                ctx.restore();
+            }
+            if ((enemy.generation || 1) > 1 && !["boss", "gigaBoss", "carrier", "aegis"].includes(enemy.type)) {
+                const generationAlpha = 0.22 + Math.min(0.46, enemy.generation * 0.08);
+                ctx.save();
+                ctx.strokeStyle = `rgba(145,205,255,${generationAlpha})`;
+                ctx.lineWidth = 1 + Math.min(3, enemy.generation - 1);
+                ctx.setLineDash([5, 7]);
+                ctx.beginPath(); ctx.arc(screen.x, screen.y, enemy.r + 5 + enemy.generation, 0, TWO_PI); ctx.stroke();
+                ctx.setLineDash([]);
+                if (enemy.blinkChargeUntil) {
+                    ctx.strokeStyle = "rgba(120,235,255,.95)"; ctx.lineWidth = 4;
+                    ctx.beginPath(); ctx.arc(screen.x, screen.y, enemy.r + 13, 0, TWO_PI); ctx.stroke();
+                }
+                ctx.restore();
+            }
+            if (enemy.type === "carrier" && enemy.launchChargeUntil) {
+                const remaining = Math.max(0, enemy.launchChargeUntil - Date.now());
+                const pulse = 0.55 + Math.sin(Date.now() / 90) * 0.25;
+                ctx.save();
+                ctx.strokeStyle = `rgba(90,220,255,${pulse})`;
+                ctx.lineWidth = 5;
+                ctx.beginPath(); ctx.arc(screen.x, screen.y, enemy.r + 12 + remaining / 160, 0, TWO_PI); ctx.stroke();
+                ctx.fillStyle = "rgba(120,235,255,.85)";
+                ctx.font = "bold 11px monospace"; ctx.textAlign = "center";
+                ctx.fillText("DEPLOYING", screen.x, screen.y - enemy.r - 22);
+                ctx.restore();
+            }
 
             drawEnemyHealthBar(enemy, screen);
         }
+    }
+
+    function drawAegisField(enemy, screen) {
+        const radius = enemy.shieldRadius || 255;
+        const playerInside = isPlayerInsideAegis(enemy);
+        const pulse = 0.5 + 0.5 * Math.sin(Date.now() / 280);
+        ctx.save();
+        ctx.globalCompositeOperation = "lighter";
+        ctx.fillStyle = `rgba(70,165,255,${playerInside ? 0.035 : 0.075})`;
+        ctx.strokeStyle = `rgba(105,205,255,${0.48 + pulse * 0.28})`;
+        ctx.lineWidth = playerInside ? 2 : 4;
+        ctx.setLineDash([14, 9]);
+        ctx.beginPath();
+        ctx.arc(screen.x, screen.y, radius, 0, TWO_PI);
+        ctx.fill();
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.strokeStyle = `rgba(190,235,255,${0.22 + pulse * 0.18})`;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(screen.x, screen.y, radius - 7, 0, TWO_PI);
+        ctx.stroke();
+        ctx.fillStyle = playerInside ? "rgba(190,245,255,.9)" : "rgba(100,205,255,.92)";
+        ctx.font = "bold 12px monospace";
+        ctx.textAlign = "center";
+        ctx.fillText(playerInside ? "GENERATOR EXPOSED" : "AEGIS FIELD", screen.x, screen.y - radius - 12);
+        ctx.restore();
     }
 
     /**
@@ -6744,6 +7483,7 @@
         const colors = {
             health: "#36ff7a",
             speed: "#63d7ff",
+            overdrive: "#8cecff",
             harm: "#ff3030",
             slow: "#b36bff",
         };
@@ -6839,6 +7579,11 @@
         ui.slowInfo.textContent = slowRemaining > 0 ? `${slowRemaining}s` : "None";
         ui.magnetInfo.textContent = `${Math.floor(player.pointMagnetRadius)} px`;
         ui.bossInfo.textContent = getBossInfoText();
+        const shieldEnabled = player.maxShield > 0;
+        const shieldPercent = shieldEnabled ? clamp(player.shield / player.maxShield, 0, 1) : 0;
+        if (ui.playerShieldBarWrap) ui.playerShieldBarWrap.hidden = !shieldEnabled;
+        if (ui.playerShieldBar) ui.playerShieldBar.style.width = `${shieldPercent * 100}%`;
+        if (ui.playerShieldText) ui.playerShieldText.textContent = shieldEnabled ? `${Math.max(0, Math.floor(player.shield))} / ${Math.floor(player.maxShield)}` : "";
         ui.playerHealthBar.style.width = `${healthPercent * 100}%`;
         ui.playerHealthText.textContent = healthText;
         ui.playerHealthBarWrap.classList.toggle("regen-active", now < player.regenGlowUntil);
@@ -6919,7 +7664,7 @@
         if (!state.clearPhaseActive) {
             shootPlayerWeapon(now);
             updateAutoMissiles(now);
-            updateBullets();
+            updateBullets(now);
             updateDamageAura(now);
             updateRelicSystems(now);
             updateEnemies(now);
@@ -7407,15 +8152,21 @@
     // -------------------------------------------------------------------------
     // Defensive, versioned persistence
     // -------------------------------------------------------------------------
-    const SAVE_SCHEMA_VERSION = 1;
+    const SAVE_SCHEMA_VERSION = 2;
     const SAVE_BUILD = "Pre-Beta Animated Seal";
     const SAVE_KEYS = Object.freeze({
         main: "starwake_save_main",
         temp: "starwake_save_temp",
         backups: ["starwake_save_backup_1", "starwake_save_backup_2", "starwake_save_backup_3"],
+        activity: "starwake_save_activity_log",
     });
+    // Hard cap for Starwake's protected save slots. 256 KiB keeps the browser
+    // footprint predictable while leaving ample room for future schema growth.
+    const SAVE_STORAGE_LIMIT_BYTES = 256 * 1024;
+    const SAVE_ACTIVITY_MAX_ENTRIES = 40;
+    const SAVE_ACTIVITY_MAX_BYTES = 24 * 1024;
     const SAVE_PLAYER_FIELDS = Object.freeze([
-        "x","y","r","speed","health","maxHealth","damage","fireRate","bulletSpeed","bulletsPerShot",
+        "x","y","r","speed","health","maxHealth","damage","fireRate","bulletSpeed","bulletsPerShot","weaponBoostUntil",
         "explosiveLevel","explosiveRadius","explosiveDamageRatio","pointMagnetRadius","pointMagnetStrength",
         "missileLevel","missileCount","missileDamage","missileCooldown","auraLevel","auraDamage","auraRadius",
         "auraTickRate","regenLevel","regenAmount","regenPerSecond","regenTickRate","regenDelayAfterDamage",
@@ -7456,6 +8207,7 @@
         if (!Number.isFinite(run.wave) || run.wave < 1 || run.wave > 100000) return { valid: false, reason: "Impossible wave value" };
         if (!Number.isFinite(run.score) || run.score < 0) return { valid: false, reason: "Impossible score value" };
         if (!DIFFICULTY_DATA[run.difficulty]) return { valid: false, reason: "Unknown difficulty" };
+        if (run.phase != null && run.phase !== "combat" && run.phase !== "upgrade") return { valid: false, reason: "Unknown run phase" };
         return { valid: true, envelope: migrateSave(envelope) };
     }
 
@@ -7464,9 +8216,14 @@
         // object without first cloning it; imported files are untrusted input.
         const migrated = structuredClone(envelope);
         while (migrated.schemaVersion < SAVE_SCHEMA_VERSION) {
-            // Schema 1 is the first public persistence format.
+            if (migrated.schemaVersion === 1) {
+                // Schema 2 records whether the player saved during combat or
+                // during post-wave reconstruction. Legacy saves resume combat.
+                migrated.data.run.phase = "combat";
+            }
             migrated.schemaVersion++;
         }
+        migrated.checksum = saveChecksum(canonicalSavePayload(migrated));
         return migrated;
     }
 
@@ -7479,7 +8236,9 @@
                 lifetimeStats: { highestWave: Math.max(state.wave, Number(safeStorage.get("starwakeHighestWave", 1)) || 1) },
             },
             run: {
-                active: Boolean(state.started && !state.ended), wave: state.wave, score: state.score,
+                active: Boolean(state.started && !state.ended),
+                phase: ui.upgradeMenu?.style.display === "flex" ? "upgrade" : "combat",
+                wave: state.wave, score: state.score,
                 upgradePoints: state.upgradePoints, difficulty: state.difficulty,
                 nextWaveSpeedBoostMs: state.nextWaveSpeedBoostMs || 0,
                 player: playerData, upgradeLevels: { ...upgradeLevels },
@@ -7500,13 +8259,83 @@
     function rawStorageSet(key, value) { try { localStorage.setItem(key, value); return true; } catch (e) { console.warn("Save write failed", e); return false; } }
     function rawStorageRemove(key) { try { localStorage.removeItem(key); } catch {} }
 
+    function readSaveActivity() {
+        const raw = rawStorageGet(SAVE_KEYS.activity);
+        if (!raw) return [];
+        try {
+            const entries = JSON.parse(raw);
+            return Array.isArray(entries) ? entries.filter(entry => entry && typeof entry === "object") : [];
+        } catch {
+            return [];
+        }
+    }
+
+    function writeSaveActivity(entries) {
+        let trimmed = entries.slice(0, SAVE_ACTIVITY_MAX_ENTRIES);
+        let serialized = JSON.stringify(trimmed);
+        while (trimmed.length > 1 && utf8Bytes(serialized) > SAVE_ACTIVITY_MAX_BYTES) {
+            trimmed.pop();
+            serialized = JSON.stringify(trimmed);
+        }
+        return rawStorageSet(SAVE_KEYS.activity, serialized);
+    }
+
+    function logSaveActivity(type, outcome, message, details = {}) {
+        const entries = readSaveActivity();
+        entries.unshift({
+            id: `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
+            at: new Date().toISOString(),
+            type, outcome, message,
+            wave: Number.isFinite(details.wave) ? details.wave : (state?.wave || null),
+            reason: details.reason || null,
+            slot: details.slot || null,
+        });
+        writeSaveActivity(entries);
+        if (!document.getElementById("saveInspectorPanel")?.hidden) renderSaveActivityLog();
+    }
+
+    function utf8Bytes(value) {
+        return new TextEncoder().encode(value || "").byteLength;
+    }
+
+    function saveStorageUsageBytes() {
+        return [SAVE_KEYS.main, SAVE_KEYS.temp, ...SAVE_KEYS.backups, SAVE_KEYS.activity]
+            .reduce((total, key) => total + utf8Bytes(rawStorageGet(key)), 0);
+    }
+
+    function enforceSaveStorageBudget(incomingBytes = 0) {
+        // The oldest backup is expendable first. Main and temporary slots are
+        // never pruned silently; if they alone exceed the cap, the write fails.
+        let pruned = 0;
+        for (let i = SAVE_KEYS.backups.length - 1;
+             i >= 0 && saveStorageUsageBytes() + incomingBytes > SAVE_STORAGE_LIMIT_BYTES;
+             i--) {
+            if (rawStorageGet(SAVE_KEYS.backups[i])) {
+                rawStorageRemove(SAVE_KEYS.backups[i]);
+                pruned++;
+            }
+        }
+        if (pruned) logSaveActivity("Storage pruning", "warning", `${pruned} oldest backup cop${pruned === 1 ? "y was" : "ies were"} removed to stay within the 256 KiB limit.`, { reason: "storage-budget" });
+        return saveStorageUsageBytes() + incomingBytes <= SAVE_STORAGE_LIMIT_BYTES;
+    }
+
+    function formatSaveBytes(bytes) {
+        return bytes < 1024 ? `${bytes} B` : `${(bytes / 1024).toFixed(1)} KiB`;
+    }
+
     function writeValidatedSave(reason = "autosave") {
         if (!state.started || state.ended) return false;
         const envelope = makeSaveEnvelope(capturePersistentData());
         const serialized = JSON.stringify(envelope);
-        if (!rawStorageSet(SAVE_KEYS.temp, serialized)) return false;
+        const incomingBytes = utf8Bytes(serialized);
+        if (incomingBytes > SAVE_STORAGE_LIMIT_BYTES || !enforceSaveStorageBudget(incomingBytes)) {
+            refreshSaveDataPanel(`Save refused: storage budget ${formatSaveBytes(SAVE_STORAGE_LIMIT_BYTES)} exceeded`);
+            logSaveActivity(reason === "autosave" ? "Autosave" : "Save", "failed", "Save refused because the protected storage budget would be exceeded.", { reason: "storage-budget" });
+            return false;
+        }
+        if (!rawStorageSet(SAVE_KEYS.temp, serialized)) { logSaveActivity(reason === "autosave" ? "Autosave" : "Save", "failed", "Temporary validation write failed. Existing progress was preserved.", { reason: "temp-write" }); return false; }
         const tempCheck = parseAndValidateSave(rawStorageGet(SAVE_KEYS.temp));
-        if (!tempCheck.valid) { rawStorageRemove(SAVE_KEYS.temp); return false; }
+        if (!tempCheck.valid) { rawStorageRemove(SAVE_KEYS.temp); logSaveActivity(reason === "autosave" ? "Autosave" : "Save", "failed", `Temporary validation failed: ${tempCheck.reason}. Existing progress was preserved.`, { reason: tempCheck.reason }); return false; }
         const previousMain = rawStorageGet(SAVE_KEYS.main);
         if (previousMain) {
             const b1 = rawStorageGet(SAVE_KEYS.backups[0]);
@@ -7515,10 +8344,20 @@
             if (b1) rawStorageSet(SAVE_KEYS.backups[1], b1);
             rawStorageSet(SAVE_KEYS.backups[0], previousMain);
         }
-        if (!rawStorageSet(SAVE_KEYS.main, serialized)) return false;
+        // Rotation can temporarily increase usage; prune oldest copies until the
+        // protected set is back under budget before promoting the new main save.
+        if (!enforceSaveStorageBudget()) {
+            rawStorageRemove(SAVE_KEYS.temp);
+            refreshSaveDataPanel("Save refused: protected slots exceed storage budget");
+            logSaveActivity(reason === "autosave" ? "Autosave" : "Save", "failed", "Protected copies could not fit inside the storage budget. Existing progress was preserved.", { reason: "storage-budget" });
+            return false;
+        }
+        if (!rawStorageSet(SAVE_KEYS.main, serialized)) { logSaveActivity(reason === "autosave" ? "Autosave" : "Save", "failed", "Main save write failed. Existing backup copies remain available.", { reason: "main-write" }); return false; }
         rawStorageRemove(SAVE_KEYS.temp);
         safeStorage.set("starwakeHighestWave", Math.max(state.wave, Number(safeStorage.get("starwakeHighestWave", 1)) || 1));
         refreshSaveDataPanel(`Saved (${reason})`);
+        const activityType = reason === "autosave" ? "Autosave" : reason === "background" ? "Background save" : reason === "shutdown" ? "Shutdown save" : "Manual save";
+        logSaveActivity(activityType, "success", `Wave ${state.wave} was saved and verified.`, { wave: state.wave, reason });
         return true;
     }
 
@@ -7556,10 +8395,31 @@
         if (ui.points) ui.points.textContent = state.upgradePoints;
         if (ui.health) ui.health.textContent = `${Math.ceil(player.health)} / ${Math.ceil(player.maxHealth)}`;
         restoreWaveResearchUI(); updateUpgradeButtons();
-        state.started = true; state.paused = false; state.manuallyPaused = false;
+        state.started = true; state.ended = false; state.manuallyPaused = false;
         ui.splashScreen.style.display = "none"; ui.startMenu.style.display = "none"; ui.gameOverMenu.style.display = "none";
-        try { resumeAudio(); } catch {}
-        refreshSaveDataPanel("Run restored successfully");
+
+        if (run.phase === "upgrade") {
+            // The completed wave stays completed. Reopen reconstruction exactly
+            // where the save was made without resetting its offered/claimed state.
+            state.musicScene = "upgrade";
+            state.paused = true;
+            state.clearPhaseActive = false;
+            document.body.classList.add("upgrade-menu-open");
+            ui.upgradeMenu.style.display = "flex";
+            ui.upgradeMenu.scrollTop = 0;
+            document.getElementById("upgradeCard")?.scrollTo?.(0, 0);
+            clearReconstructionUndo();
+            restoreWaveResearchUI();
+            updateUpgradeButtons();
+            refreshSaveDataPanel("Reconstruction save restored — cleared wave preserved");
+        } else {
+            state.musicScene = "combat";
+            state.paused = false;
+            ui.upgradeMenu.style.display = "none";
+            document.body.classList.remove("upgrade-menu-open");
+            try { resumeAudio(); } catch {}
+            refreshSaveDataPanel("Combat save restored successfully");
+        }
     }
 
     function exportSaveFile() {
@@ -7571,19 +8431,172 @@
         link.download = `starwake-save-${new Date().toISOString().replace(/[:.]/g,"-")}.json`;
         document.body.appendChild(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(link.href), 1000);
         setSaveStatus("Save exported. Keep it somewhere outside the game folder.", "good");
+        logSaveActivity("Export", "success", `A verified Wave ${slot.result.envelope.data.run.wave} save was exported.`, { wave: slot.result.envelope.data.run.wave });
+    }
+
+    function rotateSaveBackups(previousMain) {
+        if (!previousMain) return;
+        const b1 = rawStorageGet(SAVE_KEYS.backups[0]);
+        const b2 = rawStorageGet(SAVE_KEYS.backups[1]);
+        if (b2) rawStorageSet(SAVE_KEYS.backups[2], b2);
+        if (b1) rawStorageSet(SAVE_KEYS.backups[1], b1);
+        rawStorageSet(SAVE_KEYS.backups[0], previousMain);
     }
 
     async function importSaveFile(file) {
         if (!file) return;
-        const result = parseAndValidateSave(await file.text());
-        if (!result.valid) { setSaveStatus(`Import rejected: ${result.reason}.`, "bad"); return; }
+        let text;
+        try { text = await file.text(); }
+        catch { setSaveStatus("Import failed: the selected file could not be read.", "bad"); logSaveActivity("Import", "failed", "The selected file could not be read. Existing saves were unchanged.", { reason: "file-read" }); return; }
+        const result = parseAndValidateSave(text);
+        if (!result.valid) { setSaveStatus(`Import rejected: ${result.reason}. Your existing saves were not changed.`, "bad"); logSaveActivity("Import", "failed", `Import rejected: ${result.reason}. Existing saves were unchanged.`, { reason: result.reason }); return; }
         const serialized = JSON.stringify(result.envelope);
-        const current = rawStorageGet(SAVE_KEYS.main); if (current) rawStorageSet(SAVE_KEYS.backups[0], current);
-        rawStorageSet(SAVE_KEYS.main, serialized); refreshSaveDataPanel("Imported save validated and installed");
+        const importBytes = utf8Bytes(serialized);
+        if (importBytes > SAVE_STORAGE_LIMIT_BYTES || !enforceSaveStorageBudget(importBytes)) {
+            setSaveStatus(`Import rejected: save data exceeds the ${formatSaveBytes(SAVE_STORAGE_LIMIT_BYTES)} storage budget. Existing saves were not changed.`, "bad");
+            return;
+        }
+        const current = rawStorageGet(SAVE_KEYS.main);
+        rotateSaveBackups(current);
+        enforceSaveStorageBudget();
+        if (!rawStorageSet(SAVE_KEYS.main, serialized)) {
+            setSaveStatus("Import failed while writing storage. Your previous main save remains in Backup 1.", "bad");
+            return;
+        }
+        const installed = parseAndValidateSave(rawStorageGet(SAVE_KEYS.main));
+        if (!installed.valid) {
+            if (current) rawStorageSet(SAVE_KEYS.main, current);
+            setSaveStatus("Import failed final verification. The previous main save was restored.", "bad");
+            return;
+        }
+        const run = installed.envelope.data.run;
+        refreshSaveDataPanel(`Imported save verified · Wave ${run.wave}.`);
+        logSaveActivity("Import", "success", `Imported save verified and installed at Wave ${run.wave}.`, { wave: run.wave });
     }
 
     function setSaveStatus(message, level = "") {
         const status = document.getElementById("saveDataStatus"); if (status) { status.textContent = message; status.dataset.level = level; }
+    }
+
+    function calculateSaveIntegrity(slots) {
+        const main = slots[0];
+        const validCount = slots.filter(slot => slot.result.valid).length;
+        let score = 0;
+        if (main.result.valid) score += 65;
+        else if (validCount > 0) score += 35;
+        score += Math.min(30, Math.max(0, validCount - (main.result.valid ? 1 : 0)) * 10);
+        const newest = slots.filter(slot => slot.result.valid)
+            .sort((a,b) => Date.parse(b.result.envelope.savedAt) - Date.parse(a.result.envelope.savedAt))[0];
+        if (newest?.result.envelope.schemaVersion === SAVE_SCHEMA_VERSION) score += 5;
+        return Math.min(100, score);
+    }
+
+    function renderSaveInspector() {
+        const panel = document.getElementById("saveInspectorPanel");
+        if (!panel) return;
+        const slots = inspectSaveSlots();
+        const valid = slots.filter(slot => slot.result.valid);
+        const main = slots[0];
+        const newest = valid.slice().sort((a,b) => Date.parse(b.result.envelope.savedAt) - Date.parse(a.result.envelope.savedAt))[0] || null;
+        const score = calculateSaveIntegrity(slots);
+        if (main.result.valid) setSaveHealthSeal(valid.length >= 2 ? "healthy" : "warning");
+        else if (newest) setSaveHealthSeal("recovery");
+        else setSaveHealthSeal(main.result.reason === "Empty save slot" ? "checking" : "invalid");
+        const meter = document.getElementById("saveIntegrityMeter");
+        const percent = document.getElementById("saveIntegrityPercent");
+        const reassurance = document.getElementById("saveInspectorReassurance");
+        const details = document.getElementById("saveInspectorDetails");
+        const list = document.getElementById("saveSlotList");
+        const advice = document.getElementById("saveInspectorAdvice");
+
+        if (meter) {
+            meter.style.setProperty("--integrity", `${score}%`);
+            meter.setAttribute("aria-valuenow", String(score));
+        }
+        if (percent) percent.textContent = `${score}%`;
+
+        if (reassurance) {
+            if (main.result.valid && valid.length >= 3) reassurance.textContent = "Your progress is healthy and protected by multiple verified copies.";
+            else if (main.result.valid) reassurance.textContent = "Your main save is healthy. More backups will be created as you continue playing.";
+            else if (newest) reassurance.textContent = "Your main save needs attention, but a healthy recovery copy is available.";
+            else reassurance.textContent = "No healthy save was found. Starting a run or importing an export will create one.";
+        }
+
+        if (details) {
+            const envelope = newest?.result.envelope;
+            const run = envelope?.data.run;
+            const rows = [
+                ["Status", main.result.valid ? "Healthy" : newest ? "Recovery available" : "No valid save"],
+                ["Saved", envelope ? new Date(envelope.savedAt).toLocaleString() : "—"],
+                ["Wave", run ? String(run.wave) : "—"],
+                ["Difficulty", run ? (DIFFICULTY_DATA[run.difficulty]?.label || run.difficulty) : "—"],
+                ["Build", envelope?.build || "—"],
+                ["Schema", envelope ? `${envelope.schemaVersion} / ${SAVE_SCHEMA_VERSION}` : `— / ${SAVE_SCHEMA_VERSION}`],
+                ["Storage", `${formatSaveBytes(saveStorageUsageBytes())} / ${formatSaveBytes(SAVE_STORAGE_LIMIT_BYTES)}`],
+                ["Protected copies", `${valid.length} of ${slots.length}`],
+                ["Checksum", envelope?.checksum ? "Verified" : "—"],
+            ];
+            details.replaceChildren(...rows.map(([label,value]) => {
+                const wrapper = document.createElement("div");
+                const dt = document.createElement("dt");
+                const dd = document.createElement("dd");
+                dt.textContent = label; dd.textContent = value;
+                wrapper.append(dt,dd); return wrapper;
+            }));
+        }
+
+        if (list) {
+            list.replaceChildren(...slots.map(slot => {
+                const card = document.createElement("div");
+                const validSlot = slot.result.valid;
+                const empty = slot.result.reason === "Empty save slot";
+                card.className = `save-slot-card ${validSlot ? "good" : empty ? "empty" : "bad"}`;
+                const name = document.createElement("strong"); name.textContent = slot.label;
+                const description = document.createElement("span");
+                const stateLabel = document.createElement("em");
+                if (validSlot) {
+                    const run = slot.result.envelope.data.run;
+                    description.textContent = `Wave ${run.wave} · ${new Date(slot.result.envelope.savedAt).toLocaleString()}`;
+                    stateLabel.textContent = "Healthy";
+                } else {
+                    description.textContent = empty ? "No copy stored yet" : slot.result.reason;
+                    stateLabel.textContent = empty ? "Empty" : "Invalid";
+                }
+                card.append(name, description, stateLabel); return card;
+            }));
+        }
+
+        renderSaveActivityLog();
+
+        if (advice) {
+            if (score === 100) advice.textContent = "Everything looks good. Four validated copies are available, so no action is needed.";
+            else if (main.result.valid && valid.length < 4) advice.textContent = "No progress is in danger. Continue playing or use Save Game to build additional recovery copies.";
+            else if (newest) advice.textContent = "Your progress is still recoverable. Use Recovery to promote the newest healthy backup to the main slot.";
+            else advice.textContent = "No existing progress will be deleted. You can begin a new run or import a previously exported save.";
+        }
+    }
+
+    function renderSaveActivityLog() {
+        const list = document.getElementById("saveActivityList");
+        const empty = document.getElementById("saveActivityEmpty");
+        if (!list) return;
+        const entries = readSaveActivity().slice(0, 20);
+        if (empty) empty.hidden = entries.length > 0;
+        list.replaceChildren(...entries.map(entry => {
+            const item = document.createElement("li");
+            item.className = `save-activity-item ${entry.outcome || ""}`;
+            const heading = document.createElement("div");
+            const type = document.createElement("strong");
+            const time = document.createElement("time");
+            type.textContent = entry.type || "Save activity";
+            time.dateTime = entry.at || "";
+            time.textContent = entry.at ? new Date(entry.at).toLocaleString() : "Unknown time";
+            heading.append(type, time);
+            const message = document.createElement("p");
+            message.textContent = entry.message || "Activity recorded.";
+            item.append(heading, message);
+            return item;
+        }));
     }
 
     function refreshSaveDataPanel(message = "") {
@@ -7602,24 +8615,126 @@
             else { badge.textContent = "No valid save"; badge.classList.add(main.result.reason === "Empty save slot" ? "" : "bad"); }
         }
         if (message) setSaveStatus(message, "good");
+        if (!document.getElementById("saveInspectorPanel")?.hidden) renderSaveInspector();
     }
 
     function initializePersistenceControls() {
+        // Older builds had no explicit budget. Preserve main first, then discard
+        // only the oldest backup copies if legacy data exceeds the current cap.
+        enforceSaveStorageBudget();
+        if (!readSaveActivity().length) logSaveActivity("Save manager", "success", "Save protection initialized. No player progress was changed.");
+        document.getElementById("clearSaveActivityButton")?.addEventListener("click", () => {
+            rawStorageRemove(SAVE_KEYS.activity);
+            logSaveActivity("Save manager", "success", "Older activity history was cleared. Save files were not changed.");
+            renderSaveActivityLog();
+        });
         document.getElementById("continueSavedRunButton")?.addEventListener("click", () => { const slot = newestValidSave(); if (slot) restoreSaveEnvelope(slot.result.envelope); });
+        document.getElementById("saveUpgradeMenuButton")?.addEventListener("click", () => {
+            const button = document.getElementById("saveUpgradeMenuButton");
+            const status = document.getElementById("upgradeSaveStatus");
+            const saved = writeValidatedSave("upgrade menu");
+            if (status) {
+                status.textContent = saved ? `Saved · Wave ${state.wave}` : "Save unavailable";
+                status.dataset.level = saved ? "good" : "bad";
+            }
+            if (button) {
+                const original = "Save Game";
+                button.textContent = saved ? "Saved ✓" : "Save Failed";
+                window.setTimeout(() => { button.textContent = original; }, 1800);
+            }
+        });
+        document.getElementById("inspectSaveButton")?.addEventListener("click", event => {
+            const panel = document.getElementById("saveInspectorPanel");
+            if (!panel) return;
+            panel.hidden = !panel.hidden;
+            event.currentTarget.setAttribute("aria-expanded", String(!panel.hidden));
+            event.currentTarget.textContent = panel.hidden ? "Inspect Saves" : "Hide Inspector";
+            if (!panel.hidden) renderSaveInspector();
+        });
         document.getElementById("exportSaveButton")?.addEventListener("click", exportSaveFile);
         document.getElementById("importSaveButton")?.addEventListener("click", () => document.getElementById("importSaveFile")?.click());
         document.getElementById("importSaveFile")?.addEventListener("change", event => { importSaveFile(event.target.files?.[0]); event.target.value = ""; });
         document.getElementById("recoverSaveButton")?.addEventListener("click", () => {
-            const slots = inspectSaveSlots(); const valid = slots.filter(s => s.result.valid);
-            if (!valid.length) { setSaveStatus("Recovery found no valid copies.", "bad"); return; }
-            const chosen = valid.sort((a,b) => Date.parse(b.result.envelope.savedAt)-Date.parse(a.result.envelope.savedAt))[0];
-            rawStorageSet(SAVE_KEYS.main, JSON.stringify(chosen.result.envelope)); refreshSaveDataPanel(`Recovered from ${chosen.label}.`);
+            const slots = inspectSaveSlots();
+            const main = slots[0];
+            const validBackups = slots.slice(1).filter(slot => slot.result.valid)
+                .sort((a,b) => Date.parse(b.result.envelope.savedAt) - Date.parse(a.result.envelope.savedAt));
+            if (!validBackups.length) {
+                if (main.result.valid) setSaveStatus("Your main save is healthy. No valid backup is available or needed.", "good");
+                else setSaveStatus("Recovery found no healthy backup. Import an exported save if one is available.", "bad");
+                return;
+            }
+            const chosen = validBackups[0];
+            const run = chosen.result.envelope.data.run;
+            const savedAt = new Date(chosen.result.envelope.savedAt);
+            const mainTime = main.result.valid ? Date.parse(main.result.envelope.savedAt) : NaN;
+            const backupTime = savedAt.getTime();
+            const minutesLost = Number.isFinite(mainTime) && mainTime > backupTime
+                ? Math.max(0, Math.round((mainTime - backupTime) / 60000))
+                : null;
+            const lossText = minutesLost === null ? "" : minutesLost === 0 ? " No measurable progress lost." : ` Approximately ${minutesLost} minute${minutesLost === 1 ? "" : "s"} may be lost.`;
+            const confirmed = window.confirm(
+                `Recover ${chosen.label}?\n\nWave ${run.wave} · ${DIFFICULTY_DATA[run.difficulty]?.label || run.difficulty}\nSaved ${savedAt.toLocaleString()}\n\nThis replaces the current main save. The current main save will first be preserved as Backup 1.`
+            );
+            if (!confirmed) { setSaveStatus("Recovery cancelled. No save data was changed."); logSaveActivity("Recovery", "cancelled", "Recovery was cancelled. No save data was changed.", { slot: chosen.label }); return; }
+            const currentMain = rawStorageGet(SAVE_KEYS.main);
+            rotateSaveBackups(currentMain);
+            const serialized = JSON.stringify(chosen.result.envelope);
+            if (!rawStorageSet(SAVE_KEYS.main, serialized)) {
+                setSaveStatus("Recovery could not write the restored save. Existing copies were preserved.", "bad");
+                logSaveActivity("Recovery", "failed", "The recovery copy could not be written. Existing copies were preserved.", { slot: chosen.label, reason: "write-failed" });
+                return;
+            }
+            const verification = parseAndValidateSave(rawStorageGet(SAVE_KEYS.main));
+            if (!verification.valid) {
+                if (currentMain) rawStorageSet(SAVE_KEYS.main, currentMain);
+                setSaveStatus("Recovery failed final verification. The previous main save was restored.", "bad");
+                logSaveActivity("Recovery", "failed", "Final verification failed; the previous main save was restored.", { slot: chosen.label, reason: verification.reason });
+                return;
+            }
+            refreshSaveDataPanel(`Recovery successful · ${chosen.label} · Wave ${run.wave}.${lossText}`);
+            logSaveActivity("Recovery", "success", `${chosen.label} was verified and promoted to Main at Wave ${run.wave}.${lossText}`, { wave: run.wave, slot: chosen.label });
         });
-        window.addEventListener("beforeunload", () => writeValidatedSave("shutdown"));
-        document.addEventListener("visibilitychange", () => { if (document.hidden) writeValidatedSave("background"); });
-        window.setInterval(() => writeValidatedSave("autosave"), 15000);
+        // Browser lifecycle events are not equally reliable. pagehide is the
+        // primary exit checkpoint, visibilitychange covers tab/background
+        // transitions, and freeze covers browsers that suspend a page without
+        // unloading it. A short dedupe window prevents one transition from
+        // rotating several backups in rapid succession.
+        let lastLifecycleCheckpointAt = 0;
+        let lastLifecycleCheckpointReason = "";
+        const requestLifecycleCheckpoint = (reason) => {
+            if (!state.started || state.ended) return false;
+            const now = Date.now();
+            if (now - lastLifecycleCheckpointAt < 1200 && reason !== "autosave") return false;
+            lastLifecycleCheckpointAt = now;
+            lastLifecycleCheckpointReason = reason;
+            return writeValidatedSave(reason);
+        };
+
+        document.addEventListener("visibilitychange", () => {
+            if (document.hidden) requestLifecycleCheckpoint("background");
+            else refreshSaveDataPanel("Save monitoring active");
+        });
+        window.addEventListener("pagehide", () => requestLifecycleCheckpoint("shutdown"));
+        window.addEventListener("beforeunload", () => requestLifecycleCheckpoint("shutdown"));
+        document.addEventListener("freeze", () => requestLifecycleCheckpoint("background"));
+        window.addEventListener("pageshow", () => refreshSaveDataPanel());
+        window.addEventListener("focus", () => refreshSaveDataPanel());
+
+        const autosaveIntervalMs = 15000;
+        window.setInterval(() => requestLifecycleCheckpoint("autosave"), autosaveIntervalMs);
+        if (!readSaveActivity().some(entry => entry.type === "Autosave system")) {
+            logSaveActivity("Autosave system", "success", "Autosave monitoring is active every 15 seconds while a run is in progress. Background and exit checkpoints are also armed.");
+        }
         refreshSaveDataPanel();
-        window.StarwakeSaveSystem = Object.freeze({ saveNow: () => writeValidatedSave("manual"), inspect: inspectSaveSlots, schemaVersion: SAVE_SCHEMA_VERSION });
+        window.StarwakeSaveSystem = Object.freeze({
+            saveNow: () => writeValidatedSave("manual"),
+            inspect: inspectSaveSlots,
+            schemaVersion: SAVE_SCHEMA_VERSION,
+            storageUsageBytes: saveStorageUsageBytes,
+            storageLimitBytes: SAVE_STORAGE_LIMIT_BYTES,
+            activity: readSaveActivity,
+        });
     }
 
     /**

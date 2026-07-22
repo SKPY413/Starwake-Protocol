@@ -1,0 +1,6 @@
+CANNON UNLOCK VISIBILITY FIX
+
+- Added the missing Heavy Cannon unlock card to the red Weapon AI upgrade column.
+- Added the cannon Advanced, Experimental, and Capstone cards to the menu markup.
+- Cannon Power, Cannon Cycle, Cannon Penetration, Explosive Warhead, Four-Round Dispersal, and Quantum-Infused Rounds remain hidden until Heavy Cannon is purchased.
+- Existing cannon progression and save compatibility remain unchanged.

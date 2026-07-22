@@ -1,0 +1,10 @@
+AEGIS / MINI-BOSS DIVERSITY PASS
+
+- Increased Aegis shield radius from 255 to 430 world units.
+- Removed bomb mutation from mini-tanks, tanks, brutes, and runners.
+- Bomb mutation now belongs to mobile fighter and dodger archetypes.
+- Mini-tanks now spawn as one of three readable roles:
+  * HEALER: repairs up to seven nearby damaged enemies in pulses.
+  * SUPER TANK: much higher health, lower speed, heavy spread fire.
+  * SNIPER: maintains long range and fires a single fast, high-damage shot.
+- Added role-specific colors, projectile behavior, movement, and overhead labels.

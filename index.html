@@ -368,6 +368,13 @@
                     <button data-upgrade="fireRate"></button>
                     <button data-upgrade="bulletVelocity"></button>
                     <button data-upgrade="explosive"></button>
+                    <button data-upgrade="cannonUnlock"></button>
+                    <button data-upgrade="cannonDamage"></button>
+                    <button data-upgrade="cannonRate"></button>
+                    <button data-upgrade="cannonVelocity"></button>
+                    <button data-upgrade="cannonWarhead"></button>
+                    <button data-upgrade="cannonCluster"></button>
+                    <button data-upgrade="cannonQuantum"></button>
                     <button data-upgrade="predictiveTargeting"></button>
                     <button data-upgrade="heatManagement"></button>
                     <button data-upgrade="autonomousArsenal"></button>
@@ -396,6 +403,8 @@
                 <div class="upgrade-system-list">
                     <button data-upgrade="autoMissile"></button>
                     <button data-upgrade="damageAura"></button>
+                    <button data-upgrade="riftPower"></button>
+                    <button data-upgrade="riftFrequency"></button>
                     <button data-upgrade="combatHeuristics"></button>
                     <button data-upgrade="swarmMatrix"></button>
                     <button data-upgrade="distributedConsciousness"></button>
@@ -503,7 +512,7 @@
 <!-- Script order matters: the optional music API is exposed before game.js attempts to use it. -->
 <script src="musicEngine-20260715-compact-evolution.js"></script>
 <!-- game.js owns the authoritative game state and must remain able to boot without music. -->
-<script src="game-20260719-aegis-generator.js"></script>
+<script src="game-20260721-readability-flanking-pass.js"></script>
 <script>
 window.addEventListener("load", () => {
     const button = document.getElementById("startButton");

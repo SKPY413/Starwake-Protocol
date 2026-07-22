@@ -1,0 +1,8 @@
+QUANTUM DAMAGE EXPANSION
+
+- Split player damage into Weapon, Ability, and Quantum categories.
+- Rift Tearer now deals Quantum damage rather than generic relic/ability damage.
+- Added late-game Q-NULL enemies beginning at wave 32; they are immune to Quantum damage and visibly marked.
+- Conventional autonomous missiles, aura, drones, and relic systems remain Ability damage.
+- Added repeatable RIFT INTENSITY and RIFT CASCADE research investments.
+- Added separate Quantum damage combat text and run-total tracking.
