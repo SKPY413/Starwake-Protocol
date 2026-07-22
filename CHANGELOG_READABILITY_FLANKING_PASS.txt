@@ -1,8 +1,0 @@
-STARWAKE PROTOCOL — READABILITY & FLANKING PASS
-
-- Replaced Cannon Penetration with Cannon Velocity (+12% shell speed per level).
-- Cannon shells now detonate on their first impact so Explosive Warhead triggers reliably.
-- Legacy penetration purchases migrate to velocity automatically.
-- Healer support pulses now use green concentric rings and a medical cross instead of explosion visuals.
-- Dodgers orbit toward the rear of the player firing line and use dashes to complete flanks.
-- Generation II-V low-tier enemies gain progressively different armor, fins, weapon prongs, and cores.

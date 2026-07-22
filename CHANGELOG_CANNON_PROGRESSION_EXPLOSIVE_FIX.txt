@@ -1,9 +1,0 @@
-STARWAKE PROTOCOL — CANNON PROGRESSION & EXPLOSIVE RADIUS PASS
-
-- Added a dedicated HEAVY CANNON unlock card.
-- Cannon Power, Cycle, Penetration, and cannon-specialization cards stay hidden until the cannon is online.
-- Added cannon Advanced research: EXPLOSIVE WARHEAD (fixed 96px impact blast).
-- Added cannon Experimental research: FOUR-ROUND DISPERSAL (four explosive sub-rounds eject from each cannon hit).
-- Added cannon Capstone research: QUANTUM-INFUSED ROUNDS (cannon shell and all child explosions become Quantum damage).
-- Primary explosive rounds now use a fixed minimum blast width and no longer appear smaller when striking small enemies.
-- Existing saves with prior cannon investment automatically receive the new cannon unlock.

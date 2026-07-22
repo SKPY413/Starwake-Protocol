@@ -1,8 +1,0 @@
-STARWAKE PROTOCOL - AUDIO MIXER UPDATE
-
-- Added separate Music and SFX sliders to the main menu.
-- Added separate Music and SFX sliders to the pause menu.
-- Kept the existing Master volume and global Sound On/Off control.
-- Synchronized all mixer controls between menus.
-- Persisted Master, Music, SFX, and mute settings independently.
-- Documented the audio bus routing contract in ARCHITECTURE.md.

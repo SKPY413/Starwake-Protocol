@@ -1,7 +1,0 @@
-STARWAKE PROTOCOL — RELIC RESEARCH + ENEMY SPEED PASS
-
-- Added four staged hidden-effect relic projects: Verdant Core, Astral Lens, Gravity Heart, Echoing Swarm.
-- Each wave awards one relic fragment allocation. Thresholds progress 5 -> 10 -> 15.
-- Relics automatically awaken orbiting energy, periodic beam, gravity pulse, and temporary combat-drone behaviors.
-- No new gameplay buttons were added.
-- Reduced every enemy archetype to 60% of its previous final movement speed while preserving relative scaling.

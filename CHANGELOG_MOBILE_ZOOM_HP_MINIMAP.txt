@@ -1,9 +1,0 @@
-STARWAKE PROTOCOL — MOBILE ZOOM / SHIP HP / LIGHTWEIGHT MINIMAP
-
-- Mobile camera zoom changed from 0.78 to 0.64 for a wider tactical view.
-- Mobile bottom HUD health bar is hidden.
-- A compact health bar now renders directly above the player ship.
-- Mobile minimap restored using a 120x80 backing canvas.
-- Mobile minimap omits grid, enemy bullets, and carrier missiles.
-- Mobile minimap refreshes every 12 rendered frames.
-- Desktop presentation remains unchanged.

@@ -7,10 +7,10 @@
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
 <title>Starwake Protocol</title>
-<link rel="icon" type="image/png" sizes="16x16" href="assets/branding/seal-mk1/seal-16.png">
-<link rel="icon" type="image/png" sizes="32x32" href="assets/branding/seal-mk1/seal-32.png">
-<link rel="apple-touch-icon" sizes="256x256" href="assets/branding/seal-mk1/seal-256.png">
-<link rel="stylesheet" href="styles-20260715-compact-evolution.css">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/branding/developer-seal/mk1/seal-16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/branding/developer-seal/mk1/seal-32.png">
+<link rel="apple-touch-icon" sizes="256x256" href="assets/branding/developer-seal/mk1/seal-256.png">
+<link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
@@ -304,7 +304,7 @@
 <div id="creditsOverlay" class="credits-overlay" hidden aria-hidden="true">
     <section class="credits-card" role="dialog" aria-modal="true" aria-labelledby="creditsTitle">
         <button id="creditsCloseButton" class="credits-close" type="button" aria-label="Close credits">×</button>
-        <img class="developer-seal" src="assets/branding/seal-mk1/seal-32.png" width="32" height="32" alt="Starwake Developer Seal, Mark I">
+        <img class="developer-seal" src="assets/branding/developer-seal/mk1/seal-32.png" width="32" height="32" alt="Starwake Developer Seal, Mark I">
         <h1 id="creditsTitle">Starwake Protocol</h1>
         <p>A Human–AI Collaborative Experiment in Emergent Game Design</p>
         <div class="credits-divider"></div>
@@ -508,11 +508,11 @@
 
 
 <!-- Platform profile must load first so audio/rendering allocate the correct budgets. -->
-<script src="platformProfile-20260715-compact-evolution.js"></script>
+<script src="platformProfile.js"></script>
 <!-- Script order matters: the optional music API is exposed before game.js attempts to use it. -->
-<script src="musicEngine-20260715-compact-evolution.js"></script>
+<script src="musicEngine.js"></script>
 <!-- game.js owns the authoritative game state and must remain able to boot without music. -->
-<script src="game-20260721-readability-flanking-pass.js"></script>
+<script src="game.js"></script>
 <script>
 window.addEventListener("load", () => {
     const button = document.getElementById("startButton");

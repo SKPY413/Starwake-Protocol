@@ -1,7 +1,0 @@
-STARWAKE PROTOCOL — CANNON / RIFT VISIBILITY FIX
-
-- Added Cannon Power, Cannon Cycle, and Cannon Penetration cards to the red Weapon AI upgrade menu.
-- Cannon upgrades remain independent from primary-fire and spread-weapon permanent upgrades.
-- Rift Intensity and Rift Cascade are now completely hidden while the Rift Tearer relic is dormant.
-- Both rift upgrades appear automatically after Rift Tearer awakens.
-- Existing save data remains compatible.

@@ -1,5 +1,0 @@
-Mobile top-right HUD layout update
-- Pause button now sits to the left of the lightweight minimap.
-- Minimap remains the right-most element in the top-right corner.
-- Both controls share the same top safe-area inset.
-- Added 12-16px edge margins and an 8-10px gap between controls.

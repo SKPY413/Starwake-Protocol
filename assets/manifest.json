@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "assets": [
+    {
+      "id": "developer-seal-mk1-16",
+      "path": "assets/branding/developer-seal/mk1/seal-16.png",
+      "category": "branding",
+      "purpose": "16px browser favicon",
+      "required": true
+    },
+    {
+      "id": "developer-seal-mk1-32",
+      "path": "assets/branding/developer-seal/mk1/seal-32.png",
+      "category": "branding",
+      "purpose": "32px browser favicon and credits seal",
+      "required": true
+    },
+    {
+      "id": "developer-seal-mk1-256",
+      "path": "assets/branding/developer-seal/mk1/seal-256.png",
+      "category": "branding",
+      "purpose": "Apple touch icon and large application branding",
+      "required": true
+    }
+  ]
+}

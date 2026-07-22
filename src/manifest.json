@@ -1,0 +1,78 @@
+{
+  "generated_runtime": "game.js",
+  "source_order": [
+    "src/00_bootstrap.js",
+    "src/01_audio.js",
+    "src/02_input_relics_coordinates.js",
+    "src/03_state_saves_debug.js",
+    "src/04_upgrades_player_relic_runtime.js",
+    "src/05_enemies.js",
+    "src/06_combat_pickups_effects.js",
+    "src/07_background_rendering.js",
+    "src/08_ui_loop_input.js",
+    "src/09_events_persistence_startup.js"
+  ],
+  "sections": [
+    {
+      "file": "src/00_bootstrap.js",
+      "start_line": 1,
+      "end_line": 325,
+      "description": "Runtime wrapper, storage guards, DOM references, constants, authoritative data tables, platform configuration."
+    },
+    {
+      "file": "src/01_audio.js",
+      "start_line": 326,
+      "end_line": 2165,
+      "description": "Procedural music, audio diagnostics, sound synthesis, voice pools, and sound dispatch."
+    },
+    {
+      "file": "src/02_input_relics_coordinates.js",
+      "start_line": 2166,
+      "end_line": 2751,
+      "description": "Input state, relic research metadata, damage types, coordinate helpers, canvas sizing, camera, and fullscreen."
+    },
+    {
+      "file": "src/03_state_saves_debug.js",
+      "start_line": 2752,
+      "end_line": 3239,
+      "description": "Game state, run lifecycle, reconstruction undo snapshots, save-facing state helpers, and debug controls."
+    },
+    {
+      "file": "src/04_upgrades_player_relic_runtime.js",
+      "start_line": 3240,
+      "end_line": 3921,
+      "description": "Upgrade purchasing/UI logic, player movement and weapons, and active relic runtime systems."
+    },
+    {
+      "file": "src/05_enemies.js",
+      "start_line": 3922,
+      "end_line": 5368,
+      "description": "Enemy generations, mutations, roster selection, AI, carriers, minibosses, bosses, and enemy spawning."
+    },
+    {
+      "file": "src/06_combat_pickups_effects.js",
+      "start_line": 5369,
+      "end_line": 6050,
+      "description": "Projectiles, collisions, explosions, regeneration, point orbs, pickups, particles, damage numbers, and shake."
+    },
+    {
+      "file": "src/07_background_rendering.js",
+      "start_line": 6051,
+      "end_line": 7765,
+      "description": "Background generation and all arena/entity rendering helpers."
+    },
+    {
+      "file": "src/08_ui_loop_input.js",
+      "start_line": 7766,
+      "end_line": 8272,
+      "description": "UI updates, main loop, touch controls, and gamepad input."
+    },
+    {
+      "file": "src/09_events_persistence_startup.js",
+      "start_line": 8273,
+      "end_line": 9037,
+      "description": "Event registration, versioned persistence, lifecycle saves, initialization, and runtime closure."
+    }
+  ],
+  "policy": "Edit files in src/, then run python tools/build_game.py. game.js is generated and remains the browser entry point."
+}

@@ -1,9 +1,0 @@
-STARWAKE PROTOCOL — PERSISTENT MUSIC RACK
-
-- Replaced per-note oscillator and buffer-source allocation with a fixed rack.
-- Added bounded pools for kick, bass, pad, arp, lead, hats, snares, and risers.
-- Added one shared looping noise source for all music noise percussion.
-- Marked music-rack sources persistent so the gameplay voice guard excludes them.
-- Added music-rack destruction/rebuild support for diagnostics and AudioContext restart.
-- Added music-rack state to exported audio diagnostics.
-- Reduced fast 16-cycles-per-bar modulation depth and delay return for headroom.

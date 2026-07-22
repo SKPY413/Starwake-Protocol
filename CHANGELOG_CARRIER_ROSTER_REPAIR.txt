@@ -1,0 +1,8 @@
+STARWAKE PROTOCOL — CARRIER DURABILITY & ROSTER REPAIR
+
+- Increased carrier health and wave scaling.
+- Carriers begin with a stored missile reserve rather than zero ammunition.
+- Missile production now manufactures a rack per cycle, preventing the carrier from presenting only one or two missiles.
+- Close-range launches remain split into 30% defensive, 60% attacking, and 10% reserve roles.
+- Fixed the late-wave enemy selector: overlapping thresholds had made tanks unreachable after dodgers unlocked.
+- Replaced the threshold chain with weighted archetype selection so all unlocked low-tier enemy classes continue spawning.

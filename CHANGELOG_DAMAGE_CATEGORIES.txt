@@ -1,9 +1,0 @@
-STARWAKE PROTOCOL — PLAYER DAMAGE CATEGORY PASS
-
-- Split outgoing player damage into WEAPON and ABILITY categories.
-- Weapon damage includes direct bullets and explosive-round splash.
-- Ability damage includes rockets/missiles, auras, Rift Tearer and relic systems.
-- Weapon numbers use warm white/gold impact coloring and a sharp pop motion.
-- Ability numbers use purple energy coloring, a softer floating motion and a subtle energy halo.
-- Added internal weapon/ability damage totals for future run-summary integration.
-- Combat numbers retain the shortened 26-frame lifetime from the readability pass.

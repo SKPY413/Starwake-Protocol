@@ -1,7 +1,0 @@
-STARWAKE PROTOCOL — MOBILE ZOOM + WAVE-CLEAR CONTROLS
-
-- Added a mobile camera zoom profile (0.78) to show more arena space.
-- Applied zoom through the canvas scene transform without increasing backing resolution.
-- Updated camera bounds, visibility checks, spawning, pointer conversion, and analog aim for zoom.
-- Touch dual sticks now remain active during the wave-clear collection phase.
-- Controls still hide when Upgrade Protocol or another modal menu opens.

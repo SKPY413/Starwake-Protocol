@@ -1,7 +1,0 @@
-SHIP RECONSTRUCTION UNDO
-
-- Added a one-step Undo Last Choice button to the upgrade menu.
-- Works on desktop and mobile.
-- Refunds the exact point cost and restores the previous player build.
-- Reverses end-of-wave research bonuses and restores the choice panel.
-- Clears undo history when entering reconstruction or starting the next wave.

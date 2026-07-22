@@ -1,9 +1,0 @@
-STARWAKE PROTOCOL - WEAPON SYNTH UPDATE
-
-- Added reusable WeaponSynth with primary-fire and explosive-impact presets.
-- Primary weapon now combines a low saw swell with a rubber-band high saw bend.
-- Weapon timbre grows richer as explosive-round level rises without large volume increases.
-- Removed enemy-death explosion SFX from explosive-round splash impacts.
-- Added compact plasma impact: distorted saw body, electrical arc, and melodic energy tail.
-- Preserved explosive-round visuals and intentionally added no screen shake.
-- Retained semantic SFX cooldowns and global audio budget safeguards.

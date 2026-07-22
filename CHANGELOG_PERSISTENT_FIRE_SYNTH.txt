@@ -1,8 +1,0 @@
-STARWAKE PROTOCOL - PERSISTENT FIRE SYNTH
-
-- Replaced per-shot oscillator allocation for the player's primary weapon with two persistent, normally silent oscillators.
-- Each bullet now retriggers AudioParam envelopes and pitch bends without creating a new source node.
-- Persistent fire sources use protected priority metadata and cannot be selected as expendable voice-steal targets.
-- Added lifecycle cleanup during audio-engine restart.
-- Reduced the semantic shot interval from 28 ms to 20 ms so high fire-rate builds remain audible.
-- Added `Persistent fire: ready/not-ready` to exported audio diagnostics.

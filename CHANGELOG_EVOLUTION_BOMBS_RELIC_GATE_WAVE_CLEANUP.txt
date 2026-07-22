@@ -1,8 +1,0 @@
-STARWAKE PROTOCOL — EVOLUTION STABILITY & WAVE TRANSITION FIX
-
-- Bomber mines now arm after a short delay and detonate when the player enters their trigger radius or when their fuse expires.
-- Added visible explosion particles on bomber detonation.
-- Added a hard enemy projectile budget to prevent evolved minion projectile storms.
-- Reduced basic evolved burst attacks from three projectiles to two and added a minimum practical firing interval.
-- Relic selection is now mandatory before the next wave can begin. The transition button remains locked until a fragment is assigned.
-- Wave-end cleanup now removes all combat projectiles, explosions, particles, damage text, temporary healing orbs, and relic combat visuals while preserving point orbs and collectible pickups.

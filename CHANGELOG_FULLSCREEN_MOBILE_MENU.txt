@@ -1,7 +1,0 @@
-STARWAKE PROTOCOL — MOBILE MENU + FULLSCREEN
-
-- Converted menu overlays to fixed 100dvh scroll viewports with safe-area padding.
-- Ensured the post-splash main menu starts at the top on small screens and can scroll to Launch Protocol.
-- Added fullscreen controls to splash, main, pause, and Upgrade Protocol menus.
-- Added standard/webkit Fullscreen API support with graceful unsupported-browser messaging.
-- Canvas size refreshes after fullscreen transitions.

@@ -497,3 +497,40 @@ PLAYTEST PRIORITIES
 - Test several simultaneous carriers for frame stability and readable assault-wave formations.
 - Verify evolved hull sizes remain navigable in crowded rooms.
 - Confirm waves 20-40 contain noticeably more minions and fewer mini-bosses.
+
+---
+
+## Pre-Beta Engine Cleanup — Phase 1
+
+- Promoted the active runtime files to stable names: `game.js`, `styles.css`, `musicEngine.js`, and `platformProfile.js`.
+- Removed obsolete version-stamped runtime copies no longer referenced by the game.
+- Removed fragmented legacy changelog files and duplicate test reports.
+- Removed an unreferenced icon and redundant documentation stub.
+- Added `CLEANUP_REPORT.md` with the retained runtime and documentation inventory.
+- No gameplay mechanics or balance values were intentionally changed.
+
+## Carrier Durability and Enemy Roster Repair
+- Increased carrier hull durability so carriers survive long enough to establish their missile screen.
+- Carriers now enter with a meaningful stored missile reserve.
+- Each roughly two-second manufacturing cycle adds a rack of missiles rather than a single missile.
+- Preserved the 30% protection / 60% attack / 10% reserve doctrine.
+- Replaced overlapping enemy-selection thresholds with a weighted roster.
+- Restored tanks and ensured normal, runner, brute, tank, dodger, and fighter archetypes all remain eligible after their unlock waves.
+
+
+## Pre-Beta Engine Cleanup — Phase 2
+
+- Split the editable 9,000-line runtime into ten ordered source sections under `src/`.
+- Added a deterministic build script that regenerates `game.js`.
+- Preserved `game.js` as the browser entry point to avoid scope/order regressions.
+- Added build verification and a source manifest.
+- No gameplay, balance, rendering, save-schema, enemy-evolution, or carrier behavior changes were intended.
+
+## Pre-Beta Engine Cleanup — Phase 3
+
+- Organized static assets under stable system-specific paths.
+- Moved the developer seal to `assets/branding/developer-seal/mk1/`.
+- Added a machine-readable asset manifest and asset-directory documentation.
+- Added an automated asset audit for missing, undeclared, duplicated, and unreferenced required assets.
+- Preserved procedural rendering and audio systems without adding unnecessary asset placeholders.
+- No gameplay or balance changes were introduced.
