@@ -140,6 +140,72 @@
     const WORLD = Object.freeze({ width: 3600, height: 2400 });
     const TWO_PI = Math.PI * 2;
 
+    // -------------------------------------------------------------------------
+    // Central gameplay constants
+    // -------------------------------------------------------------------------
+    // Phase 4 moves high-value balance numbers out of subsystem logic. Keep
+    // tunable values here so future balancing does not require hunting through
+    // AI, projectile, rendering, and upgrade code.
+    const GAMEPLAY_CONSTANTS = Object.freeze({
+        evolution: Object.freeze({
+            wavesPerGeneration: 10,
+            maxGeneration: 5,
+            multiMutationGeneration: 4,
+            hullScaleByGeneration: Object.freeze([1, 1, 1.10, 1.20, 1.35, 1.50]),
+            quantumNullStartWave: 32,
+            quantumNullBaseChance: 0.10,
+            quantumNullChancePerWave: 0.008,
+            quantumNullMaxChance: 0.34,
+        }),
+        healer: Object.freeze({
+            radius: 285,
+        }),
+        aegis: Object.freeze({
+            shieldRadius: 430,
+        }),
+        carrier: Object.freeze({
+            scalingStartWave: 20,
+            manufactureBaseMs: 2000,
+            manufactureMinimumMs: 1500,
+            manufactureTimeScalePerWave: 0.99,
+            stockpileBase: 30,
+            stockpileMinimum: 30,
+            stockpileMaximum: 72,
+            stockpileScalePerWave: 1.03,
+            manufactureBatchBase: 7,
+            manufactureBatchMaximum: 12,
+            manufactureBatchStepWaves: 10,
+            initialStockpileBase: 20,
+            initialStockpilePerWave: 0.6,
+            aggressionRadius: 540,
+            disengageRadius: 680,
+            launchBatch: 12,
+            launchBatchCooldownMs: 460,
+            protectionRatio: 0.30,
+            attackRatio: 0.60,
+            orbitRatio: 0.10,
+        }),
+        cannon: Object.freeze({
+            baseShellSpeed: 10.5,
+            velocityBonusPerLevel: 0.12,
+            baseDamage: 34,
+            shellRadius: 7,
+            warheadRadius: 96,
+            warheadDamageRatio: 0.62,
+            clusterCount: 4,
+            clusterSpeed: 7.2,
+            clusterRadius: 5,
+            clusterDamageRatio: 0.28,
+            clusterExplosionRadius: 54,
+            clusterExplosionDamageRatio: 0.24,
+        }),
+        explosiveRounds: Object.freeze({
+            minimumRadius: 72,
+            baseRadius: 42,
+            radiusPerLevel: 10,
+        }),
+    });
+
     const ENEMY_COLORS = Object.freeze({
         normal: "#ff5c5c",
         runner: "#ffb347",

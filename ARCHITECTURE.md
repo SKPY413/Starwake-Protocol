@@ -382,3 +382,7 @@ world; that can increase travel time without reducing local density.
   - Anti-Gravity: stabilizer fins and secondary thruster glow.
   - Quantum: floating processor nodes.
 - Clamp visual growth independently from endless investment levels to preserve sprite readability.
+
+## Central gameplay constants
+
+Frequently tuned balance values are defined in `GAMEPLAY_CONSTANTS` near the beginning of `src/00_bootstrap.js`. Runtime systems should reference this table instead of duplicating numeric literals. The first centralized groups cover evolution, support-unit radii, carrier doctrine, cannon behavior, and explosive rounds.

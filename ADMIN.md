@@ -534,3 +534,30 @@ PLAYTEST PRIORITIES
 - Added an automated asset audit for missing, undeclared, duplicated, and unreferenced required assets.
 - Preserved procedural rendering and audio systems without adding unnecessary asset placeholders.
 - No gameplay or balance changes were introduced.
+
+## Pre-Beta Engine Cleanup — Phase 4
+
+- Added a centralized `GAMEPLAY_CONSTANTS` balance table in `src/00_bootstrap.js`.
+- Moved high-value tuning numbers for enemy evolution, Quantum Null enemies, healers, Aegis generators, carriers, the Heavy Cannon, and explosive rounds out of subsystem logic.
+- Added `PHASE_4_GAMEPLAY_CONSTANTS.md` with the balance-editing workflow.
+- Added `tools/audit_balance_constants.py` to verify that the central table and key runtime references remain intact.
+- Preserved existing gameplay values and save compatibility.
+
+## Pre-Beta Engine Cleanup — Phase 5
+
+- Added a project-wide verification gate through `tools/verify_project.py`.
+- Added automatic source-manifest line-range maintenance through `tools/update_source_manifest.py`.
+- Added zero-dependency npm aliases for build and verification commands.
+- The verification gate checks required files, modular build parity, HTML references and duplicate IDs, runtime script order, stale runtime copies, assets, centralized constants, and JavaScript syntax.
+- Refreshed `src/manifest.json` to reflect the current generated runtime line ranges.
+- Added `PHASE_5_VERIFICATION_GATE.md` with the maintenance and release-check workflow.
+- No gameplay, enemy, carrier, evolution, save-schema, rendering, input, audio, or balance behavior was intentionally changed.
+
+## Pre-Beta Engine Cleanup — Phase 6
+
+- Added deterministic SHA-256 fingerprints for runtime, modular source, and declared assets through `build_manifest.json`.
+- Added `tools/create_build_manifest.py` and `tools/audit_release_hygiene.py`.
+- Integrated fingerprint and repository-hygiene checks into the project-wide verification gate.
+- Added `.gitattributes` for cross-platform line-ending stability and `.gitignore` for caches, editor debris, and local ZIP builds.
+- Updated `npm run check` to rebuild, fingerprint, and verify in one command.
+- No gameplay, enemy, carrier, evolution, save, rendering, input, audio, or balance behavior was intentionally changed.

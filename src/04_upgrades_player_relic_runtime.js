@@ -90,7 +90,10 @@
             },
             explosive: () => {
                 player.explosiveLevel++;
-                player.explosiveRadius = Math.max(72, 42 + player.explosiveLevel * 10);
+                player.explosiveRadius = Math.max(
+                    GAMEPLAY_CONSTANTS.explosiveRounds.minimumRadius,
+                    GAMEPLAY_CONSTANTS.explosiveRounds.baseRadius + player.explosiveLevel * GAMEPLAY_CONSTANTS.explosiveRounds.radiusPerLevel
+                );
                 player.explosiveDamageRatio = Math.min(0.8, player.explosiveDamageRatio + 0.06);
                 ui.weapon.textContent = "Explosive";
             },
@@ -188,7 +191,10 @@
             fireRate: () => `${next ? "Next" : "Current"}: ${Math.max(85, value(player.fireRate, -25))} ms delay`,
             bulletVelocity: () => `${next ? "Next" : "Current"}: ${value(player.bulletSpeed, 1.15).toFixed(1)} speed`,
             explosive: () => next
-                ? `Next: ${Math.max(72, 42 + (player.explosiveLevel + 1) * 10)}px fixed blast / stronger splash`
+                ? `Next: ${Math.max(
+                    GAMEPLAY_CONSTANTS.explosiveRounds.minimumRadius,
+                    GAMEPLAY_CONSTANTS.explosiveRounds.baseRadius + (player.explosiveLevel + 1) * GAMEPLAY_CONSTANTS.explosiveRounds.radiusPerLevel
+                )}px fixed blast / stronger splash`
                 : `Current: ${player.explosiveLevel ? `${player.explosiveRadius}px blast` : "inactive"}`,
             cannonUnlock: () => `${next ? "Next" : "Current"}: ${next || upgradeLevels.cannonUnlock || player.cannonDamage > 0 ? "cannon online" : "offline"}`,
             cannonDamage: () => `${next ? "Next" : "Current"}: ${Math.max(34, player.cannonDamage) + (next ? 9 : 0)} damage`,
@@ -367,14 +373,14 @@
             kind: "cannon",
             x: player.x + Math.cos(angle) * 27,
             y: player.y + Math.sin(angle) * 27,
-            r: 7,
-            dx: Math.cos(angle) * (10.5 * (1 + player.cannonVelocity * 0.12)),
-            dy: Math.sin(angle) * (10.5 * (1 + player.cannonVelocity * 0.12)),
-            damage: Math.max(34, player.cannonDamage),
+            r: GAMEPLAY_CONSTANTS.cannon.shellRadius,
+            dx: Math.cos(angle) * (GAMEPLAY_CONSTANTS.cannon.baseShellSpeed * (1 + player.cannonVelocity * GAMEPLAY_CONSTANTS.cannon.velocityBonusPerLevel)),
+            dy: Math.sin(angle) * (GAMEPLAY_CONSTANTS.cannon.baseShellSpeed * (1 + player.cannonVelocity * GAMEPLAY_CONSTANTS.cannon.velocityBonusPerLevel)),
+            damage: Math.max(GAMEPLAY_CONSTANTS.cannon.baseDamage, player.cannonDamage),
             damageSource: upgradeLevels.cannonQuantum ? "quantum" : "bullet",
             explosive: Boolean(upgradeLevels.cannonWarhead),
-            explosionRadius: 96,
-            explosionDamage: Math.max(12, Math.floor(Math.max(34, player.cannonDamage) * 0.62)),
+            explosionRadius: GAMEPLAY_CONSTANTS.cannon.warheadRadius,
+            explosionDamage: Math.max(12, Math.floor(Math.max(GAMEPLAY_CONSTANTS.cannon.baseDamage, player.cannonDamage) * GAMEPLAY_CONSTANTS.cannon.warheadDamageRatio)),
             cluster: Boolean(upgradeLevels.cannonCluster),
             hitEnemyIds: new Set(),
         });
@@ -416,7 +422,7 @@
             missiles.push({
                 x: player.x + Math.cos(angle) * 30,
                 y: player.y + Math.sin(angle) * 30,
-                r: 7,
+                r: GAMEPLAY_CONSTANTS.cannon.shellRadius,
                 dx: Math.cos(angle) * 6.4,
                 dy: Math.sin(angle) * 6.4,
                 speed: 6.4,

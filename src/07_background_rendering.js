@@ -1471,7 +1471,7 @@
     }
 
     function drawAegisField(enemy, screen) {
-        const radius = enemy.shieldRadius || 255;
+        const radius = enemy.shieldRadius || GAMEPLAY_CONSTANTS.aegis.shieldRadius;
         const playerInside = isPlayerInsideAegis(enemy);
         const pulse = 0.5 + 0.5 * Math.sin(Date.now() / 280);
         ctx.save();

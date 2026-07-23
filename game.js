@@ -140,6 +140,72 @@
     const WORLD = Object.freeze({ width: 3600, height: 2400 });
     const TWO_PI = Math.PI * 2;
 
+    // -------------------------------------------------------------------------
+    // Central gameplay constants
+    // -------------------------------------------------------------------------
+    // Phase 4 moves high-value balance numbers out of subsystem logic. Keep
+    // tunable values here so future balancing does not require hunting through
+    // AI, projectile, rendering, and upgrade code.
+    const GAMEPLAY_CONSTANTS = Object.freeze({
+        evolution: Object.freeze({
+            wavesPerGeneration: 10,
+            maxGeneration: 5,
+            multiMutationGeneration: 4,
+            hullScaleByGeneration: Object.freeze([1, 1, 1.10, 1.20, 1.35, 1.50]),
+            quantumNullStartWave: 32,
+            quantumNullBaseChance: 0.10,
+            quantumNullChancePerWave: 0.008,
+            quantumNullMaxChance: 0.34,
+        }),
+        healer: Object.freeze({
+            radius: 285,
+        }),
+        aegis: Object.freeze({
+            shieldRadius: 430,
+        }),
+        carrier: Object.freeze({
+            scalingStartWave: 20,
+            manufactureBaseMs: 2000,
+            manufactureMinimumMs: 1500,
+            manufactureTimeScalePerWave: 0.99,
+            stockpileBase: 30,
+            stockpileMinimum: 30,
+            stockpileMaximum: 72,
+            stockpileScalePerWave: 1.03,
+            manufactureBatchBase: 7,
+            manufactureBatchMaximum: 12,
+            manufactureBatchStepWaves: 10,
+            initialStockpileBase: 20,
+            initialStockpilePerWave: 0.6,
+            aggressionRadius: 540,
+            disengageRadius: 680,
+            launchBatch: 12,
+            launchBatchCooldownMs: 460,
+            protectionRatio: 0.30,
+            attackRatio: 0.60,
+            orbitRatio: 0.10,
+        }),
+        cannon: Object.freeze({
+            baseShellSpeed: 10.5,
+            velocityBonusPerLevel: 0.12,
+            baseDamage: 34,
+            shellRadius: 7,
+            warheadRadius: 96,
+            warheadDamageRatio: 0.62,
+            clusterCount: 4,
+            clusterSpeed: 7.2,
+            clusterRadius: 5,
+            clusterDamageRatio: 0.28,
+            clusterExplosionRadius: 54,
+            clusterExplosionDamageRatio: 0.24,
+        }),
+        explosiveRounds: Object.freeze({
+            minimumRadius: 72,
+            baseRadius: 42,
+            radiusPerLevel: 10,
+        }),
+    });
+
     const ENEMY_COLORS = Object.freeze({
         normal: "#ff5c5c",
         runner: "#ffb347",
@@ -3329,7 +3395,10 @@
             },
             explosive: () => {
                 player.explosiveLevel++;
-                player.explosiveRadius = Math.max(72, 42 + player.explosiveLevel * 10);
+                player.explosiveRadius = Math.max(
+                    GAMEPLAY_CONSTANTS.explosiveRounds.minimumRadius,
+                    GAMEPLAY_CONSTANTS.explosiveRounds.baseRadius + player.explosiveLevel * GAMEPLAY_CONSTANTS.explosiveRounds.radiusPerLevel
+                );
                 player.explosiveDamageRatio = Math.min(0.8, player.explosiveDamageRatio + 0.06);
                 ui.weapon.textContent = "Explosive";
             },
@@ -3427,7 +3496,10 @@
             fireRate: () => `${next ? "Next" : "Current"}: ${Math.max(85, value(player.fireRate, -25))} ms delay`,
             bulletVelocity: () => `${next ? "Next" : "Current"}: ${value(player.bulletSpeed, 1.15).toFixed(1)} speed`,
             explosive: () => next
-                ? `Next: ${Math.max(72, 42 + (player.explosiveLevel + 1) * 10)}px fixed blast / stronger splash`
+                ? `Next: ${Math.max(
+                    GAMEPLAY_CONSTANTS.explosiveRounds.minimumRadius,
+                    GAMEPLAY_CONSTANTS.explosiveRounds.baseRadius + (player.explosiveLevel + 1) * GAMEPLAY_CONSTANTS.explosiveRounds.radiusPerLevel
+                )}px fixed blast / stronger splash`
                 : `Current: ${player.explosiveLevel ? `${player.explosiveRadius}px blast` : "inactive"}`,
             cannonUnlock: () => `${next ? "Next" : "Current"}: ${next || upgradeLevels.cannonUnlock || player.cannonDamage > 0 ? "cannon online" : "offline"}`,
             cannonDamage: () => `${next ? "Next" : "Current"}: ${Math.max(34, player.cannonDamage) + (next ? 9 : 0)} damage`,
@@ -3606,14 +3678,14 @@
             kind: "cannon",
             x: player.x + Math.cos(angle) * 27,
             y: player.y + Math.sin(angle) * 27,
-            r: 7,
-            dx: Math.cos(angle) * (10.5 * (1 + player.cannonVelocity * 0.12)),
-            dy: Math.sin(angle) * (10.5 * (1 + player.cannonVelocity * 0.12)),
-            damage: Math.max(34, player.cannonDamage),
+            r: GAMEPLAY_CONSTANTS.cannon.shellRadius,
+            dx: Math.cos(angle) * (GAMEPLAY_CONSTANTS.cannon.baseShellSpeed * (1 + player.cannonVelocity * GAMEPLAY_CONSTANTS.cannon.velocityBonusPerLevel)),
+            dy: Math.sin(angle) * (GAMEPLAY_CONSTANTS.cannon.baseShellSpeed * (1 + player.cannonVelocity * GAMEPLAY_CONSTANTS.cannon.velocityBonusPerLevel)),
+            damage: Math.max(GAMEPLAY_CONSTANTS.cannon.baseDamage, player.cannonDamage),
             damageSource: upgradeLevels.cannonQuantum ? "quantum" : "bullet",
             explosive: Boolean(upgradeLevels.cannonWarhead),
-            explosionRadius: 96,
-            explosionDamage: Math.max(12, Math.floor(Math.max(34, player.cannonDamage) * 0.62)),
+            explosionRadius: GAMEPLAY_CONSTANTS.cannon.warheadRadius,
+            explosionDamage: Math.max(12, Math.floor(Math.max(GAMEPLAY_CONSTANTS.cannon.baseDamage, player.cannonDamage) * GAMEPLAY_CONSTANTS.cannon.warheadDamageRatio)),
             cluster: Boolean(upgradeLevels.cannonCluster),
             hitEnemyIds: new Set(),
         });
@@ -3655,7 +3727,7 @@
             missiles.push({
                 x: player.x + Math.cos(angle) * 30,
                 y: player.y + Math.sin(angle) * 30,
-                r: 7,
+                r: GAMEPLAY_CONSTANTS.cannon.shellRadius,
                 dx: Math.cos(angle) * 6.4,
                 dy: Math.sin(angle) * 6.4,
                 speed: 6.4,
@@ -3930,7 +4002,13 @@
     // selectively so later combat gains new decisions without making every unit
     // visually or mechanically identical.
     function getEnemyGeneration() {
-        return Math.max(1, Math.min(5, 1 + Math.floor((state.wave - 1) / 10)));
+        return Math.max(
+            1,
+            Math.min(
+                GAMEPLAY_CONSTANTS.evolution.maxGeneration,
+                1 + Math.floor((state.wave - 1) / GAMEPLAY_CONSTANTS.evolution.wavesPerGeneration)
+            )
+        );
     }
 
     function getEnemyMutationPool(type, generation) {
@@ -3946,7 +4024,7 @@
         if (["boss", "gigaBoss", "carrier", "aegis"].includes(type)) return [];
         const pool = getEnemyMutationPool(type, generation);
         if (!pool.length) return [];
-        const desired = generation >= 4 ? 2 : 1;
+        const desired = generation >= GAMEPLAY_CONSTANTS.evolution.multiMutationGeneration ? 2 : 1;
         const mutations = [];
         while (pool.length && mutations.length < desired) {
             const index = Math.floor(Math.random() * pool.length);
@@ -3980,7 +4058,7 @@
         // slightly increases their collision footprint, matching the visual size.
         const evolvedLowTier = ["normal", "runner", "brute", "tank", "fighter", "dodger"].includes(type);
         if (evolvedLowTier && generation > 1) {
-            const generationScale = [1, 1, 1.10, 1.20, 1.35, 1.50][generation] || 1.50;
+            const generationScale = GAMEPLAY_CONSTANTS.evolution.hullScaleByGeneration[generation] || GAMEPLAY_CONSTANTS.evolution.hullScaleByGeneration.at(-1);
             enemy.evolutionScale = generationScale;
             enemy.r = Math.round(enemy.r * generationScale);
         } else {
@@ -3990,8 +4068,12 @@
         // Late-game Quantum Null adaptation. These enemies force the player to
         // rely on primary weapons or conventional autonomous systems instead of
         // allowing Rift Tearer to solve every formation.
-        if (state.wave >= 32 && !["boss", "gigaBoss", "aegis"].includes(type)) {
-            const nullChance = Math.min(0.34, 0.10 + (state.wave - 32) * 0.008);
+        if (state.wave >= GAMEPLAY_CONSTANTS.evolution.quantumNullStartWave && !["boss", "gigaBoss", "aegis"].includes(type)) {
+            const nullChance = Math.min(
+                GAMEPLAY_CONSTANTS.evolution.quantumNullMaxChance,
+                GAMEPLAY_CONSTANTS.evolution.quantumNullBaseChance +
+                    (state.wave - GAMEPLAY_CONSTANTS.evolution.quantumNullStartWave) * GAMEPLAY_CONSTANTS.evolution.quantumNullChancePerWave
+            );
             enemy.quantumImmune = Math.random() < nullChance;
         }
 
@@ -4005,7 +4087,7 @@
                 enemy.health = Math.round(enemy.health * 0.82);
                 enemy.maxHealth = enemy.health;
                 enemy.shootCooldown = 2100;
-                enemy.healRadius = 285;
+                enemy.healRadius = GAMEPLAY_CONSTANTS.healer.radius;
             } else if (enemy.miniBossRole === "superTank") {
                 enemy.color = "#b878ff";
                 enemy.health = Math.round(enemy.health * 1.85);
@@ -4095,7 +4177,7 @@
                 health: 720 + scaledWave * 78,
                 damage: 12,
                 reward: 150 + scaledWave * 8,
-                shieldRadius: 430,
+                shieldRadius: GAMEPLAY_CONSTANTS.aegis.shieldRadius,
             },
             carrier: {
                 r: 62,
@@ -4792,7 +4874,7 @@
     function updateMiniBossSystems(enemy, now) {
         if (enemy.miniBossRole !== "healer" || now < (enemy.nextSupportAt || 0)) return;
         enemy.nextSupportAt = now + randomRange(3600, 4800);
-        const radius = enemy.healRadius || 285;
+        const radius = enemy.healRadius || GAMEPLAY_CONSTANTS.healer.radius;
         let healed = 0;
         for (const ally of enemies) {
             if (!ally || ally.dead || ally === enemy || distance(enemy, ally) > radius) continue;
@@ -4890,24 +4972,39 @@
      * enter after the player has had time to assemble a powerful build.
      */
     function getCarrierDoctrine() {
-        const scalingWaves = Math.max(0, state.wave - 20);
-        const manufactureCooldown = Math.max(1500, 2000 * Math.pow(0.99, scalingWaves));
-        const stockpileCap = Math.min(72, Math.max(30, Math.round(30 * Math.pow(1.03, scalingWaves))));
+        const scalingWaves = Math.max(0, state.wave - GAMEPLAY_CONSTANTS.carrier.scalingStartWave);
+        const manufactureCooldown = Math.max(
+            GAMEPLAY_CONSTANTS.carrier.manufactureMinimumMs,
+            GAMEPLAY_CONSTANTS.carrier.manufactureBaseMs * Math.pow(GAMEPLAY_CONSTANTS.carrier.manufactureTimeScalePerWave, scalingWaves)
+        );
+        const stockpileCap = Math.min(
+            GAMEPLAY_CONSTANTS.carrier.stockpileMaximum,
+            Math.max(
+                GAMEPLAY_CONSTANTS.carrier.stockpileMinimum,
+                Math.round(GAMEPLAY_CONSTANTS.carrier.stockpileBase * Math.pow(GAMEPLAY_CONSTANTS.carrier.stockpileScalePerWave, scalingWaves))
+            )
+        );
         return {
             manufactureCooldown,
             stockpileCap,
             // Each two-second manufacturing cycle produces a rack rather than one
             // missile. This lets the carrier build a meaningful reserve while the
             // player remains outside its aggression radius.
-            manufactureBatch: Math.min(12, 7 + Math.floor(scalingWaves / 10)),
-            initialStockpile: Math.min(stockpileCap, 20 + Math.floor(scalingWaves * 0.6)),
-            aggressionRadius: 540,
-            disengageRadius: 680,
-            launchBatch: 12,
-            batchCooldown: 460,
-            protectionRatio: 0.30,
-            attackRatio: 0.60,
-            orbitRatio: 0.10,
+            manufactureBatch: Math.min(
+                GAMEPLAY_CONSTANTS.carrier.manufactureBatchMaximum,
+                GAMEPLAY_CONSTANTS.carrier.manufactureBatchBase + Math.floor(scalingWaves / GAMEPLAY_CONSTANTS.carrier.manufactureBatchStepWaves)
+            ),
+            initialStockpile: Math.min(
+                stockpileCap,
+                GAMEPLAY_CONSTANTS.carrier.initialStockpileBase + Math.floor(scalingWaves * GAMEPLAY_CONSTANTS.carrier.initialStockpilePerWave)
+            ),
+            aggressionRadius: GAMEPLAY_CONSTANTS.carrier.aggressionRadius,
+            disengageRadius: GAMEPLAY_CONSTANTS.carrier.disengageRadius,
+            launchBatch: GAMEPLAY_CONSTANTS.carrier.launchBatch,
+            batchCooldown: GAMEPLAY_CONSTANTS.carrier.launchBatchCooldownMs,
+            protectionRatio: GAMEPLAY_CONSTANTS.carrier.protectionRatio,
+            attackRatio: GAMEPLAY_CONSTANTS.carrier.attackRatio,
+            orbitRatio: GAMEPLAY_CONSTANTS.carrier.orbitRatio,
             cannonShots: 0,
             cannonSpread: 0,
         };
@@ -5243,14 +5340,14 @@
         if (!enemy || enemy.dead) return null;
         for (const generator of enemies) {
             if (!generator || generator.dead || generator.type !== "aegis") continue;
-            const radius = generator.shieldRadius || 430;
+            const radius = generator.shieldRadius || GAMEPLAY_CONSTANTS.aegis.shieldRadius;
             if (distance(enemy, generator) <= radius + enemy.r) return generator;
         }
         return null;
     }
 
     function isPlayerInsideAegis(generator) {
-        return !!generator && distance(player, generator) <= (generator.shieldRadius || 430) + player.r;
+        return !!generator && distance(player, generator) <= (generator.shieldRadius || GAMEPLAY_CONSTANTS.aegis.shieldRadius) + player.r;
     }
 
     function isEnemyAegisProtected(enemy) {
@@ -5476,7 +5573,7 @@
                     const cannonSource = bullet.damageSource || "bullet";
                     damageEnemy(enemyIndex, bullet.damage, cannonSource);
                     if (bullet.explosive) {
-                        explodeAt(bullet.x, bullet.y, bullet.explosionRadius || 96, bullet.explosionDamage || Math.floor(bullet.damage * 0.62), enemy, cannonSource);
+                        explodeAt(bullet.x, bullet.y, bullet.explosionRadius || GAMEPLAY_CONSTANTS.cannon.warheadRadius, bullet.explosionDamage || Math.floor(bullet.damage * GAMEPLAY_CONSTANTS.cannon.warheadDamageRatio), enemy, cannonSource);
                     }
                     if (bullet.cluster) {
                         spawnCannonClusterRounds(bullet.x, bullet.y, cannonSource, bullet.damage);
@@ -5486,7 +5583,7 @@
                     bullet.dead = true;
                     damageEnemy(enemyIndex, bullet.damage, bullet.damageSource || "bullet");
                     if (bullet.explosive) {
-                        explodeAt(bullet.x, bullet.y, Math.max(72, bullet.explosionRadius || 0), bullet.explosionDamage, enemy, bullet.damageSource || "explosion");
+                        explodeAt(bullet.x, bullet.y, Math.max(GAMEPLAY_CONSTANTS.explosiveRounds.minimumRadius, bullet.explosionRadius || 0), bullet.explosionDamage, enemy, bullet.damageSource || "explosion");
                     }
                 }
 
@@ -5497,20 +5594,20 @@
 
     function spawnCannonClusterRounds(x, y, damageSource, parentDamage) {
         const baseAngle = Math.PI * 0.25;
-        for (let i = 0; i < 4; i++) {
+        for (let i = 0; i < GAMEPLAY_CONSTANTS.cannon.clusterCount; i++) {
             const angle = baseAngle + i * (Math.PI / 2);
             bullets.push({
                 kind: "cannonFragment",
                 x,
                 y,
-                r: 5,
-                dx: Math.cos(angle) * 7.2,
-                dy: Math.sin(angle) * 7.2,
-                damage: Math.max(6, Math.floor(parentDamage * 0.28)),
+                r: GAMEPLAY_CONSTANTS.cannon.clusterRadius,
+                dx: Math.cos(angle) * GAMEPLAY_CONSTANTS.cannon.clusterSpeed,
+                dy: Math.sin(angle) * GAMEPLAY_CONSTANTS.cannon.clusterSpeed,
+                damage: Math.max(6, Math.floor(parentDamage * GAMEPLAY_CONSTANTS.cannon.clusterDamageRatio)),
                 damageSource,
                 explosive: true,
-                explosionRadius: 54,
-                explosionDamage: Math.max(5, Math.floor(parentDamage * 0.24)),
+                explosionRadius: GAMEPLAY_CONSTANTS.cannon.clusterExplosionRadius,
+                explosionDamage: Math.max(5, Math.floor(parentDamage * GAMEPLAY_CONSTANTS.cannon.clusterExplosionDamageRatio)),
             });
         }
     }
@@ -7521,7 +7618,7 @@
     }
 
     function drawAegisField(enemy, screen) {
-        const radius = enemy.shieldRadius || 255;
+        const radius = enemy.shieldRadius || GAMEPLAY_CONSTANTS.aegis.shieldRadius;
         const playerInside = isPlayerInsideAegis(enemy);
         const pulse = 0.5 + 0.5 * Math.sin(Date.now() / 280);
         ctx.save();

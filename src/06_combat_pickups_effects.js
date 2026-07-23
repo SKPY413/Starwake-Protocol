@@ -108,7 +108,7 @@
                     const cannonSource = bullet.damageSource || "bullet";
                     damageEnemy(enemyIndex, bullet.damage, cannonSource);
                     if (bullet.explosive) {
-                        explodeAt(bullet.x, bullet.y, bullet.explosionRadius || 96, bullet.explosionDamage || Math.floor(bullet.damage * 0.62), enemy, cannonSource);
+                        explodeAt(bullet.x, bullet.y, bullet.explosionRadius || GAMEPLAY_CONSTANTS.cannon.warheadRadius, bullet.explosionDamage || Math.floor(bullet.damage * GAMEPLAY_CONSTANTS.cannon.warheadDamageRatio), enemy, cannonSource);
                     }
                     if (bullet.cluster) {
                         spawnCannonClusterRounds(bullet.x, bullet.y, cannonSource, bullet.damage);
@@ -118,7 +118,7 @@
                     bullet.dead = true;
                     damageEnemy(enemyIndex, bullet.damage, bullet.damageSource || "bullet");
                     if (bullet.explosive) {
-                        explodeAt(bullet.x, bullet.y, Math.max(72, bullet.explosionRadius || 0), bullet.explosionDamage, enemy, bullet.damageSource || "explosion");
+                        explodeAt(bullet.x, bullet.y, Math.max(GAMEPLAY_CONSTANTS.explosiveRounds.minimumRadius, bullet.explosionRadius || 0), bullet.explosionDamage, enemy, bullet.damageSource || "explosion");
                     }
                 }
 
@@ -129,20 +129,20 @@
 
     function spawnCannonClusterRounds(x, y, damageSource, parentDamage) {
         const baseAngle = Math.PI * 0.25;
-        for (let i = 0; i < 4; i++) {
+        for (let i = 0; i < GAMEPLAY_CONSTANTS.cannon.clusterCount; i++) {
             const angle = baseAngle + i * (Math.PI / 2);
             bullets.push({
                 kind: "cannonFragment",
                 x,
                 y,
-                r: 5,
-                dx: Math.cos(angle) * 7.2,
-                dy: Math.sin(angle) * 7.2,
-                damage: Math.max(6, Math.floor(parentDamage * 0.28)),
+                r: GAMEPLAY_CONSTANTS.cannon.clusterRadius,
+                dx: Math.cos(angle) * GAMEPLAY_CONSTANTS.cannon.clusterSpeed,
+                dy: Math.sin(angle) * GAMEPLAY_CONSTANTS.cannon.clusterSpeed,
+                damage: Math.max(6, Math.floor(parentDamage * GAMEPLAY_CONSTANTS.cannon.clusterDamageRatio)),
                 damageSource,
                 explosive: true,
-                explosionRadius: 54,
-                explosionDamage: Math.max(5, Math.floor(parentDamage * 0.24)),
+                explosionRadius: GAMEPLAY_CONSTANTS.cannon.clusterExplosionRadius,
+                explosionDamage: Math.max(5, Math.floor(parentDamage * GAMEPLAY_CONSTANTS.cannon.clusterExplosionDamageRatio)),
             });
         }
     }

@@ -9,7 +9,13 @@
     // selectively so later combat gains new decisions without making every unit
     // visually or mechanically identical.
     function getEnemyGeneration() {
-        return Math.max(1, Math.min(5, 1 + Math.floor((state.wave - 1) / 10)));
+        return Math.max(
+            1,
+            Math.min(
+                GAMEPLAY_CONSTANTS.evolution.maxGeneration,
+                1 + Math.floor((state.wave - 1) / GAMEPLAY_CONSTANTS.evolution.wavesPerGeneration)
+            )
+        );
     }
 
     function getEnemyMutationPool(type, generation) {
@@ -25,7 +31,7 @@
         if (["boss", "gigaBoss", "carrier", "aegis"].includes(type)) return [];
         const pool = getEnemyMutationPool(type, generation);
         if (!pool.length) return [];
-        const desired = generation >= 4 ? 2 : 1;
+        const desired = generation >= GAMEPLAY_CONSTANTS.evolution.multiMutationGeneration ? 2 : 1;
         const mutations = [];
         while (pool.length && mutations.length < desired) {
             const index = Math.floor(Math.random() * pool.length);
@@ -59,7 +65,7 @@
         // slightly increases their collision footprint, matching the visual size.
         const evolvedLowTier = ["normal", "runner", "brute", "tank", "fighter", "dodger"].includes(type);
         if (evolvedLowTier && generation > 1) {
-            const generationScale = [1, 1, 1.10, 1.20, 1.35, 1.50][generation] || 1.50;
+            const generationScale = GAMEPLAY_CONSTANTS.evolution.hullScaleByGeneration[generation] || GAMEPLAY_CONSTANTS.evolution.hullScaleByGeneration.at(-1);
             enemy.evolutionScale = generationScale;
             enemy.r = Math.round(enemy.r * generationScale);
         } else {
@@ -69,8 +75,12 @@
         // Late-game Quantum Null adaptation. These enemies force the player to
         // rely on primary weapons or conventional autonomous systems instead of
         // allowing Rift Tearer to solve every formation.
-        if (state.wave >= 32 && !["boss", "gigaBoss", "aegis"].includes(type)) {
-            const nullChance = Math.min(0.34, 0.10 + (state.wave - 32) * 0.008);
+        if (state.wave >= GAMEPLAY_CONSTANTS.evolution.quantumNullStartWave && !["boss", "gigaBoss", "aegis"].includes(type)) {
+            const nullChance = Math.min(
+                GAMEPLAY_CONSTANTS.evolution.quantumNullMaxChance,
+                GAMEPLAY_CONSTANTS.evolution.quantumNullBaseChance +
+                    (state.wave - GAMEPLAY_CONSTANTS.evolution.quantumNullStartWave) * GAMEPLAY_CONSTANTS.evolution.quantumNullChancePerWave
+            );
             enemy.quantumImmune = Math.random() < nullChance;
         }
 
@@ -84,7 +94,7 @@
                 enemy.health = Math.round(enemy.health * 0.82);
                 enemy.maxHealth = enemy.health;
                 enemy.shootCooldown = 2100;
-                enemy.healRadius = 285;
+                enemy.healRadius = GAMEPLAY_CONSTANTS.healer.radius;
             } else if (enemy.miniBossRole === "superTank") {
                 enemy.color = "#b878ff";
                 enemy.health = Math.round(enemy.health * 1.85);
@@ -174,7 +184,7 @@
                 health: 720 + scaledWave * 78,
                 damage: 12,
                 reward: 150 + scaledWave * 8,
-                shieldRadius: 430,
+                shieldRadius: GAMEPLAY_CONSTANTS.aegis.shieldRadius,
             },
             carrier: {
                 r: 62,
@@ -871,7 +881,7 @@
     function updateMiniBossSystems(enemy, now) {
         if (enemy.miniBossRole !== "healer" || now < (enemy.nextSupportAt || 0)) return;
         enemy.nextSupportAt = now + randomRange(3600, 4800);
-        const radius = enemy.healRadius || 285;
+        const radius = enemy.healRadius || GAMEPLAY_CONSTANTS.healer.radius;
         let healed = 0;
         for (const ally of enemies) {
             if (!ally || ally.dead || ally === enemy || distance(enemy, ally) > radius) continue;
@@ -969,24 +979,39 @@
      * enter after the player has had time to assemble a powerful build.
      */
     function getCarrierDoctrine() {
-        const scalingWaves = Math.max(0, state.wave - 20);
-        const manufactureCooldown = Math.max(1500, 2000 * Math.pow(0.99, scalingWaves));
-        const stockpileCap = Math.min(72, Math.max(30, Math.round(30 * Math.pow(1.03, scalingWaves))));
+        const scalingWaves = Math.max(0, state.wave - GAMEPLAY_CONSTANTS.carrier.scalingStartWave);
+        const manufactureCooldown = Math.max(
+            GAMEPLAY_CONSTANTS.carrier.manufactureMinimumMs,
+            GAMEPLAY_CONSTANTS.carrier.manufactureBaseMs * Math.pow(GAMEPLAY_CONSTANTS.carrier.manufactureTimeScalePerWave, scalingWaves)
+        );
+        const stockpileCap = Math.min(
+            GAMEPLAY_CONSTANTS.carrier.stockpileMaximum,
+            Math.max(
+                GAMEPLAY_CONSTANTS.carrier.stockpileMinimum,
+                Math.round(GAMEPLAY_CONSTANTS.carrier.stockpileBase * Math.pow(GAMEPLAY_CONSTANTS.carrier.stockpileScalePerWave, scalingWaves))
+            )
+        );
         return {
             manufactureCooldown,
             stockpileCap,
             // Each two-second manufacturing cycle produces a rack rather than one
             // missile. This lets the carrier build a meaningful reserve while the
             // player remains outside its aggression radius.
-            manufactureBatch: Math.min(12, 7 + Math.floor(scalingWaves / 10)),
-            initialStockpile: Math.min(stockpileCap, 20 + Math.floor(scalingWaves * 0.6)),
-            aggressionRadius: 540,
-            disengageRadius: 680,
-            launchBatch: 12,
-            batchCooldown: 460,
-            protectionRatio: 0.30,
-            attackRatio: 0.60,
-            orbitRatio: 0.10,
+            manufactureBatch: Math.min(
+                GAMEPLAY_CONSTANTS.carrier.manufactureBatchMaximum,
+                GAMEPLAY_CONSTANTS.carrier.manufactureBatchBase + Math.floor(scalingWaves / GAMEPLAY_CONSTANTS.carrier.manufactureBatchStepWaves)
+            ),
+            initialStockpile: Math.min(
+                stockpileCap,
+                GAMEPLAY_CONSTANTS.carrier.initialStockpileBase + Math.floor(scalingWaves * GAMEPLAY_CONSTANTS.carrier.initialStockpilePerWave)
+            ),
+            aggressionRadius: GAMEPLAY_CONSTANTS.carrier.aggressionRadius,
+            disengageRadius: GAMEPLAY_CONSTANTS.carrier.disengageRadius,
+            launchBatch: GAMEPLAY_CONSTANTS.carrier.launchBatch,
+            batchCooldown: GAMEPLAY_CONSTANTS.carrier.launchBatchCooldownMs,
+            protectionRatio: GAMEPLAY_CONSTANTS.carrier.protectionRatio,
+            attackRatio: GAMEPLAY_CONSTANTS.carrier.attackRatio,
+            orbitRatio: GAMEPLAY_CONSTANTS.carrier.orbitRatio,
             cannonShots: 0,
             cannonSpread: 0,
         };
@@ -1322,14 +1347,14 @@
         if (!enemy || enemy.dead) return null;
         for (const generator of enemies) {
             if (!generator || generator.dead || generator.type !== "aegis") continue;
-            const radius = generator.shieldRadius || 430;
+            const radius = generator.shieldRadius || GAMEPLAY_CONSTANTS.aegis.shieldRadius;
             if (distance(enemy, generator) <= radius + enemy.r) return generator;
         }
         return null;
     }
 
     function isPlayerInsideAegis(generator) {
-        return !!generator && distance(player, generator) <= (generator.shieldRadius || 430) + player.r;
+        return !!generator && distance(player, generator) <= (generator.shieldRadius || GAMEPLAY_CONSTANTS.aegis.shieldRadius) + player.r;
     }
 
     function isEnemyAegisProtected(enemy) {
