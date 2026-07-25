@@ -1,0 +1,18 @@
+# Operating-system metadata
+.DS_Store
+Thumbs.db
+
+# Python maintenance-tool caches
+__pycache__/
+*.py[cod]
+
+# Editor and temporary files
+*.swp
+*.swo
+*.tmp
+*.bak
+*.orig
+*~
+
+# Local packaged builds
+*.zip

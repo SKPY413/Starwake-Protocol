@@ -1,0 +1,112 @@
+{
+  "format": 1,
+  "algorithm": "sha256",
+  "purpose": "Deterministic integrity record for runtime, modular source, and declared assets.",
+  "files": [
+    {
+      "path": "assets/README.md",
+      "bytes": 835,
+      "sha256": "7dc2e509389cd493eca9b09d42376e90147e3b86855118a936f8ec636b770ba2"
+    },
+    {
+      "path": "assets/branding/developer-seal/mk1/seal-16.png",
+      "bytes": 794,
+      "sha256": "aa24672ef327c115314847abc64fe5370d5b583adfd4bd3a09be4c6ee2362b23"
+    },
+    {
+      "path": "assets/branding/developer-seal/mk1/seal-256.png",
+      "bytes": 85391,
+      "sha256": "bca5e8abcca30c2f163c6008b51e93a6c9955199e966ad4d1a78e2f337ee8b49"
+    },
+    {
+      "path": "assets/branding/developer-seal/mk1/seal-32.png",
+      "bytes": 2242,
+      "sha256": "6b53530b764e838769af24549e73a556720e70aacd9395193dab79d614d39a02"
+    },
+    {
+      "path": "assets/manifest.json",
+      "bytes": 713,
+      "sha256": "6b489f44a64b4cc64b7954a9a141d13e82de0e6a62ae34f4cf07ac55140a9d06"
+    },
+    {
+      "path": "game.js",
+      "bytes": 436843,
+      "sha256": "3770427b429c5e3b94062c705b95bab956842cff06d0bb9e1fab6a34584a5aa8"
+    },
+    {
+      "path": "index.html",
+      "bytes": 30151,
+      "sha256": "8c234a5764eb0c66292d48e4f1bbcb790edd4a5e36691829b89a93bc57c9d7bd"
+    },
+    {
+      "path": "musicEngine.js",
+      "bytes": 26549,
+      "sha256": "948a6ad4c531e1dba5b59454b7f2ef1b42d0ef9ec40cca8cb332687605763b24"
+    },
+    {
+      "path": "platformProfile.js",
+      "bytes": 2316,
+      "sha256": "4269ece54cab31a57c945e2ea9475dc40dcb18e42876711a4f1b9ae0502fbdb7"
+    },
+    {
+      "path": "src/00_bootstrap.js",
+      "bytes": 25995,
+      "sha256": "05d8a8b69e5cfb33c0f15177e2380a601042c4ddac71ad4af932430b2dd4f9a8"
+    },
+    {
+      "path": "src/01_audio.js",
+      "bytes": 95704,
+      "sha256": "c671f6d0b9c673f511769b8b42ce765dfbc313f3355015666d19c9bef9835f7b"
+    },
+    {
+      "path": "src/02_input_relics_coordinates.js",
+      "bytes": 25986,
+      "sha256": "de8b5629f4fb01ea8df8038de3038f4167b5b67e17f8b549d3249075490644c2"
+    },
+    {
+      "path": "src/03_state_saves_debug.js",
+      "bytes": 19469,
+      "sha256": "672094a68d8518f3742af40d00f0ea3904b55cc2b44090689e31e20a236d318c"
+    },
+    {
+      "path": "src/04_upgrades_player_relic_runtime.js",
+      "bytes": 34752,
+      "sha256": "d113065e89216f41bbe4de0e920518876bf0a7cc848c4be45288c05d065f1a86"
+    },
+    {
+      "path": "src/05_enemies.js",
+      "bytes": 66538,
+      "sha256": "a3edebb10ee1cde2405844872a52028c4c490314e9dc791bad472700b310b23f"
+    },
+    {
+      "path": "src/06_combat_pickups_effects.js",
+      "bytes": 28743,
+      "sha256": "bc3c80fae0ca6698b1dde985449f45ba093907f07c719fd10b36d146fc6f1fec"
+    },
+    {
+      "path": "src/07_background_rendering.js",
+      "bytes": 70702,
+      "sha256": "9f62173dc6e5584ab5074dbab9ea758f6bfbc1ed4288a531f5c2a88356d2b430"
+    },
+    {
+      "path": "src/08_ui_loop_input.js",
+      "bytes": 23428,
+      "sha256": "cdd78f2ad9204a72a60864b4c7bc616bc3a065bdec5c41ef4c7ea7bcc1f3bd1b"
+    },
+    {
+      "path": "src/09_events_persistence_startup.js",
+      "bytes": 45526,
+      "sha256": "e7ca89234b35425cdd27b0e959bea61f514aee324333147f996fe8722e3db639"
+    },
+    {
+      "path": "src/manifest.json",
+      "bytes": 2805,
+      "sha256": "2abfb89bf0cc3668456b6c4e45b1bbb8794632f1e6345461adc9c4bbb2bec657"
+    },
+    {
+      "path": "styles.css",
+      "bytes": 105807,
+      "sha256": "b9d1f06f69b36414cd4cb235256679e3219f2569b11ef8a7723ace305280f424"
+    }
+  ]
+}

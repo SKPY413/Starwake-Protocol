@@ -1,0 +1,13 @@
+{
+  "name": "starwake-protocol",
+  "private": true,
+  "version": "0.0.0-prebeta",
+  "description": "Local maintenance commands for the Starwake Protocol browser build.",
+  "scripts": {
+    "build": "python tools/update_source_manifest.py && python tools/build_game.py",
+    "verify": "python tools/verify_project.py",
+    "check": "npm run build && npm run fingerprint && npm run verify",
+    "fingerprint": "python tools/create_build_manifest.py",
+    "release:verify": "python tools/audit_release_hygiene.py"
+  }
+}

@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
+<title>Starwake Protocol</title>
+<link rel="icon" type="image/png" sizes="16x16" href="assets/branding/developer-seal/mk1/seal-16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/branding/developer-seal/mk1/seal-32.png">
+<link rel="apple-touch-icon" sizes="256x256" href="assets/branding/developer-seal/mk1/seal-256.png">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- Main render surface. Keep this first so UI overlays stack above it. -->
+<canvas id="game"></canvas>
+<div id="customCursor" aria-hidden="true"><div class="cursor-dot"></div></div>
+<div id="damageOverlay"></div>
+<div id="speedBoostOverlay"></div>
+<div id="slowStatusOverlay"></div>
+<div id="waveClearOverlay"></div>
+<div id="waveClearMessage">
+    <div id="waveClearTitle">WAVE CLEARED</div>
+    <div id="waveClearSubtext">Next wave in 4...</div>
+</div>
+
+<div id="topLeftStats" aria-label="Score and upgrade points">
+    <div>Score: <span id="score">0</span></div>
+    <div class="divider"></div>
+    <div>Points: <span id="points">0</span></div>
+</div>
+
+
+<div id="topWaveCounter"><div id="gameplaySeal" class="splash-seal gameplay-seal" aria-hidden="true">
+    <div class="splash-seal-ring splash-seal-ring-outer"></div><div class="splash-seal-ring splash-seal-ring-inner"></div>
+    <div class="splash-seal-star splash-seal-star-cardinal"></div><div class="splash-seal-star splash-seal-star-diagonal"></div>
+    <div class="splash-seal-core"><span class="splash-seal-wake wake-a"></span><span class="splash-seal-wake wake-b"></span><span class="splash-seal-wake wake-c"></span><span class="splash-seal-orb"></span></div>
+</div><span class="wave-label">Wave <span id="wave">1</span></span></div>
+
+<div id="debugPanel" aria-label="Debug controls">
+    <button id="debugAddPointsButton" type="button">+1000 Points</button>
+    <button id="debugSkipWaveButton" type="button">Skip Wave</button>
+    <label class="debug-wave-jump" for="debugWaveInput">
+        <span>Wave</span>
+        <input id="debugWaveInput" type="number" min="1" max="999" step="1" value="10" inputmode="numeric">
+    </label>
+    <button id="debugGoToWaveButton" type="button">Go</button>
+    <button id="audioDebugToggleButton" type="button">Audio Debug</button>
+</div>
+
+<aside id="audioDebugConsole" class="audio-debug-console" hidden aria-label="Audio diagnostics">
+    <div class="audio-debug-header">
+        <strong>AUDIO DIAGNOSTICS</strong>
+        <button id="audioDebugCloseButton" type="button" aria-label="Close audio diagnostics">×</button>
+    </div>
+    <div id="audioDebugReadout" class="audio-debug-readout">Waiting for audio engine…</div>
+    <div class="audio-debug-actions">
+        <button id="audioDebugKillButton" type="button">Kill Voices</button>
+        <button id="audioDebugRestartButton" type="button">Restart Audio</button>
+        <button id="audioDebugExportButton" type="button">Export Log</button>
+    </div>
+</aside>
+
+<!-- Hidden compatibility sink for values still maintained by the game code. -->
+<div id="ui" aria-hidden="true">
+    <button id="hudToggleButton" type="button">HUD Hidden</button>
+    <span id="health">100 / 100</span>
+    <span id="weapon">Basic</span>
+    <span id="bulletSpeed">9.0</span>
+    <span id="explosiveLevel">0</span>
+    <span id="speedBoostInfo">None</span>
+    <span id="slowInfo">None</span>
+    <span id="magnetInfo">95 px</span>
+    <span id="bossInfo">Every 10 waves</span>
+    <span id="mapInfo">3600 x 2400</span>
+    <div id="audioControls">
+        <button id="audioToggleButton">Sound: On</button>
+        <label>Vol <input id="audioVolume" type="range" min="0" max="100" value="78"></label>
+        <span id="audioStatus">Music ready</span>
+    </div>
+</div>
+
+<div id="playerVitalBars">
+    <div id="playerShieldBarWrap" hidden aria-label="Player shield">
+        <div id="playerShieldBar"></div>
+        <div id="playerShieldText">0 / 0</div>
+    </div>
+    <div id="playerHealthBarWrap">
+        <div id="playerHealthBar"></div>
+        <div id="regenHealthTick"></div>
+        <div id="playerHealthText">100 / 100</div>
+    </div>
+</div>
+
+<div id="pauseOverlay">
+    <div class="pause-card">
+        <div class="pause-title">PAUSED</div>
+        <p class="pause-subtitle">Press P or Resume to return to the protocol.</p>
+        <div class="cursor-settings" aria-label="Pause cursor color settings">
+            <div class="cursor-settings-title">Cursor Color</div>
+            <div class="cursor-settings-row">
+                <input class="cursor-color-picker" id="pauseCursorColor" type="color" value="#7cffd4" aria-label="Custom cursor color while paused">
+                <button class="cursor-preset" data-cursor-color="#7cffd4" style="--preset-color:#7cffd4" type="button" aria-label="Cyan cursor"></button>
+                <button class="cursor-preset" data-cursor-color="#6aa9ff" style="--preset-color:#6aa9ff" type="button" aria-label="Blue cursor"></button>
+                <button class="cursor-preset" data-cursor-color="#ff5c5c" style="--preset-color:#ff5c5c" type="button" aria-label="Red cursor"></button>
+                <button class="cursor-preset" data-cursor-color="#ffb347" style="--preset-color:#ffb347" type="button" aria-label="Orange cursor"></button>
+                <button class="cursor-preset" data-cursor-color="#b86bff" style="--preset-color:#b86bff" type="button" aria-label="Purple cursor"></button>
+            </div>
+        </div>
+        <div class="volume-settings" aria-label="Pause audio mixer settings">
+            <div class="volume-settings-title">Audio Mixer</div>
+            <div class="volume-settings-row volume-settings-row-master">
+                <button id="pauseAudioToggleButton" class="volume-mute-button" type="button">Sound: On</button>
+                <span class="volume-label">Master</span>
+                <input id="pauseVolume" class="volume-slider" type="range" min="0" max="100" value="78" aria-label="Pause menu master volume">
+                <span id="pauseVolumeValue" class="volume-value">78%</span>
+            </div>
+            <div class="volume-settings-row">
+                <span class="volume-label">Music</span>
+                <input id="pauseMusicVolume" class="volume-slider" type="range" min="0" max="100" value="82" aria-label="Pause menu music volume">
+                <span id="pauseMusicVolumeValue" class="volume-value">82%</span>
+            </div>
+            <div class="volume-settings-row">
+                <span class="volume-label">SFX</span>
+                <input id="pauseSfxVolume" class="volume-slider" type="range" min="0" max="100" value="92" aria-label="Pause menu sound effects volume">
+                <span id="pauseSfxVolumeValue" class="volume-value">92%</span>
+            </div>
+        </div>
+        <div class="pause-actions">
+            <button class="fullscreen-button" data-fullscreen-button type="button">Enter Fullscreen</button>
+            <button id="resumeButton" type="button">Resume</button>
+        </div>
+    </div>
+</div>
+
+<div id="topRightHud" aria-label="Gameplay controls and minimap">
+    <button id="touchPauseButton" class="touch-pause-button" type="button" aria-label="Pause game"><span aria-hidden="true">Ⅱ</span></button>
+    <div id="minimapWrap">
+        <div id="minimapTitle">MINIMAP</div>
+        <canvas id="minimap" width="204" height="136"></canvas>
+    </div>
+</div>
+
+<!-- Boot splash: its Continue handler is intentionally fail-safe and independent of game.js. -->
+<div id="splashScreen">
+    <div class="splash-card">
+        <div class="splash-seal" aria-hidden="true">
+            <div class="splash-seal-ring splash-seal-ring-outer"></div>
+            <div class="splash-seal-ring splash-seal-ring-inner"></div>
+            <div class="splash-seal-star splash-seal-star-cardinal"></div>
+            <div class="splash-seal-star splash-seal-star-diagonal"></div>
+            <div class="splash-seal-core">
+                <span class="splash-seal-wake wake-a"></span>
+                <span class="splash-seal-wake wake-b"></span>
+                <span class="splash-seal-wake wake-c"></span>
+                <span class="splash-seal-orb"></span>
+            </div>
+        </div>
+        <div class="splash-kicker">AI-Collaborative Arcade Study</div>
+        <h1 class="splash-title">Starwake<br>Protocol</h1>
+        <p class="splash-tagline">A Human–AI Collaborative Experiment in Emergent Game Design</p>
+        <p class="splash-credit">Designed in collaboration with <strong>GPT-5.5 Thinking</strong></p>
+        <div class="splash-actions">
+            <button id="continueFromSplashButton" type="button">Continue</button>
+            <button class="fullscreen-button" data-fullscreen-button type="button">Enter Fullscreen</button>
+        </div>
+    </div>
+</div>
+
+<!-- Main menu: difficulty and global audio settings are configured before launch. -->
+<div id="startMenu">
+    <div class="menu-card">
+        <h1 class="menu-title">Starwake Protocol</h1>
+        <p class="menu-tagline">A Human–AI Collaborative Experiment in Emergent Game Design</p>
+        <p class="menu-subtitle">A neon survival arena about human direction, machine iteration, and the strange future of creative work. Survive escalating waves, collect point orbs, upgrade your ship, and prepare for bosses every 10 waves. WASD / Arrow Keys move, mouse aims, shooting is automatic, P pauses.</p>
+
+        <div class="difficulty-grid" aria-label="Difficulty select">
+            <button class="difficulty-card selected" data-difficulty="easy" type="button">
+                <h3>Easy</h3>
+                <p>Baby-town frolics: gentle opening waves, delayed elites, generous rewards, and cheaper upgrades.</p>
+            </button>
+            <button class="difficulty-card" data-difficulty="medium" type="button">
+                <h3>Medium</h3>
+                <p>A smoother learning curve with balanced pressure, rewards, and enemy introductions.</p>
+            </button>
+            <button class="difficulty-card" data-difficulty="hard" type="button">
+                <h3>Hard</h3>
+                <p>A firm challenge with faster scaling, earlier pressure, and a standard upgrade economy.</p>
+            </button>
+            <button class="difficulty-card" data-difficulty="impossible" type="button">
+                <h3>Impossible</h3>
+                <p>Pattern mastery required: aggressive scaling, early elites, punishing damage, and relentless pressure. Git gud.</p>
+            </button>
+        </div>
+
+
+        <div class="cursor-settings" aria-label="Cursor color settings">
+            <div class="cursor-settings-title">Cursor Color</div>
+            <div class="cursor-settings-row">
+                <input class="cursor-color-picker" id="menuCursorColor" type="color" value="#7cffd4" aria-label="Custom cursor color">
+                <button class="cursor-preset" data-cursor-color="#7cffd4" style="--preset-color:#7cffd4" type="button" aria-label="Cyan cursor"></button>
+                <button class="cursor-preset" data-cursor-color="#6aa9ff" style="--preset-color:#6aa9ff" type="button" aria-label="Blue cursor"></button>
+                <button class="cursor-preset" data-cursor-color="#ff5c5c" style="--preset-color:#ff5c5c" type="button" aria-label="Red cursor"></button>
+                <button class="cursor-preset" data-cursor-color="#ffb347" style="--preset-color:#ffb347" type="button" aria-label="Orange cursor"></button>
+                <button class="cursor-preset" data-cursor-color="#b86bff" style="--preset-color:#b86bff" type="button" aria-label="Purple cursor"></button>
+            </div>
+        </div>
+
+        <div class="volume-settings" aria-label="Main menu audio mixer settings">
+            <div class="volume-settings-title">Audio Mixer</div>
+            <div class="volume-settings-row volume-settings-row-master">
+                <button id="menuAudioToggleButton" class="volume-mute-button" type="button">Sound: On</button>
+                <span class="volume-label">Master</span>
+                <input id="menuVolume" class="volume-slider" type="range" min="0" max="100" value="78" aria-label="Main menu master volume">
+                <span id="menuVolumeValue" class="volume-value">78%</span>
+            </div>
+            <div class="volume-settings-row">
+                <span class="volume-label">Music</span>
+                <input id="menuMusicVolume" class="volume-slider" type="range" min="0" max="100" value="82" aria-label="Main menu music volume">
+                <span id="menuMusicVolumeValue" class="volume-value">82%</span>
+            </div>
+            <div class="volume-settings-row">
+                <span class="volume-label">SFX</span>
+                <input id="menuSfxVolume" class="volume-slider" type="range" min="0" max="100" value="92" aria-label="Main menu sound effects volume">
+                <span id="menuSfxVolumeValue" class="volume-value">92%</span>
+            </div>
+        </div>
+
+        <p class="small">Selected difficulty: <strong id="selectedDifficultyLabel">Easy</strong></p>
+        <p id="platformStatus" class="platform-status small" aria-live="polite"></p>
+
+        <label class="developer-mode-toggle" for="developerModeCheckbox">
+            <input id="developerModeCheckbox" type="checkbox">
+            <span>Developer Mode</span>
+        </label>
+
+
+        <section class="save-data-panel" aria-labelledby="saveDataTitle">
+            <div class="save-data-heading">
+                <div>
+                    <strong id="saveDataTitle">Save Data</strong>
+                    <span id="saveDataSummary">No recoverable run detected.</span>
+                </div>
+                <span id="saveIntegrityBadge" class="save-integrity-badge">Checking…</span>
+            </div>
+            <div class="save-data-actions">
+                <button id="continueSavedRunButton" type="button" disabled>Continue Saved Run</button>
+                <button id="exportSaveButton" type="button">Export Save</button>
+                <button id="importSaveButton" type="button">Import Save</button>
+                <button id="recoverSaveButton" type="button">Recovery</button>
+                <button id="inspectSaveButton" type="button" aria-expanded="false" aria-controls="saveInspectorPanel">Inspect Saves</button>
+                <input id="importSaveFile" type="file" accept="application/json,.json" hidden>
+            </div>
+            <div id="saveInspectorPanel" class="save-inspector-panel" hidden>
+                <div class="save-inspector-header">
+                    <div class="save-inspector-identity">
+                        <div id="saveHealthSeal" class="save-health-seal state-checking" role="img" aria-label="Save health checking">
+                            <span class="save-health-ring ring-outer"></span>
+                            <span class="save-health-ring ring-inner"></span>
+                            <span class="save-health-star star-a"></span>
+                            <span class="save-health-star star-b"></span>
+                            <span class="save-health-core"><i></i><i></i><i></i><b></b></span>
+                        </div>
+                        <div>
+                            <strong>Save Inspector</strong>
+                            <span id="saveInspectorReassurance">Checking protected copies…</span>
+                        </div>
+                    </div>
+                    <div id="saveIntegrityMeter" class="save-integrity-meter" role="meter" aria-label="Save integrity" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                        <span id="saveIntegrityPercent">0%</span>
+                    </div>
+                </div>
+                <dl id="saveInspectorDetails" class="save-inspector-details"></dl>
+                <div id="saveSlotList" class="save-slot-list" aria-label="Save copies"></div>
+                <p id="saveInspectorAdvice" class="save-inspector-advice"></p>
+                <section class="save-activity-panel" aria-labelledby="saveActivityTitle">
+                    <div class="save-activity-heading">
+                        <div><strong id="saveActivityTitle">Recent Save Activity</strong><span>Newest events first · up to 40 entries retained</span></div>
+                        <button id="clearSaveActivityButton" type="button">Clear History</button>
+                    </div>
+                    <p id="saveActivityEmpty" class="save-activity-empty">No save activity has been recorded yet.</p>
+                    <ol id="saveActivityList" class="save-activity-list"></ol>
+                </section>
+            </div>
+            <p id="saveDataStatus" class="save-data-status" role="status" aria-live="polite"></p>
+        </section>
+
+        <div class="menu-controls">
+            <button class="fullscreen-button" data-fullscreen-button type="button">Enter Fullscreen</button>
+            <button id="creditsButton" type="button">Credits</button>
+            <button id="startButton" type="button">Launch Protocol</button>
+            <div id="startupStatus" hidden role="alert" style="margin-top:10px;color:#ffb0b0;font-size:13px;line-height:1.35;"></div>
+        </div>
+        <footer class="menu-version-footer">
+            <span>Starwake Protocol v0.9.0 Alpha</span>
+            <strong id="developerModeStatus" hidden>Developer Mode Enabled</strong>
+        </footer>
+    </div>
+</div>
+
+<!-- Credits: the tiny Developer Seal evolves with each public release stage. -->
+<div id="creditsOverlay" class="credits-overlay" hidden aria-hidden="true">
+    <section class="credits-card" role="dialog" aria-modal="true" aria-labelledby="creditsTitle">
+        <button id="creditsCloseButton" class="credits-close" type="button" aria-label="Close credits">×</button>
+        <img class="developer-seal" src="assets/branding/developer-seal/mk1/seal-32.png" width="32" height="32" alt="Starwake Developer Seal, Mark I">
+        <h1 id="creditsTitle">Starwake Protocol</h1>
+        <p>A Human–AI Collaborative Experiment in Emergent Game Design</p>
+        <div class="credits-divider"></div>
+        <p><strong>Creative direction, design, testing, and production</strong><br>Brandon Henderson</p>
+        <p><strong>Collaborative design, engineering, and narrative development</strong><br>OpenAI GPT</p>
+        <p class="credits-stage">Developer Seal Mk. I · Pre-Beta</p>
+        <p class="credits-note">The seal changes as Starwake advances through its release stages.</p>
+    </section>
+</div>
+
+<!-- Upgrade Protocol: gameplay is paused while this overlay owns pointer input. -->
+<div id="upgradeMenu">
+    <div id="upgradeCard">
+        <div class="upgrade-header">
+            <div>
+                <h1>Ship Reconstruction</h1>
+                <p>Bring core systems online, unlock advanced research, and evolve an autonomous warship—without adding new combat controls.</p>
+            </div>
+            <div class="upgrade-header-actions">
+                <div class="upgrade-points-panel">AVAILABLE POINTS<strong id="menuPoints">0</strong></div>
+                <button class="fullscreen-button compact" data-fullscreen-button type="button">Fullscreen</button>
+            </div>
+        </div>
+
+        <div class="system-investment-bar" aria-label="Core system investment">
+            <div class="system-chip green"><span>NANOBOTS</span><strong data-system-investment="green">0</strong></div>
+            <div class="system-chip red"><span>WEAPON AI</span><strong data-system-investment="red">0</strong></div>
+            <div class="system-chip blue"><span>ANTI-GRAV</span><strong data-system-investment="blue">0</strong></div>
+            <div class="system-chip purple"><span>QUANTUM</span><strong data-system-investment="purple">0</strong></div>
+        </div>
+
+        <section class="wave-research-panel">
+            <div><strong>RELIC RESEARCH</strong><span>Allocate one recovered fragment. Effects remain unknown until awakening.</span></div>
+            <div id="waveResearchChoices" class="wave-research-choices"></div>
+        </section>
+
+        <div id="upgradeGrid" class="upgrade-system-grid">
+            <section class="upgrade-system-section system-panel-green" aria-labelledby="greenSystemTitle">
+                <header class="upgrade-system-header">
+                    <div><span class="system-symbol">◆</span><h2 id="greenSystemTitle">Nanobot Network</h2></div>
+                    <p>Hull integrity, repair, mitigation, and survival.</p>
+                </header>
+                <div class="upgrade-system-list">
+                    <button data-upgrade="maxHealth"></button>
+                    <button data-upgrade="healthRegen"></button>
+                    <button data-upgrade="lifeSteal"></button>
+                    <button data-upgrade="adaptivePlating"></button>
+                    <button data-upgrade="combatNanobots"></button>
+                    <button data-upgrade="livingColony"></button>
+                </div>
+            </section>
+
+            <section class="upgrade-system-section system-panel-red" aria-labelledby="redSystemTitle">
+                <header class="upgrade-system-header">
+                    <div><span class="system-symbol">◆</span><h2 id="redSystemTitle">Weapon AI Systems</h2></div>
+                    <p>Primary fire, cadence, targeting, and detonation logic.</p>
+                </header>
+                <div class="upgrade-system-list">
+                    <button data-upgrade="multiShot"></button>
+                    <button data-upgrade="damage"></button>
+                    <button data-upgrade="fireRate"></button>
+                    <button data-upgrade="bulletVelocity"></button>
+                    <button data-upgrade="explosive"></button>
+                    <button data-upgrade="cannonUnlock"></button>
+                    <button data-upgrade="cannonDamage"></button>
+                    <button data-upgrade="cannonRate"></button>
+                    <button data-upgrade="cannonVelocity"></button>
+                    <button data-upgrade="cannonWarhead"></button>
+                    <button data-upgrade="cannonCluster"></button>
+                    <button data-upgrade="cannonQuantum"></button>
+                    <button data-upgrade="predictiveTargeting"></button>
+                    <button data-upgrade="heatManagement"></button>
+                    <button data-upgrade="autonomousArsenal"></button>
+                </div>
+            </section>
+
+            <section class="upgrade-system-section system-panel-blue" aria-labelledby="blueSystemTitle">
+                <header class="upgrade-system-header">
+                    <div><span class="system-symbol">◆</span><h2 id="blueSystemTitle">Anti-Gravity Unit</h2></div>
+                    <p>Movement, handling, attraction fields, and boost duration.</p>
+                </header>
+                <div class="upgrade-system-list">
+                    <button data-upgrade="speed"></button>
+                    <button data-upgrade="magnet"></button>
+                    <button data-upgrade="boostCapacitor"></button>
+                    <button data-upgrade="inertialDampeners"></button>
+                    <button data-upgrade="zeroPointReactor"></button>
+                </div>
+            </section>
+
+            <section class="upgrade-system-section system-panel-purple" aria-labelledby="purpleSystemTitle">
+                <header class="upgrade-system-header">
+                    <div><span class="system-symbol">◆</span><h2 id="purpleSystemTitle">Quantum Processor</h2></div>
+                    <p>Autonomous missiles, orbital fields, and swarm intelligence.</p>
+                </header>
+                <div class="upgrade-system-list">
+                    <button data-upgrade="autoMissile"></button>
+                    <button data-upgrade="damageAura"></button>
+                    <button data-upgrade="riftPower"></button>
+                    <button data-upgrade="riftFrequency"></button>
+                    <button data-upgrade="combatHeuristics"></button>
+                    <button data-upgrade="swarmMatrix"></button>
+                    <button data-upgrade="distributedConsciousness"></button>
+                </div>
+            </section>
+
+            <section class="upgrade-system-section hybrid-system-section" aria-labelledby="hybridSystemTitle">
+                <header class="upgrade-system-header">
+                    <div><span class="system-symbol">✦</span><h2 id="hybridSystemTitle">Hybrid Research</h2></div>
+                    <p>Cross-system modules unlocked through investment in two branches.</p>
+                </header>
+                <div class="upgrade-system-list hybrid-upgrade-list">
+                    <button data-upgrade="adaptiveHull"></button>
+                    <button data-upgrade="combatAlgorithms"></button>
+                    <button data-upgrade="railAcceleration"></button>
+                    <button data-upgrade="livingDrones"></button>
+                </div>
+            </section>
+
+            <div class="upgrade-action-bar">
+                <button id="undoUpgradeButton" type="button" disabled>Undo Choices</button>
+                <button id="saveUpgradeMenuButton" class="upgrade-save-button" type="button">Save Game</button>
+                <button id="skipUpgradeButton" disabled>Select a Relic First</button>
+                <span id="upgradeSaveStatus" class="upgrade-save-status" role="status" aria-live="polite"></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Mobile/gamepad controls. Hidden automatically while menus are open. -->
+<div id="touchControls" class="touch-controls" aria-hidden="true">
+    <div class="touch-stick-zone touch-stick-left" data-stick="move" aria-label="Movement joystick">
+        <div class="touch-stick-base"><div class="touch-stick-knob"></div></div>
+        <span class="touch-stick-label">MOVE</span>
+    </div>
+    <div class="touch-stick-zone touch-stick-right" data-stick="aim" aria-label="Aim joystick">
+        <div class="touch-stick-base"><div class="touch-stick-knob"></div></div>
+        <span class="touch-stick-label">AIM</span>
+    </div>
+</div>
+<div id="inputStatus" class="input-status" aria-live="polite">Keyboard + Mouse</div>
+
+<div id="gameOverMenu">
+    <h1>Protocol Failed</h1>
+    <p>Final Signal Score: <span id="finalScore">0</span></p>
+    <p>Reached Wave: <span id="finalWave">1</span></p>
+    <button id="restartButton">Restart</button>
+</div>
+
+<script>
+/* Cursor fallback runs independently of every game subsystem. */
+(() => {
+    const cursor = document.getElementById("customCursor");
+    if (!cursor) return;
+    const move = (event) => {
+        cursor.style.transform = `translate3d(${event.clientX}px, ${event.clientY}px, 0) translate(-50%, -50%)`;
+        cursor.style.visibility = "visible";
+    };
+    window.addEventListener("pointermove", move, { passive: true, capture: true });
+    window.addEventListener("mousemove", move, { passive: true, capture: true });
+
+    // Splash navigation is deliberately independent from game.js so the player
+    // can always reach the main menu even if another subsystem fails to start.
+    const continueButton = document.getElementById("continueFromSplashButton");
+    const splashScreen = document.getElementById("splashScreen");
+    const startMenu = document.getElementById("startMenu");
+    if (continueButton && splashScreen && startMenu) {
+        const openMainMenu = (event) => {
+            event?.preventDefault?.();
+            event?.stopPropagation?.();
+            splashScreen.style.display = "none";
+            startMenu.style.display = "flex";
+        };
+        continueButton.addEventListener("click", openMainMenu);
+        continueButton.addEventListener("pointerup", openMainMenu);
+        continueButton.addEventListener("touchend", openMainMenu, { passive: false });
+    }
+
+    const creditsButton = document.getElementById("creditsButton");
+    const creditsOverlay = document.getElementById("creditsOverlay");
+    const creditsCloseButton = document.getElementById("creditsCloseButton");
+    const setCreditsOpen = (open) => {
+        if (!creditsOverlay) return;
+        creditsOverlay.hidden = !open;
+        creditsOverlay.setAttribute("aria-hidden", String(!open));
+        if (open) creditsCloseButton?.focus();
+        else creditsButton?.focus();
+    };
+    creditsButton?.addEventListener("click", () => setCreditsOpen(true));
+    creditsCloseButton?.addEventListener("click", () => setCreditsOpen(false));
+    creditsOverlay?.addEventListener("click", (event) => {
+        if (event.target === creditsOverlay) setCreditsOpen(false);
+    });
+    window.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && creditsOverlay && !creditsOverlay.hidden) setCreditsOpen(false);
+    });
+})();
+</script>
+
+
+
+<!-- Platform profile must load first so audio/rendering allocate the correct budgets. -->
+<script src="platformProfile.js"></script>
+<!-- Script order matters: the optional music API is exposed before game.js attempts to use it. -->
+<script src="musicEngine.js"></script>
+<!-- game.js owns the authoritative game state and must remain able to boot without music. -->
+<script src="game.js"></script>
+<script>
+window.addEventListener("load", () => {
+    const button = document.getElementById("startButton");
+    const status = document.getElementById("startupStatus");
+    if (typeof window.StarwakeLaunchProtocol !== "function") {
+        if (status) {
+            status.hidden = false;
+            status.textContent = "The game scripts did not initialize. Keep all versioned project files together in the extracted folder.";
+        }
+        if (button) button.textContent = "Game files not loaded";
+    }
+});
+</script>
+
+</body>
+</html>
