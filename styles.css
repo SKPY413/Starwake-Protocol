@@ -3241,3 +3241,64 @@ html.mobile-performance .splash-seal-wake {
 .touch-pause-button > span { display:block; width:100%; transform:translateY(-1px); text-align:center; font-size:24px; line-height:1; font-weight:900; letter-spacing:-4px; padding-right:4px; }
 @media (max-width:900px), (pointer:coarse) { .gameplay-seal { display:none; } }
 @media (prefers-reduced-motion:reduce) { .gameplay-seal * { animation:none!important; } }
+
+/* Green/Blue platform pass: preserve descriptive upgrade text without clipping. */
+@media (min-width: 901px) and (pointer: fine) and (min-height: 761px) {
+    .upgrade-system-section .upgrade-button {
+        aspect-ratio: auto !important;
+        min-height: 176px !important;
+        height: auto !important;
+    }
+    .upgrade-system-section .upgrade-description,
+    .upgrade-system-section .upgrade-stats {
+        display: block !important;
+        overflow: visible !important;
+        -webkit-line-clamp: unset !important;
+        min-height: 0;
+    }
+}
+
+/* Public information-page links rendered beside menu buttons. */
+.menu-link-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    color: inherit;
+    font: inherit;
+    border: 1px solid rgba(120,190,255,0.28);
+    border-radius: 10px;
+    padding: 10px 16px;
+    background: rgba(40,80,130,0.28);
+}
+.menu-link-button:hover { background: rgba(70,130,200,0.34); }
+
+/* Consent-ready public controls. Google renders the actual certified message. */
+.consent-settings-button {
+    font: inherit;
+    color: inherit;
+    border: 1px solid rgba(120, 190, 255, .28);
+    border-radius: 10px;
+    padding: 9px 13px;
+    background: rgba(70, 140, 255, .08);
+    text-decoration: none;
+}
+.consent-settings-button:hover,
+.consent-settings-button:focus-visible { background: rgba(70, 140, 255, .16); }
+.consent-status-toast {
+    position: fixed;
+    z-index: 100000;
+    left: 50%;
+    bottom: max(18px, env(safe-area-inset-bottom));
+    transform: translateX(-50%);
+    width: min(620px, calc(100% - 28px));
+    padding: 12px 14px;
+    border: 1px solid rgba(120, 190, 255, .42);
+    border-radius: 12px;
+    background: rgba(5, 10, 20, .97);
+    color: #eaf5ff;
+    box-shadow: 0 10px 34px rgba(0, 0, 0, .42);
+    font: 14px/1.45 system-ui, sans-serif;
+    cursor: auto;
+}
+.consent-status-toast[hidden] { display: none; }

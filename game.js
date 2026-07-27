@@ -185,6 +185,53 @@
             attackRatio: 0.60,
             orbitRatio: 0.10,
         }),
+        defensePlatforms: Object.freeze({
+            shieldBaseCapacity: 45,
+            shieldCapacityPerLevel: 22,
+            shieldBaseRechargePerSecond: 5,
+            shieldRechargePerLevel: 2.5,
+            shieldBaseRechargeDelayMs: 3200,
+            shieldDelayReductionPerLevelMs: 350,
+            shieldMinimumRechargeDelayMs: 1100,
+            shieldHardeningPerLevel: 0.04,
+            shieldHardeningMaximum: 0.24,
+        }),
+        mobilityPlatforms: Object.freeze({
+            thrusterBaseBonus: 0.35,
+            thrusterSpeedPerLevel: 0.22,
+            tractorBaseRadius: 190,
+            tractorRadiusPerLevel: 95,
+            tractorStrengthPerLevel: 0.055,
+            boostBaseDurationMultiplier: 1.35,
+            boostDurationPerLevel: 0.18,
+            boostSpeedPerLevel: 0.08,
+        }),
+        quantumPlatforms: Object.freeze({
+            missileBaseCount: 2,
+            missileBaseDamage: 24,
+            missileBaseCooldownMs: 1050,
+            missileMinimumCooldownMs: 380,
+            missileCooldownPerLevelMs: 85,
+            missileBaseSpeed: 6.4,
+            missileSpeedPerGuidanceLevel: 0.38,
+            missileBaseTurnRate: 0.10,
+            missileTurnPerGuidanceLevel: 0.018,
+            missileBaseBlastRadius: 58,
+            missileWarheadBonusRadius: 34,
+            missileBaseBlastDamageRatio: 0.45,
+            missileWarheadDamageRatio: 0.68,
+            auraBaseDamage: 18,
+            auraBaseRadius: 135,
+            auraBaseTickMs: 500,
+            auraMinimumTickMs: 220,
+            auraTickReductionPerLevelMs: 45,
+            auraDamagePerLevel: 12,
+            auraRadiusPerLevel: 24,
+            auraSlowMultiplier: 0.68,
+            auraSlowDurationMs: 420,
+            auraPulseEveryTicks: 4,
+            auraPulseDamageMultiplier: 1.8,
+        }),
         cannon: Object.freeze({
             baseShellSpeed: 10.5,
             velocityBonusPerLevel: 0.12,
@@ -306,15 +353,34 @@
         cannonRate:     { label: "CANNON CYCLE", icon: "⌁", system: "red", tier: "core", category: "offense", accent: "#ffe19a", description: "Reduces the cannon's independent reload delay without changing primary or spread fire.", baseCost: 175, growth: 1.52 },
         cannonVelocity: { label: "CANNON VELOCITY", icon: "➤", system: "red", tier: "core", category: "offense", accent: "#fff0bc", description: "Accelerates heavy shells so impacts arrive faster without changing other weapons.", baseCost: 225, growth: 1.72, maxLevel: 6 },
 
-        maxHealth:      { label: "NANOBOT HULL", icon: "♥", system: "green", tier: "core", category: "defense", accent: "#55e889", description: "Nanobots reinforce hull integrity and repair current damage.", baseCost: 140, growth: 1.25 },
-        healthRegen:    { label: "REPAIR SWARM", icon: "+", system: "green", tier: "core", category: "defense", accent: "#6dff9c", description: "Nanobots restore hull integrity after avoiding damage.", baseCost: 155, growth: 1.38 },
-        lifeSteal:      { label: "SALVAGE NANITES", icon: "♦", system: "green", tier: "core", category: "defense", accent: "#4fe584", description: "Weapon damage recovers fragments as healing energy.", baseCost: 250, growth: 1.55 },
+        shieldGenerator: { label: "SHIELD GENERATOR", icon: "⬡", system: "green", tier: "core", category: "defense", accent: "#62eaff", description: "Installs a rechargeable defensive barrier.", baseCost: 220, growth: 1, maxLevel: 1 },
+        shieldCapacity:  { label: "SHIELD CAPACITY", icon: "▰", system: "green", tier: "core", category: "defense", accent: "#70f2ff", description: "Adds more barrier strength.", baseCost: 145, growth: 1.48, maxLevel: 10, requires: { upgrade: "shieldGenerator" } },
+        shieldRecharge:  { label: "SHIELD RECHARGE", icon: "↻", system: "green", tier: "core", category: "defense", accent: "#55e8d3", description: "Restores shields faster.", baseCost: 165, growth: 1.52, maxLevel: 8, requires: { upgrade: "shieldGenerator" } },
+        shieldDelay:     { label: "RECHARGE DELAY", icon: "⌁", system: "green", tier: "core", category: "defense", accent: "#7affc0", description: "Recharge begins sooner after impact.", baseCost: 175, growth: 1.55, maxLevel: 6, requires: { upgrade: "shieldGenerator" } },
+        shieldHardening: { label: "SHIELD HARDENING", icon: "◆", system: "green", tier: "advanced", category: "defense", accent: "#a5ffe0", description: "Shields absorb damage more efficiently.", baseCost: 430, growth: 1.62, maxLevel: 6, requires: { upgrade: "shieldGenerator" } },
+        maxHealth:      { label: "REINFORCED HULL", icon: "♥", system: "green", tier: "core", category: "defense", accent: "#55e889", description: "Adds hull integrity and repairs damage.", baseCost: 140, growth: 1.25 },
+        healthRegen:    { label: "REPAIR SWARM", icon: "+", system: "green", tier: "core", category: "defense", accent: "#6dff9c", description: "Repairs hull after avoiding damage.", baseCost: 155, growth: 1.38 },
+        lifeSteal:      { label: "SALVAGE NANITES", icon: "♦", system: "green", tier: "core", category: "defense", accent: "#4fe584", description: "Weapon hits recover hull fragments.", baseCost: 250, growth: 1.55 },
 
-        speed:          { label: "ANTI-GRAVITY THRUST", icon: "⚡", system: "blue", tier: "core", category: "utility", accent: "#5cb8ff", description: "Raises permanent movement speed and handling authority.", baseCost: 85, growth: 1.32 },
-        magnet:         { label: "GRAVITY LENS", icon: "∩", system: "blue", tier: "core", category: "utility", accent: "#69d4ff", description: "Bends nearby pickups toward the ship.", baseCost: 95, growth: 1.45 },
+        thrusterPackage: { label: "THRUSTER PACKAGE", icon: "⚡", system: "blue", tier: "core", category: "utility", accent: "#5cb8ff", description: "Installs enhanced anti-gravity thrusters.", baseCost: 190, growth: 1, maxLevel: 1 },
+        speed:          { label: "THRUSTER OUTPUT", icon: "»", system: "blue", tier: "core", category: "utility", accent: "#72c8ff", description: "Raises movement speed and handling.", baseCost: 95, growth: 1.38, maxLevel: 10, requires: { upgrade: "thrusterPackage" } },
+        tractorBeam:    { label: "TRACTOR BEAM", icon: "∩", system: "blue", tier: "core", category: "utility", accent: "#69d4ff", description: "Installs a pickup attraction field.", baseCost: 180, growth: 1, maxLevel: 1 },
+        magnet:         { label: "TRACTOR RANGE", icon: "◎", system: "blue", tier: "core", category: "utility", accent: "#84e2ff", description: "Pulls pickups from farther away.", baseCost: 105, growth: 1.45, maxLevel: 10, requires: { upgrade: "tractorBeam" } },
+        boostSystem:    { label: "BOOSTER SYSTEM", icon: "↟", system: "blue", tier: "core", category: "utility", accent: "#4fb8ff", description: "Improves temporary speed pickups.", baseCost: 210, growth: 1, maxLevel: 1, requires: { upgrade: "thrusterPackage" } },
+        boostDuration:  { label: "BOOST DURATION", icon: "⌛", system: "blue", tier: "core", category: "utility", accent: "#63d7ff", description: "Keeps speed boosts active longer.", baseCost: 135, growth: 1.48, maxLevel: 8, requires: { upgrade: "boostSystem" } },
+        boostPower:     { label: "BOOST POWER", icon: "➤", system: "blue", tier: "core", category: "utility", accent: "#8de9ff", description: "Raises boosted movement speed.", baseCost: 155, growth: 1.52, maxLevel: 8, requires: { upgrade: "boostSystem" } },
 
-        autoMissile:    { label: "QUANTUM MISSILES", icon: "➹", system: "purple", tier: "core", category: "special", accent: "#c675ff", description: "Quantum processors launch autonomous homing missiles.", baseCost: 180, growth: 1.48 },
-        damageAura:     { label: "ORBITAL FIELD", icon: "◎", system: "purple", tier: "core", category: "special", accent: "#aa78ff", description: "Autonomous energy damages nearby threats.", baseCost: 165, growth: 1.42 },
+        autoMissile:       { label: "QUANTUM MISSILE BAY", icon: "➹", system: "purple", tier: "core", category: "special", accent: "#c675ff", description: "Installs an autonomous two-missile launch platform and unlocks dedicated missile research.", baseCost: 240, growth: 1, maxLevel: 1 },
+        missilePayload:    { label: "MISSILE PAYLOAD", icon: "◆", system: "purple", tier: "core", category: "special", accent: "#d18cff", description: "Increases direct and explosive damage for the independent missile platform.", baseCost: 155, growth: 1.52, requires: { upgrade: "autoMissile" } },
+        missileMagazine:   { label: "EXPANDED MAGAZINE", icon: "✦", system: "purple", tier: "core", category: "special", accent: "#ca7dff", description: "Adds another autonomous missile to every launch cycle.", baseCost: 190, growth: 1.62, maxLevel: 8, requires: { upgrade: "autoMissile" } },
+        missileFabricator: { label: "FASTER FABRICATORS", icon: "⌁", system: "purple", tier: "core", category: "special", accent: "#b96fff", description: "Reduces the missile bay's independent manufacturing and launch delay.", baseCost: 175, growth: 1.55, maxLevel: 8, requires: { upgrade: "autoMissile" } },
+        missileGuidance:   { label: "QUANTUM GUIDANCE", icon: "⌖", system: "purple", tier: "core", category: "special", accent: "#e0b0ff", description: "Improves missile speed, turn authority, and target reacquisition.", baseCost: 205, growth: 1.58, maxLevel: 6, requires: { upgrade: "autoMissile" } },
+
+        damageAura:        { label: "ORBITAL FIELD GENERATOR", icon: "◎", system: "purple", tier: "core", category: "special", accent: "#aa78ff", description: "Installs a persistent close-range Quantum field and unlocks dedicated field research.", baseCost: 225, growth: 1, maxLevel: 1 },
+        auraPower:         { label: "FIELD DENSITY", icon: "◉", system: "purple", tier: "core", category: "special", accent: "#b88cff", description: "Raises the damage applied by each orbital-field pulse.", baseCost: 150, growth: 1.48, requires: { upgrade: "damageAura" } },
+        auraRadius:        { label: "FIELD RESONANCE", icon: "◌", system: "purple", tier: "core", category: "special", accent: "#a978ff", description: "Expands the orbital field's effective radius.", baseCost: 170, growth: 1.52, maxLevel: 8, requires: { upgrade: "damageAura" } },
+        auraCycle:         { label: "FIELD CYCLING", icon: "≋", system: "purple", tier: "core", category: "special", accent: "#c69cff", description: "Shortens the interval between independent field pulses.", baseCost: 185, growth: 1.56, maxLevel: 7, requires: { upgrade: "damageAura" } },
+
         riftPower:      { label: "RIFT INTENSITY", icon: "◌", system: "purple", tier: "core", category: "special", accent: "#7ee7ff", description: "Raises the damage of Quantum Rift event horizons.", baseCost: 210, growth: 1.52 },
         riftFrequency:  { label: "RIFT CASCADE", icon: "⌁", system: "purple", tier: "core", category: "special", accent: "#9bcfff", description: "Rifts open faster and remain active longer.", baseCost: 245, growth: 1.58 },
 
@@ -334,9 +400,9 @@
         inertialDampeners: { label: "INERTIAL DAMPENERS", icon: "◈", system: "blue", tier: "experimental", category: "utility", accent: "#76ddff", description: "Improves handling and weakens hostile slowing effects.", baseCost: 760, growth: 1, maxLevel: 1, requires: { system: "blue", investment: 6, upgrade: "boostCapacitor" } },
         zeroPointReactor: { label: "ZERO-POINT REACTOR", icon: "◉", system: "blue", tier: "capstone", category: "utility", accent: "#c4f4ff", description: "Massively improves speed and gravity-lens reach.", baseCost: 1350, growth: 1, maxLevel: 1, requires: { system: "blue", investment: 9, upgrade: "inertialDampeners" } },
 
-        combatHeuristics: { label: "COMBAT HEURISTICS", icon: "◇", system: "purple", tier: "advanced", category: "special", accent: "#bd78ff", description: "Autonomous missiles launch faster and hit harder.", baseCost: 420, growth: 1, maxLevel: 1, requires: { system: "purple", investment: 3 } },
-        swarmMatrix: { label: "SWARM MATRIX", icon: "✧", system: "purple", tier: "experimental", category: "special", accent: "#d192ff", description: "Adds autonomous missiles and expands the orbital field.", baseCost: 760, growth: 1, maxLevel: 1, requires: { system: "purple", investment: 6, upgrade: "combatHeuristics" } },
-        distributedConsciousness: { label: "DISTRIBUTED CONSCIOUSNESS", icon: "✣", system: "purple", tier: "capstone", category: "special", accent: "#efd6ff", description: "The autonomous swarm gains three missiles and major damage.", baseCost: 1350, growth: 1, maxLevel: 1, requires: { system: "purple", investment: 9, upgrade: "swarmMatrix" } },
+        combatHeuristics: { label: "HEAVY QUANTUM WARHEADS", icon: "◇", system: "purple", tier: "advanced", category: "special", accent: "#bd78ff", description: "Missile impacts gain a larger blast and convert more payload energy into splash damage.", baseCost: 520, growth: 1, maxLevel: 1, requires: { system: "purple", investment: 4, upgrade: "autoMissile" } },
+        swarmMatrix: { label: "ENTROPIC FIELD", icon: "✧", system: "purple", tier: "experimental", category: "special", accent: "#d192ff", description: "Enemies inside the orbital field are slowed while repeated pulses destabilize them.", baseCost: 900, growth: 1, maxLevel: 1, requires: { system: "purple", investment: 7, upgrade: "damageAura" } },
+        distributedConsciousness: { label: "DISTRIBUTED CONSCIOUSNESS", icon: "✣", system: "purple", tier: "capstone", category: "special", accent: "#efd6ff", description: "Missile targeting coordinates across the swarm and every fourth orbital pulse erupts with amplified Quantum damage.", baseCost: 1550, growth: 1, maxLevel: 1, requires: { system: "purple", investment: 11, upgrades: ["combatHeuristics", "swarmMatrix"] } },
 
         adaptiveHull: { label: "ADAPTIVE HULL", icon: "♢", system: "hybrid", tier: "hybrid", category: "defense", accent: "#62f0ce", description: "Green + Blue: health pickups also grant a short speed boost.", baseCost: 680, growth: 1, maxLevel: 1, requires: { systems: { green: 3, blue: 3 } } },
         combatAlgorithms: { label: "COMBAT ALGORITHMS", icon: "⌘", system: "hybrid", tier: "hybrid", category: "special", accent: "#ff73cc", description: "Red + Purple: autonomous missiles inherit extra weapon damage.", baseCost: 680, growth: 1, maxLevel: 1, requires: { systems: { red: 3, purple: 3 } } },
@@ -2300,11 +2366,16 @@
         missileCount: 0,
         missileDamage: 0,
         missileCooldown: 950,
+        missileSpeed: GAMEPLAY_CONSTANTS.quantumPlatforms.missileBaseSpeed,
+        missileTurnRate: GAMEPLAY_CONSTANTS.quantumPlatforms.missileBaseTurnRate,
+        missileExplosionRadius: GAMEPLAY_CONSTANTS.quantumPlatforms.missileBaseBlastRadius,
+        missileExplosionDamageRatio: GAMEPLAY_CONSTANTS.quantumPlatforms.missileBaseBlastDamageRatio,
         lastMissileAt: 0,
         auraLevel: 0,
         auraDamage: 0,
         auraRadius: 0,
         auraTickRate: 500,
+        auraPulseCounter: 0,
         lastAuraTickAt: 0,
         regenLevel: 0,
         regenAmount: 0,
@@ -2323,7 +2394,14 @@
         damageReduction: 0,
         shield: 0,
         maxShield: 0,
+        shieldRechargePerSecond: 0,
+        shieldRechargeDelayMs: 3200,
+        shieldHardening: 0,
+        shieldImpactUntil: 0,
+        shieldBreakUntil: 0,
+        shieldRestoreUntil: 0,
         boostDurationMultiplier: 1,
+        boostSpeedMultiplier: 1,
         slowResistance: 1,
         autonomousDamageMultiplier: 1,
         autonomousArsenal: false,
@@ -2364,6 +2442,10 @@
         }
         if (requirement.upgrade && !upgradeLevels[requirement.upgrade]) {
             return `Requires ${UPGRADE_DATA[requirement.upgrade].label}`;
+        }
+        if (requirement.upgrades) {
+            const missing = requirement.upgrades.filter(upgrade => !upgradeLevels[upgrade]);
+            if (missing.length) return `Requires ${missing.map(upgrade => UPGRADE_DATA[upgrade].label).join(" + ")}`;
         }
         return null;
     }
@@ -3418,27 +3500,82 @@
                 player.cannonVelocity = Math.min(6, player.cannonVelocity + 1);
                 ui.weapon.textContent = `Cannon velocity +${player.cannonVelocity * 12}%`;
             },
+            shieldGenerator: () => {
+                player.maxShield = Math.max(player.maxShield, GAMEPLAY_CONSTANTS.defensePlatforms.shieldBaseCapacity);
+                player.shield = player.maxShield;
+                player.shieldRechargePerSecond = Math.max(player.shieldRechargePerSecond, GAMEPLAY_CONSTANTS.defensePlatforms.shieldBaseRechargePerSecond);
+                player.shieldRechargeDelayMs = Math.min(player.shieldRechargeDelayMs || Infinity, GAMEPLAY_CONSTANTS.defensePlatforms.shieldBaseRechargeDelayMs);
+                player.shieldRestoreUntil = performance.now() + 700;
+                ui.weapon.textContent = "Shield Generator Online";
+            },
+            shieldCapacity: () => {
+                player.maxShield += GAMEPLAY_CONSTANTS.defensePlatforms.shieldCapacityPerLevel;
+                player.shield = Math.min(player.maxShield, player.shield + GAMEPLAY_CONSTANTS.defensePlatforms.shieldCapacityPerLevel);
+            },
+            shieldRecharge: () => { player.shieldRechargePerSecond += GAMEPLAY_CONSTANTS.defensePlatforms.shieldRechargePerLevel; },
+            shieldDelay: () => {
+                player.shieldRechargeDelayMs = Math.max(GAMEPLAY_CONSTANTS.defensePlatforms.shieldMinimumRechargeDelayMs, player.shieldRechargeDelayMs - GAMEPLAY_CONSTANTS.defensePlatforms.shieldDelayReductionPerLevelMs);
+            },
+            shieldHardening: () => {
+                player.shieldHardening = Math.min(GAMEPLAY_CONSTANTS.defensePlatforms.shieldHardeningMaximum, player.shieldHardening + GAMEPLAY_CONSTANTS.defensePlatforms.shieldHardeningPerLevel);
+            },
+            thrusterPackage: () => {
+                player.speed += GAMEPLAY_CONSTANTS.mobilityPlatforms.thrusterBaseBonus;
+                ui.weapon.textContent = "Thruster Package Online";
+            },
             speed: () => {
-                player.speed += 0.28;
-                ui.weapon.textContent = "Swift";
+                player.speed += GAMEPLAY_CONSTANTS.mobilityPlatforms.thrusterSpeedPerLevel;
+                ui.weapon.textContent = "Thruster Output Increased";
+            },
+            tractorBeam: () => {
+                player.pointMagnetRadius = Math.max(player.pointMagnetRadius, GAMEPLAY_CONSTANTS.mobilityPlatforms.tractorBaseRadius);
+                ui.weapon.textContent = "Tractor Beam Online";
             },
             magnet: () => {
-                player.pointMagnetRadius += 85;
-                player.pointMagnetStrength += 0.055;
-                ui.weapon.textContent = "Collector";
+                player.pointMagnetRadius += GAMEPLAY_CONSTANTS.mobilityPlatforms.tractorRadiusPerLevel;
+                player.pointMagnetStrength += GAMEPLAY_CONSTANTS.mobilityPlatforms.tractorStrengthPerLevel;
+                ui.weapon.textContent = "Tractor Range Increased";
             },
+            boostSystem: () => {
+                player.boostDurationMultiplier = Math.max(player.boostDurationMultiplier, GAMEPLAY_CONSTANTS.mobilityPlatforms.boostBaseDurationMultiplier);
+                ui.weapon.textContent = "Booster System Online";
+            },
+            boostDuration: () => { player.boostDurationMultiplier += GAMEPLAY_CONSTANTS.mobilityPlatforms.boostDurationPerLevel; },
+            boostPower: () => { player.boostSpeedMultiplier += GAMEPLAY_CONSTANTS.mobilityPlatforms.boostSpeedPerLevel; },
             autoMissile: () => {
-                player.missileLevel++;
-                player.missileDamage += 9;
-                player.missileCount = Math.max(1, Math.ceil(player.missileLevel / 3));
-                player.missileCooldown = Math.max(520, 950 - player.missileLevel * 18);
-                ui.weapon.textContent = `Missiles x${player.missileCount}`;
+                player.missileLevel = Math.max(1, player.missileLevel);
+                player.missileCount = Math.max(player.missileCount, GAMEPLAY_CONSTANTS.quantumPlatforms.missileBaseCount);
+                player.missileDamage = Math.max(player.missileDamage, GAMEPLAY_CONSTANTS.quantumPlatforms.missileBaseDamage);
+                player.missileCooldown = Math.min(player.missileCooldown, GAMEPLAY_CONSTANTS.quantumPlatforms.missileBaseCooldownMs);
+                player.missileSpeed = Math.max(player.missileSpeed || 0, GAMEPLAY_CONSTANTS.quantumPlatforms.missileBaseSpeed);
+                player.missileTurnRate = Math.max(player.missileTurnRate || 0, GAMEPLAY_CONSTANTS.quantumPlatforms.missileBaseTurnRate);
+                player.missileExplosionRadius = Math.max(player.missileExplosionRadius || 0, GAMEPLAY_CONSTANTS.quantumPlatforms.missileBaseBlastRadius);
+                player.missileExplosionDamageRatio = Math.max(player.missileExplosionDamageRatio || 0, GAMEPLAY_CONSTANTS.quantumPlatforms.missileBaseBlastDamageRatio);
+                ui.weapon.textContent = "Quantum Missile Bay Online";
+            },
+            missilePayload: () => { player.missileDamage += 10; ui.weapon.textContent = `Missile payload ${player.missileDamage}`; },
+            missileMagazine: () => { player.missileCount += 1; ui.weapon.textContent = `Missile magazine x${player.missileCount}`; },
+            missileFabricator: () => {
+                player.missileCooldown = Math.max(GAMEPLAY_CONSTANTS.quantumPlatforms.missileMinimumCooldownMs, player.missileCooldown - GAMEPLAY_CONSTANTS.quantumPlatforms.missileCooldownPerLevelMs);
+                ui.weapon.textContent = `Missile cycle ${Math.round(player.missileCooldown)} ms`;
+            },
+            missileGuidance: () => {
+                player.missileSpeed += GAMEPLAY_CONSTANTS.quantumPlatforms.missileSpeedPerGuidanceLevel;
+                player.missileTurnRate += GAMEPLAY_CONSTANTS.quantumPlatforms.missileTurnPerGuidanceLevel;
+                ui.weapon.textContent = `Quantum guidance ${upgradeLevels.missileGuidance}`;
             },
             damageAura: () => {
-                player.auraLevel++;
-                player.auraDamage += 22;
-                player.auraRadius = 135 + Math.floor((player.auraLevel - 1) / 4) * 28;
-                ui.weapon.textContent = `Aura ${player.auraRadius}px / ${player.auraDamage} dmg`;
+                player.auraLevel = Math.max(1, player.auraLevel);
+                player.auraDamage = Math.max(player.auraDamage, GAMEPLAY_CONSTANTS.quantumPlatforms.auraBaseDamage);
+                player.auraRadius = Math.max(player.auraRadius, GAMEPLAY_CONSTANTS.quantumPlatforms.auraBaseRadius);
+                player.auraTickRate = Math.min(player.auraTickRate, GAMEPLAY_CONSTANTS.quantumPlatforms.auraBaseTickMs);
+                ui.weapon.textContent = "Orbital Field Generator Online";
+            },
+            auraPower: () => { player.auraDamage += GAMEPLAY_CONSTANTS.quantumPlatforms.auraDamagePerLevel; ui.weapon.textContent = `Field density ${player.auraDamage}`; },
+            auraRadius: () => { player.auraRadius += GAMEPLAY_CONSTANTS.quantumPlatforms.auraRadiusPerLevel; ui.weapon.textContent = `Field resonance ${player.auraRadius}px`; },
+            auraCycle: () => {
+                player.auraTickRate = Math.max(GAMEPLAY_CONSTANTS.quantumPlatforms.auraMinimumTickMs, player.auraTickRate - GAMEPLAY_CONSTANTS.quantumPlatforms.auraTickReductionPerLevelMs);
+                ui.weapon.textContent = `Field cycle ${Math.round(player.auraTickRate)} ms`;
             },
             riftPower: () => { ui.weapon.textContent = `Rift intensity ${upgradeLevels.riftPower + 1}`; },
             riftFrequency: () => { ui.weapon.textContent = `Rift cascade ${upgradeLevels.riftFrequency + 1}`; },
@@ -3468,12 +3605,20 @@
             cannonWarhead: () => { ui.weapon.textContent = "Cannon Warhead Online"; },
             cannonCluster: () => { ui.weapon.textContent = "Four-Round Dispersal Online"; },
             cannonQuantum: () => { ui.weapon.textContent = "Quantum Cannon Online"; },
-            boostCapacitor: () => { player.speed += 0.35; player.boostDurationMultiplier = 1.5; },
+            boostCapacitor: () => { player.speed += 0.35; player.boostDurationMultiplier = Math.max(player.boostDurationMultiplier, 1.5); },
             inertialDampeners: () => { player.speed += 0.25; player.slowResistance = 0.65; },
             zeroPointReactor: () => { player.speed += 0.55; player.pointMagnetRadius += 160; },
-            combatHeuristics: () => { player.missileCooldown = Math.max(380, player.missileCooldown * 0.78); player.missileDamage += 18; },
-            swarmMatrix: () => { player.missileCount += 2; player.auraRadius += 55; },
-            distributedConsciousness: () => { player.missileCount += 3; player.missileDamage += 40; player.auraDamage += 45; },
+            combatHeuristics: () => {
+                player.missileExplosionRadius = GAMEPLAY_CONSTANTS.quantumPlatforms.missileBaseBlastRadius + GAMEPLAY_CONSTANTS.quantumPlatforms.missileWarheadBonusRadius;
+                player.missileExplosionDamageRatio = GAMEPLAY_CONSTANTS.quantumPlatforms.missileWarheadDamageRatio;
+            },
+            swarmMatrix: () => { ui.weapon.textContent = "Entropic Field Online"; },
+            distributedConsciousness: () => {
+                player.missileCount += 2;
+                player.missileDamage += 24;
+                player.auraDamage += 24;
+                ui.weapon.textContent = "Distributed Consciousness Online";
+            },
             adaptiveHull: () => { player.adaptiveHull = true; player.maxHealth += 20; },
             combatAlgorithms: () => { player.autonomousDamageMultiplier = 1.25; player.missileDamage = Math.round(player.missileDamage * 1.25); },
             railAcceleration: () => { player.bulletSpeed += 3; player.damage += 6; },
@@ -3508,20 +3653,30 @@
             cannonWarhead: () => `${next ? "Next" : "Current"}: ${next || upgradeLevels.cannonWarhead ? "96px fixed blast" : "inactive"}`,
             cannonCluster: () => `${next ? "Next" : "Current"}: ${next || upgradeLevels.cannonCluster ? "4 explosive sub-rounds" : "inactive"}`,
             cannonQuantum: () => `${next ? "Next" : "Current"}: ${next || upgradeLevels.cannonQuantum ? "Quantum damage" : "Weapon damage"}`,
-            speed: () => `${next ? "Next" : "Current"}: ${value(player.speed, 0.28).toFixed(2)} move speed`,
-            magnet: () => `${next ? "Next" : "Current"}: ${value(player.pointMagnetRadius, 85)}px range`,
-            autoMissile: () => {
-                const nextLevel = player.missileLevel + (next ? 1 : 0);
-                const count = nextLevel > 0 ? Math.max(1, Math.ceil(nextLevel / 3)) : 0;
-                const damage = player.missileDamage + (next ? 9 : 0);
-                return `${next ? "Next" : "Current"}: ${count} missile${count === 1 ? "" : "s"} / ${damage} dmg`;
-            },
-            damageAura: () => {
-                const nextLevel = player.auraLevel + (next ? 1 : 0);
-                const radius = nextLevel > 0 ? 135 + Math.floor((nextLevel - 1) / 4) * 28 : 0;
-                const damage = player.auraDamage + (next ? 22 : 0);
-                return `${next ? "Next" : "Current"}: ${damage} dmg / ${radius}px radius`;
-            },
+            shieldGenerator: () => `${next ? "Next" : "Current"}: ${next || upgradeLevels.shieldGenerator ? "barrier online" : "offline"}`,
+            shieldCapacity: () => `${next ? "Next" : "Current"}: ${player.maxShield + (next ? GAMEPLAY_CONSTANTS.defensePlatforms.shieldCapacityPerLevel : 0)} shield`,
+            shieldRecharge: () => `${next ? "Next" : "Current"}: ${(player.shieldRechargePerSecond + (next ? GAMEPLAY_CONSTANTS.defensePlatforms.shieldRechargePerLevel : 0)).toFixed(1)} shield/s`,
+            shieldDelay: () => `${next ? "Next" : "Current"}: ${Math.max(GAMEPLAY_CONSTANTS.defensePlatforms.shieldMinimumRechargeDelayMs, player.shieldRechargeDelayMs - (next ? GAMEPLAY_CONSTANTS.defensePlatforms.shieldDelayReductionPerLevelMs : 0))} ms delay`,
+            shieldHardening: () => `${next ? "Next" : "Current"}: ${Math.round(Math.min(GAMEPLAY_CONSTANTS.defensePlatforms.shieldHardeningMaximum, player.shieldHardening + (next ? GAMEPLAY_CONSTANTS.defensePlatforms.shieldHardeningPerLevel : 0)) * 100)}% barrier efficiency`,
+            thrusterPackage: () => `${next ? "Next" : "Current"}: ${next || upgradeLevels.thrusterPackage ? "thrusters online" : "offline"}`,
+            speed: () => `${next ? "Next" : "Current"}: ${value(player.speed, GAMEPLAY_CONSTANTS.mobilityPlatforms.thrusterSpeedPerLevel).toFixed(2)} move speed`,
+            tractorBeam: () => `${next ? "Next" : "Current"}: ${next || upgradeLevels.tractorBeam ? "tractor online" : "offline"}`,
+            magnet: () => `${next ? "Next" : "Current"}: ${value(player.pointMagnetRadius, GAMEPLAY_CONSTANTS.mobilityPlatforms.tractorRadiusPerLevel)}px range`,
+            boostSystem: () => `${next ? "Next" : "Current"}: ${next || upgradeLevels.boostSystem ? "booster online" : "offline"}`,
+            boostDuration: () => `${next ? "Next" : "Current"}: ${(player.boostDurationMultiplier + (next ? GAMEPLAY_CONSTANTS.mobilityPlatforms.boostDurationPerLevel : 0)).toFixed(2)}x duration`,
+            boostPower: () => `${next ? "Next" : "Current"}: ${(player.boostSpeedMultiplier + (next ? GAMEPLAY_CONSTANTS.mobilityPlatforms.boostSpeedPerLevel : 0)).toFixed(2)}x boost power`,
+            autoMissile: () => `${next ? "Next" : "Current"}: ${next || upgradeLevels.autoMissile ? `${Math.max(player.missileCount, GAMEPLAY_CONSTANTS.quantumPlatforms.missileBaseCount)} missiles online` : "offline"}`,
+            missilePayload: () => `${next ? "Next" : "Current"}: ${player.missileDamage + (next ? 10 : 0)} direct damage`,
+            missileMagazine: () => `${next ? "Next" : "Current"}: ${player.missileCount + (next ? 1 : 0)} missiles per cycle`,
+            missileFabricator: () => `${next ? "Next" : "Current"}: ${Math.max(GAMEPLAY_CONSTANTS.quantumPlatforms.missileMinimumCooldownMs, player.missileCooldown - (next ? GAMEPLAY_CONSTANTS.quantumPlatforms.missileCooldownPerLevelMs : 0))} ms cycle`,
+            missileGuidance: () => `${next ? "Next" : "Current"}: ${(player.missileSpeed + (next ? GAMEPLAY_CONSTANTS.quantumPlatforms.missileSpeedPerGuidanceLevel : 0)).toFixed(2)} speed / ${(player.missileTurnRate + (next ? GAMEPLAY_CONSTANTS.quantumPlatforms.missileTurnPerGuidanceLevel : 0)).toFixed(3)} turn`,
+            damageAura: () => `${next ? "Next" : "Current"}: ${next || upgradeLevels.damageAura ? `${Math.max(player.auraDamage, GAMEPLAY_CONSTANTS.quantumPlatforms.auraBaseDamage)} dmg / ${Math.max(player.auraRadius, GAMEPLAY_CONSTANTS.quantumPlatforms.auraBaseRadius)}px` : "offline"}`,
+            auraPower: () => `${next ? "Next" : "Current"}: ${player.auraDamage + (next ? GAMEPLAY_CONSTANTS.quantumPlatforms.auraDamagePerLevel : 0)} pulse damage`,
+            auraRadius: () => `${next ? "Next" : "Current"}: ${player.auraRadius + (next ? GAMEPLAY_CONSTANTS.quantumPlatforms.auraRadiusPerLevel : 0)}px radius`,
+            auraCycle: () => `${next ? "Next" : "Current"}: ${Math.max(GAMEPLAY_CONSTANTS.quantumPlatforms.auraMinimumTickMs, player.auraTickRate - (next ? GAMEPLAY_CONSTANTS.quantumPlatforms.auraTickReductionPerLevelMs : 0))} ms cycle`,
+            combatHeuristics: () => `${next ? "Next" : "Current"}: ${next || upgradeLevels.combatHeuristics ? `${GAMEPLAY_CONSTANTS.quantumPlatforms.missileBaseBlastRadius + GAMEPLAY_CONSTANTS.quantumPlatforms.missileWarheadBonusRadius}px heavy blast` : "standard warhead"}`,
+            swarmMatrix: () => `${next ? "Next" : "Current"}: ${next || upgradeLevels.swarmMatrix ? "field slows enemies" : "damage only"}`,
+            distributedConsciousness: () => `${next ? "Next" : "Current"}: ${next || upgradeLevels.distributedConsciousness ? "coordinated swarm + amplified fourth pulse" : "independent platforms"}`,
             riftPower: () => `${next ? "Next" : "Current"}: ${Math.round((1 + (upgradeLevels.riftPower + (next ? 1 : 0)) * 0.16) * 100)}% quantum damage`,
             riftFrequency: () => `${next ? "Next" : "Current"}: ${upgradeLevels.riftFrequency + (next ? 1 : 0)} cascade investment`,
             healthRegen: () => `${next ? "Next" : "Current"}: ${(player.regenPerSecond + (next ? 0.15 : 0)).toFixed(2)} HP/s`,
@@ -3546,8 +3701,29 @@
             const isRiftDependent = type === "riftPower" || type === "riftFrequency";
             const riftUnlocked = Boolean(relicResearch.relic_purple_01?.awakened || (relicResearch.relic_purple_01?.stage || 0) > 0);
             const cannonUnlocked = Boolean(upgradeLevels.cannonUnlock || player.cannonDamage > 0);
+            const missileUnlocked = Boolean(upgradeLevels.autoMissile || player.missileCount > 0);
+            const auraUnlocked = Boolean(upgradeLevels.damageAura || player.auraLevel > 0);
+            const shieldUnlocked = Boolean(upgradeLevels.shieldGenerator || player.maxShield > 0);
+            const thrustersUnlocked = Boolean(upgradeLevels.thrusterPackage);
+            const tractorUnlocked = Boolean(upgradeLevels.tractorBeam);
+            const boosterUnlocked = Boolean(upgradeLevels.boostSystem);
+            const isShieldDependent = ["shieldCapacity", "shieldRecharge", "shieldDelay", "shieldHardening"].includes(type);
+            const isThrusterDependent = ["speed", "boostSystem", "boostCapacitor", "inertialDampeners", "zeroPointReactor"].includes(type);
+            const isTractorDependent = type === "magnet";
+            const isBoosterDependent = ["boostDuration", "boostPower"].includes(type);
             const isCannonDependent = ["cannonDamage", "cannonRate", "cannonVelocity", "cannonWarhead", "cannonCluster", "cannonQuantum"].includes(type);
-            button.hidden = (isRiftDependent && !riftUnlocked) || (isCannonDependent && !cannonUnlocked);
+            const isMissileDependent = ["missilePayload", "missileMagazine", "missileFabricator", "missileGuidance", "combatHeuristics"].includes(type);
+            const isAuraDependent = ["auraPower", "auraRadius", "auraCycle", "swarmMatrix"].includes(type);
+            const isDualQuantumDependent = type === "distributedConsciousness";
+            button.hidden = (isRiftDependent && !riftUnlocked)
+                || (isShieldDependent && !shieldUnlocked)
+                || (isThrusterDependent && !thrustersUnlocked)
+                || (isTractorDependent && !tractorUnlocked)
+                || (isBoosterDependent && !boosterUnlocked)
+                || (isCannonDependent && !cannonUnlocked)
+                || (isMissileDependent && !missileUnlocked)
+                || (isAuraDependent && !auraUnlocked)
+                || (isDualQuantumDependent && (!missileUnlocked || !auraUnlocked));
             if (button.hidden) continue;
 
             const lockReason = getResearchLock(type);
@@ -3582,7 +3758,7 @@
      */
     function getPlayerMoveSpeed(now) {
         let speed = player.speed;
-        if (now < player.speedBoostUntil) speed *= 1.45;
+        if (now < player.speedBoostUntil) speed *= 1.45 * (player.boostSpeedMultiplier || 1);
         if (now < player.slowUntil) speed *= player.slowMultiplier;
         return speed;
     }
@@ -3631,6 +3807,15 @@
         const speed = getPlayerMoveSpeed(now);
         player.x += dx * speed * frameScale;
         player.y += dy * speed * frameScale;
+
+        if (player.maxShield > 0 && player.shield < player.maxShield) {
+            const sinceDamage = now - (player.lastDamageAt || -999999);
+            if (sinceDamage >= (player.shieldRechargeDelayMs || GAMEPLAY_CONSTANTS.defensePlatforms.shieldBaseRechargeDelayMs)) {
+                const previousShield = player.shield;
+                player.shield = Math.min(player.maxShield, player.shield + (player.shieldRechargePerSecond || 0) * elapsedMs / 1000);
+                if (previousShield <= 0 && player.shield > 0) player.shieldRestoreUntil = now + 700;
+            }
+        }
         keepPlayerInWorld();
     }
 
@@ -3728,13 +3913,13 @@
                 x: player.x + Math.cos(angle) * 30,
                 y: player.y + Math.sin(angle) * 30,
                 r: GAMEPLAY_CONSTANTS.cannon.shellRadius,
-                dx: Math.cos(angle) * 6.4,
-                dy: Math.sin(angle) * 6.4,
-                speed: 6.4,
-                turnRate: 0.12,
+                dx: Math.cos(angle) * player.missileSpeed,
+                dy: Math.sin(angle) * player.missileSpeed,
+                speed: player.missileSpeed,
+                turnRate: player.missileTurnRate,
                 damage: player.missileDamage,
-                explosionRadius: 58 + Math.floor(player.missileLevel / 4) * 6,
-                explosionDamage: Math.max(4, Math.floor(player.missileDamage * 0.45)),
+                explosionRadius: player.missileExplosionRadius,
+                explosionDamage: Math.max(4, Math.floor(player.missileDamage * player.missileExplosionDamageRatio)),
                 life: 190,
                 target,
             });
@@ -3817,6 +4002,9 @@
         if (now - player.lastAuraTickAt < player.auraTickRate) return;
 
         player.lastAuraTickAt = now;
+        player.auraPulseCounter = (player.auraPulseCounter || 0) + 1;
+        const amplifiedPulse = Boolean(upgradeLevels.distributedConsciousness && player.auraPulseCounter % GAMEPLAY_CONSTANTS.quantumPlatforms.auraPulseEveryTicks === 0);
+        const pulseDamage = Math.round(player.auraDamage * (amplifiedPulse ? GAMEPLAY_CONSTANTS.quantumPlatforms.auraPulseDamageMultiplier : 1));
         let hitSomething = false;
 
         for (let i = enemies.length - 1; i >= 0; i--) {
@@ -3825,15 +4013,16 @@
             if (distance(player, enemy) > player.auraRadius + enemy.r) continue;
 
             enemy.auraFlashUntil = now + 180;
-            damageEnemy(i, player.auraDamage, "aura");
-            addDamageNumber(enemy.x, enemy.y - enemy.r - 12, player.auraDamage, "#63d7ff");
+            if (upgradeLevels.swarmMatrix) enemy.relicSlowUntil = Math.max(enemy.relicSlowUntil || 0, now + GAMEPLAY_CONSTANTS.quantumPlatforms.auraSlowDurationMs);
+            damageEnemy(i, pulseDamage, "aura");
+            addDamageNumber(enemy.x, enemy.y - enemy.r - 12, pulseDamage, amplifiedPulse ? "#f2c5ff" : "#63d7ff");
             hitSomething = true;
         }
 
         if (hitSomething) {
             particles.push({
                 x: player.x, y: player.y, dx: 0, dy: 0, r: player.auraRadius,
-                color: "#63d7ff", life: 16, maxLife: 16, auraRing: true,
+                color: amplifiedPulse ? "#f2c5ff" : "#63d7ff", life: amplifiedPulse ? 24 : 16, maxLife: amplifiedPulse ? 24 : 16, auraRing: true,
             });
         }
     }
@@ -4422,7 +4611,7 @@
 
             updateEnemyEvolution(enemy, now);
             const movement = getEnemyMovement(enemy, now);
-            const speedMultiplier = (enemy.speedMultiplier || 1) * (now < (enemy.relicSlowUntil || 0) ? 0.55 : 1);
+            const speedMultiplier = (enemy.speedMultiplier || 1) * (now < (enemy.relicSlowUntil || 0) ? GAMEPLAY_CONSTANTS.quantumPlatforms.auraSlowMultiplier : 1);
             const evolutionMoveMultiplier = enemy.blinkChargeUntil ? 0.18 : 1;
 
             enemy.x = clamp(enemy.x + movement.x * enemy.speed * speedMultiplier * evolutionMoveMultiplier, enemy.r, WORLD.width - enemy.r);
@@ -5439,20 +5628,24 @@
     function damagePlayer(amount) {
         const reducedAmount = Math.max(1, amount * (1 - player.damageReduction));
         if (player.shield > 0) {
-            const absorbed = Math.min(player.shield, reducedAmount);
+            const hardenedAmount = reducedAmount * (1 - (player.shieldHardening || 0));
+            const shieldBeforeHit = player.shield;
+            const absorbed = Math.min(player.shield, hardenedAmount);
             player.shield -= absorbed;
+            player.shieldImpactUntil = performance.now() + 240;
+            if (shieldBeforeHit > 0 && player.shield <= 0) player.shieldBreakUntil = performance.now() + 650;
             if (absorbed > 0 && ui.playerShieldBarWrap) {
                 ui.playerShieldBarWrap.classList.remove("shield-hit");
                 void ui.playerShieldBarWrap.offsetWidth;
                 ui.playerShieldBarWrap.classList.add("shield-hit");
             }
-            amount = reducedAmount - absorbed;
+            amount = Math.max(0, hardenedAmount - absorbed);
         } else {
             amount = reducedAmount;
         }
+        player.lastDamageAt = performance.now();
         if (amount <= 0) return;
         player.health -= amount;
-        player.lastDamageAt = performance.now();
         player.regenAccumulator = 0;
         state.damageFlash = 1;
         playSound("playerHit");
@@ -6725,6 +6918,61 @@
     /**
      * Renders a visual element on the canvas. Do not change gameplay state from rendering code.
      */
+    function drawPlayerShield(screen) {
+        if (player.maxShield <= 0) return;
+        const now = performance.now();
+        const ratio = clamp(player.shield / Math.max(1, player.maxShield), 0, 1);
+        const impact = clamp((player.shieldImpactUntil - now) / 240, 0, 1);
+        const breaking = clamp((player.shieldBreakUntil - now) / 650, 0, 1);
+        const restoring = clamp((player.shieldRestoreUntil - now) / 700, 0, 1);
+        if (ratio <= 0 && breaking <= 0) return;
+
+        const radius = player.r * (1.55 + ratio * 0.12);
+        const flicker = ratio < 0.18 ? (Math.sin(now / 38) > -0.25 ? 1 : 0.28) : 1;
+        const restoreScale = restoring > 0 ? 1 - restoring * 0.32 : 1;
+        const breakScale = breaking > 0 ? 1 + (1 - breaking) * 0.55 : 1;
+        const alpha = Math.max(0.08, (0.18 + ratio * 0.42 + impact * 0.28) * flicker * (breaking > 0 ? breaking : 1));
+
+        ctx.save();
+        ctx.translate(screen.x, screen.y);
+        ctx.scale(restoreScale * breakScale, restoreScale * breakScale);
+        ctx.globalCompositeOperation = "lighter";
+        ctx.shadowColor = ratio > 0.45 ? "#55d7ff" : ratio > 0.18 ? "#a27cff" : "#ff79e6";
+        ctx.shadowBlur = 12 + impact * 24 + restoring * 18;
+        ctx.strokeStyle = `rgba(${ratio > 0.45 ? "85,215,255" : ratio > 0.18 ? "162,124,255" : "255,121,230"},${alpha})`;
+        ctx.lineWidth = 2.2 + impact * 3.4;
+        ctx.beginPath();
+        ctx.arc(0, 0, radius, 0, TWO_PI);
+        ctx.stroke();
+
+        // Hex-cell hints make the barrier read as a surface rather than a HUD ring.
+        ctx.lineWidth = 1;
+        for (let i = 0; i < 6; i++) {
+            const a = i * TWO_PI / 6 + now / 2400;
+            const x = Math.cos(a) * radius * 0.73;
+            const y = Math.sin(a) * radius * 0.73;
+            ctx.strokeStyle = `rgba(180,235,255,${alpha * 0.48})`;
+            ctx.beginPath();
+            for (let h = 0; h < 6; h++) {
+                const ha = h * TWO_PI / 6;
+                const hx = x + Math.cos(ha) * 5.5;
+                const hy = y + Math.sin(ha) * 5.5;
+                if (h === 0) ctx.moveTo(hx, hy); else ctx.lineTo(hx, hy);
+            }
+            ctx.closePath();
+            ctx.stroke();
+        }
+
+        if (impact > 0) {
+            ctx.strokeStyle = `rgba(240,252,255,${impact * 0.92})`;
+            ctx.lineWidth = 1.5 + impact * 2;
+            ctx.beginPath();
+            ctx.arc(0, 0, radius * (0.78 + (1 - impact) * 0.35), 0, TWO_PI);
+            ctx.stroke();
+        }
+        ctx.restore();
+    }
+
     function drawPlayerWorldHealthBar(screen) {
         if (!PLATFORM_PROFILE.isMobilePerformance) return;
 
@@ -6750,6 +6998,7 @@
         const angle = Math.atan2(target.y - player.y, target.x - player.x);
         const screen = worldToScreen(player);
         drawPlayerShip(angle, screen);
+        drawPlayerShield(screen);
         drawPlayerWorldHealthBar(screen);
     }
 
@@ -7565,9 +7814,7 @@
                 drawMiniTankDetails(enemy, screen);
                 ctx.save();
                 ctx.textAlign = "center";
-                ctx.font = "bold 11px system-ui";
-                ctx.fillStyle = enemy.miniBossRole === "healer" ? "#72f0a6" : enemy.miniBossRole === "sniper" ? "#ffcf70" : "#d9b5ff";
-                ctx.fillText((enemy.miniBossRole || "superTank").toUpperCase(), screen.x, screen.y - enemy.r - 18);
+                // Role identity is communicated through silhouette, color, and effects.
                 ctx.restore();
             }
             if (enemy.quantumImmune) {
@@ -7578,8 +7825,6 @@
                 ctx.setLineDash([3, 6]);
                 ctx.beginPath(); ctx.arc(screen.x, screen.y, enemy.r + 10, 0, TWO_PI); ctx.stroke();
                 ctx.setLineDash([]);
-                ctx.font = "bold 9px system-ui"; ctx.textAlign = "center"; ctx.fillStyle = "#86ecff";
-                ctx.fillText("Q-NULL", screen.x, screen.y - enemy.r - 14);
                 ctx.restore();
             }
             if ((enemy.generation || 1) > 1 && !["boss", "gigaBoss", "carrier", "aegis"].includes(enemy.type)) {
@@ -7590,10 +7835,6 @@
                 ctx.setLineDash([5, 7]);
                 ctx.beginPath(); ctx.arc(screen.x, screen.y, enemy.r + 7 + enemy.generation * 2, 0, TWO_PI); ctx.stroke();
                 ctx.setLineDash([]);
-                ctx.fillStyle = "rgba(170,225,255,.92)";
-                ctx.font = "bold 9px system-ui";
-                ctx.textAlign = "center";
-                ctx.fillText(`GEN ${enemy.generation}`, screen.x, screen.y - enemy.r - 12);
                 if (enemy.blinkChargeUntil) {
                     ctx.strokeStyle = "rgba(120,235,255,.95)"; ctx.lineWidth = 4;
                     ctx.beginPath(); ctx.arc(screen.x, screen.y, enemy.r + 13, 0, TWO_PI); ctx.stroke();
@@ -8157,12 +8398,12 @@
 
     function updateTouchControlVisibility() {
         if (!touchControls) return;
-        const touchCapable = matchMedia("(pointer: coarse)").matches || navigator.maxTouchPoints > 0;
+        const mobileTouchMode = document.documentElement.classList.contains("mobile-performance");
         // Keep controls active during the wave-clear collection window so the
         // player can sweep up point orbs and pickups. They hide only once the
         // Upgrade Protocol menu opens or gameplay is otherwise paused/ended.
-        const visible = touchCapable && state.started && !state.ended && !state.paused && ui.upgradeMenu.style.display !== "flex";
-        touchControls.classList.toggle("available", touchCapable);
+        const visible = mobileTouchMode && state.started && !state.ended && !state.paused && ui.upgradeMenu.style.display !== "flex";
+        touchControls.classList.toggle("available", mobileTouchMode);
         touchControls.classList.toggle("active", visible);
         touchControls.setAttribute("aria-hidden", String(!visible));
 
@@ -8494,9 +8735,9 @@
         "x","y","r","speed","health","maxHealth","damage","fireRate","bulletSpeed","bulletsPerShot","weaponBoostUntil",
         "cannonDamage","cannonFireRate","cannonVelocity","lastCannonShotAt",
         "explosiveLevel","explosiveRadius","explosiveDamageRatio","pointMagnetRadius","pointMagnetStrength",
-        "missileLevel","missileCount","missileDamage","missileCooldown","auraLevel","auraDamage","auraRadius",
+        "missileLevel","missileCount","missileDamage","missileCooldown","missileSpeed","missileTurnRate","missileExplosionRadius","missileExplosionDamageRatio","auraLevel","auraDamage","auraRadius","auraTickRate","auraPulseCounter",
         "auraTickRate","regenLevel","regenAmount","regenPerSecond","regenTickRate","regenDelayAfterDamage",
-        "lifeStealLevel","lifeStealAmount","damageReduction","shield","maxShield","boostDurationMultiplier",
+        "lifeStealLevel","lifeStealAmount","damageReduction","shield","maxShield","shieldRechargePerSecond","shieldRechargeDelayMs","shieldHardening","boostDurationMultiplier","boostSpeedMultiplier",
         "slowResistance","autonomousDamageMultiplier","autonomousArsenal","volleyCounter","adaptiveHull","livingDrones"
     ]);
 
@@ -8716,6 +8957,26 @@
             delete upgradeLevels.cannonPenetration;
         }
         if (!player.cannonVelocity && player.cannonPenetration) player.cannonVelocity = player.cannonPenetration;
+        // Compatibility: older builds used repeatable platform purchases. Preserve
+        // the resulting player stats while converting the shop entry to a one-time unlock.
+        if ((player.missileCount > 0 || player.missileLevel > 0) && !upgradeLevels.autoMissile) upgradeLevels.autoMissile = 1;
+        if (upgradeLevels.autoMissile > 1) upgradeLevels.autoMissile = 1;
+        if ((player.auraLevel > 0 || player.auraRadius > 0) && !upgradeLevels.damageAura) upgradeLevels.damageAura = 1;
+        if (upgradeLevels.damageAura > 1) upgradeLevels.damageAura = 1;
+        // Green/Blue platform migration: preserve established builds while making
+        // the new platform unlocks explicit for future purchases.
+        if ((player.maxShield > 0 || upgradeLevels.livingColony > 0) && !upgradeLevels.shieldGenerator) upgradeLevels.shieldGenerator = 1;
+        if (upgradeLevels.speed > 0 && !upgradeLevels.thrusterPackage) upgradeLevels.thrusterPackage = 1;
+        if (upgradeLevels.magnet > 0 && !upgradeLevels.tractorBeam) upgradeLevels.tractorBeam = 1;
+        if (upgradeLevels.boostCapacitor > 0 && !upgradeLevels.boostSystem) upgradeLevels.boostSystem = 1;
+        player.shieldRechargePerSecond = Math.max(0, Number(player.shieldRechargePerSecond) || (upgradeLevels.shieldGenerator ? GAMEPLAY_CONSTANTS.defensePlatforms.shieldBaseRechargePerSecond : 0));
+        player.shieldRechargeDelayMs = Math.max(GAMEPLAY_CONSTANTS.defensePlatforms.shieldMinimumRechargeDelayMs, Number(player.shieldRechargeDelayMs) || GAMEPLAY_CONSTANTS.defensePlatforms.shieldBaseRechargeDelayMs);
+        player.shieldHardening = clamp(Number(player.shieldHardening) || 0, 0, GAMEPLAY_CONSTANTS.defensePlatforms.shieldHardeningMaximum);
+        player.boostSpeedMultiplier = Math.max(1, Number(player.boostSpeedMultiplier) || 1);
+        player.missileSpeed = Math.max(Number(player.missileSpeed) || 0, GAMEPLAY_CONSTANTS.quantumPlatforms.missileBaseSpeed);
+        player.missileTurnRate = Math.max(Number(player.missileTurnRate) || 0, GAMEPLAY_CONSTANTS.quantumPlatforms.missileBaseTurnRate);
+        player.missileExplosionRadius = Math.max(Number(player.missileExplosionRadius) || 0, GAMEPLAY_CONSTANTS.quantumPlatforms.missileBaseBlastRadius);
+        player.missileExplosionDamageRatio = Math.max(Number(player.missileExplosionDamageRatio) || 0, GAMEPLAY_CONSTANTS.quantumPlatforms.missileBaseBlastDamageRatio);
         for (const [id, data] of Object.entries(run.relicResearch || {})) {
             if (relicResearch[id]) Object.assign(relicResearch[id], { progress: Math.max(0, Math.floor(data.progress || 0)), stage: Math.max(0, Math.floor(data.stage || 0)), awakened: Boolean(data.awakened) });
         }

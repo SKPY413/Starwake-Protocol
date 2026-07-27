@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Credits — Starwake Protocol</title>
+<link rel="icon" type="image/png" sizes="32x32" href="assets/branding/developer-seal/mk1/seal-32.png">
+<link rel="stylesheet" href="styles.css">
+<style>
+body.info-page{overflow:auto;cursor:auto;background:#050a14;color:#eaf5ff;min-height:100vh}
+body.info-page *{cursor:auto}
+.info-shell{width:min(860px,calc(100% - 28px));margin:32px auto;padding:28px;border:1px solid rgba(120,190,255,.28);border-radius:20px;background:rgba(10,16,30,.96)}
+.info-nav{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:24px}.info-nav a{color:#eaf5ff;text-decoration:none;border:1px solid rgba(120,190,255,.28);border-radius:10px;padding:9px 13px;background:rgba(70,140,255,.08)}
+.credit-hero{text-align:center}.credit-hero img{image-rendering:auto}.credit-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:24px 0}.credit-panel{border:1px solid rgba(120,190,255,.18);border-radius:14px;padding:18px;background:rgba(5,10,20,.46)}
+.credit-panel h2{margin-top:0;font-size:18px}.release-mark{text-align:center;color:#8fa7c2}.developer-vault{margin-top:34px;border-top:1px solid rgba(255,255,255,.09);padding-top:18px;color:#8fa7c2}.developer-vault summary{font-size:12px;letter-spacing:.6px}.developer-toggle{display:flex;align-items:center;gap:10px;margin-top:14px;color:#d7ecff}.developer-toggle input{width:20px;height:20px;accent-color:#7cffd4}
+@media(max-width:620px){.info-shell{padding:20px}.credit-grid{grid-template-columns:1fr}}
+</style>
+<!-- MONETIZATION SETUP: Replace this comment with the exact AdSense site tag from your approved account.
+     Do not invent a publisher ID. Publishing a European regulations message in AdSense Privacy & messaging
+     activates Google's certified consent flow for eligible visitors. -->
+</head>
+<body class="info-page">
+<main class="info-shell">
+<nav class="info-nav" aria-label="Site navigation"><a href="index.html">Return to Game</a><a href="privacy.html">Privacy Policy</a><button class="consent-settings-button" data-consent-settings type="button">Privacy Settings</button></nav>
+<section class="credit-hero">
+<img src="assets/branding/developer-seal/mk1/seal-256.png" width="128" height="128" alt="Starwake Developer Seal Mark I">
+<h1>Starwake Protocol</h1>
+<p>A human–AI collaborative experiment in emergent game design.</p>
+</section>
+<div class="credit-grid">
+<section class="credit-panel"><h2>Creative Direction</h2><p><strong>Brandon Henderson</strong></p><p>Original concept, game direction, systems design, balancing, testing, production decisions, and the continued development of Starwake Protocol.</p></section>
+<section class="credit-panel"><h2>Collaborative Development</h2><p><strong>OpenAI GPT</strong></p><p>Collaborative engineering, implementation support, technical organization, design iteration, documentation, and narrative development under human direction.</p></section>
+<section class="credit-panel"><h2>Design Philosophy</h2><p>Every system should explain itself through play. Every enemy should have a purpose. Every upgrade should help the player construct a distinct warship.</p></section>
+<section class="credit-panel"><h2>Special Thanks</h2><p>To every player, tester, friend, and family member whose time and feedback helps keep this independent project moving forward.</p></section>
+</div>
+<p class="release-mark">Developer Seal Mk. I · Pre-Beta</p>
+<section class="developer-vault">
+<details>
+<summary>Development access</summary>
+<label class="developer-toggle" for="developerModeCredits"><input id="developerModeCredits" type="checkbox"><span>Enable developer tools on the game page</span></label>
+<p id="developerStatus" role="status" aria-live="polite"></p>
+</details>
+</section>
+</main>
+<script src="consentManager.js"></script>
+<script>
+(() => {
+  const toggle = document.getElementById('developerModeCredits');
+  const status = document.getElementById('developerStatus');
+  const key = 'starwakeDeveloperMode';
+  try { toggle.checked = localStorage.getItem(key) === 'true'; } catch (_) {}
+  toggle.addEventListener('change', () => {
+    try {
+      localStorage.setItem(key, String(toggle.checked));
+      status.textContent = toggle.checked ? 'Developer tools enabled. Return to the game to use them.' : 'Developer tools disabled.';
+    } catch (_) { status.textContent = 'This browser blocked the developer-mode preference.'; }
+  });
+})();
+</script>
+</body>
+</html>

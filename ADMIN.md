@@ -561,3 +561,33 @@ PLAYTEST PRIORITIES
 - Added `.gitattributes` for cross-platform line-ending stability and `.gitignore` for caches, editor debris, and local ZIP builds.
 - Updated `npm run check` to rebuild, fingerprint, and verify in one command.
 - No gameplay, enemy, carrier, evolution, save, rendering, input, audio, or balance behavior was intentionally changed.
+
+
+## Quantum Platform Progression Pass
+- Converted Quantum Missiles and Orbital Field into one-time platform unlocks.
+- Added dedicated missile payload, magazine, fabrication, guidance, and warhead research.
+- Added dedicated field density, resonance, cycling, slowing, and pulse amplification research.
+- Added legacy-save migration for pre-platform Purple upgrades.
+- Kept Rift relic progression independent.
+
+## Green/Blue Platform Progression Pass
+
+- Added rechargeable Shield Generator platform and four dedicated shield upgrades.
+- Added visible ship-mounted shield surface with impact, break, low-charge, and restoration feedback.
+- Added Thruster Package, Tractor Beam, and Booster System platform unlocks with dedicated upgrade paths.
+- Expanded desktop upgrade cards and removed description/stat clipping.
+- Added backward-compatible migration for established Green and Blue builds.
+
+## 2026-07-27 — Public release, credits, privacy, and touch-control pass
+- Added dedicated credits and privacy pages.
+- Moved developer-mode access into the credits page.
+- Removed enemy name/generation labels from combat rendering.
+- Restricted virtual sticks to explicit mobile mode.
+
+
+ENGINE CLEANUP — CONSOLIDATED PROJECT ROOT
+##########################################
+- Removed obsolete phase reports and one-off implementation changelogs from the project root.
+- Retained only active operational, design, testing, privacy, and maintenance documentation.
+- Rewrote README.txt as the single project map for runtime files, editable source, verification commands, and Vercel deployment settings.
+- No gameplay, save, asset, consent, credits, privacy, or control behavior changed in this cleanup.

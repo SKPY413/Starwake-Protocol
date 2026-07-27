@@ -1,44 +1,64 @@
-STARWAKE PROTOCOL - SEPARATE FILE VERSION
+STARWAKE PROTOCOL — PROJECT GUIDE
 
-Files:
-  index.html  - page structure
-  styles.css  - all visual styling
-  game.js     - gameplay, procedural audio, enemies, upgrades, and effects
+PLAY LOCALLY
+------------
+Open index.html in Firefox, Chrome, or Chromium.
 
-Run:
-  Open index.html in Firefox, Chrome, or Chromium.
-
-If your browser blocks local audio or storage features, run a local server in this folder:
+If local audio or browser storage is restricted, run:
   python3 -m http.server 8000
+
 Then open:
   http://localhost:8000
 
-Keep all three main files in the same folder.
+
+PUBLIC SITE FILES
+-----------------
+index.html             Main game page
+credits.html           Credits and development access
+privacy.html           Privacy policy
+styles.css             Shared visual styling
+game.js                Generated gameplay runtime
+musicEngine.js         Procedural music engine
+platformProfile.js     Desktop/mobile profile selection
+consentManager.js      Google consent-message integration bridge
+assets/                 Public images and asset manifest
+
+These are the files Vercel serves to players. Do not delete them.
 
 
-BALANCE PASS
-------------
-Easy: very gentle early waves, delayed advanced enemies, cheaper upgrades, and higher point rewards.
-Medium: smoother baseline progression with slightly reduced opening pressure.
-Hard: strong but fair scaling with the standard upgrade economy.
-Impossible: early advanced enemies, aggressive stat growth, high damage, and heavy spawn pressure.
-
-Enemy counts, spawn cadence, stat growth, enemy unlock timing, reward multipliers, and upgrade costs are now tuned independently per difficulty.
-
-
-DEVELOPER NOTES
+EDITABLE SOURCE
 ---------------
-Read ARCHITECTURE.md before changing startup, difficulty, upgrades, menus, or audio. The source files now include maintenance comments documenting system contracts and known regression traps.
+src/                    Modular gameplay source
+src/manifest.json       Source order and line metadata
+tools/build_game.py     Rebuilds game.js from src/
+
+Do not edit game.js directly for lasting changes. Edit src/ and rebuild.
 
 
-SFX OVERHAUL
-------------
-This build replaces the original generic beep/noise palette with layered procedural effects.
-All gameplay code still calls playSound(eventName); synth construction remains centralized in game.js.
-A dedicated SFX compressor protects the music/master mix when many impacts overlap.
+MAINTENANCE COMMANDS
+--------------------
+npm run build            Rebuild source manifest and game.js
+npm run fingerprint      Refresh build_manifest.json
+npm run verify           Run the complete project verification gate
+npm run check            Build, fingerprint, and verify
+npm run release:verify   Check release hygiene and fingerprints
 
-LATEST AUDIO TUNING
-- Player fire now uses a high-register plasma chirp with a glassy harmonic layer.
-- Combat music now carries a continuous four-bar call-and-response lead melody.
-- Arpeggio level was reduced slightly so the primary hook remains intelligible.
-- The final bar adds a restrained upper harmony for a stronger phrase return.
+Vercel should remain configured as a static site:
+  Framework Preset: Other
+  Build Command: empty
+  Output Directory: .
+
+
+ACTIVE DOCUMENTATION
+--------------------
+ADMIN.md                       Complete development/change record
+ARCHITECTURE.md                Runtime structure and system contracts
+CONSENT_READY_MONETIZATION.md  AdSense and consent setup
+KNOWN_ISSUES.md                Current known problems
+LORE_BIBLE.md                  Lore and mechanical intent
+ROADMAP.md                     Planned development
+SAVE_SYSTEM.md                 Save architecture and behavior
+SOP.md                         Development procedure
+TEST_REPORT.md                 Testing status and results
+
+Historical phase reports and one-off changelog files were removed because their useful information is already represented in ADMIN.md, ARCHITECTURE.md, or the active source.
