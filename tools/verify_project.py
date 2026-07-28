@@ -30,7 +30,7 @@ def run(command: list[str], label: str) -> None:
 
 # 1. Required project files.
 required = [
-    "index.html", "credits.html", "privacy.html", "consentManager.js", "styles.css", "platformProfile.js", "musicEngine.js", "game.js",
+    "index.html", "credits.html", "privacy.html", "consentManager.js", "adManager.js", "styles.css", "platformProfile.js", "musicEngine.js", "game.js",
     "src/manifest.json", "assets/manifest.json", "build_manifest.json", "tools/build_game.py",
 ]
 for relative in required:
@@ -90,7 +90,7 @@ run([sys.executable, "tools/audit_release_hygiene.py"], "release fingerprints an
 # 6. JavaScript parser gate when Node is available.
 node = subprocess.run(["bash", "-lc", "command -v node"], text=True, capture_output=True)
 if node.returncode == 0:
-    for script in ["game.js", "musicEngine.js", "platformProfile.js", "consentManager.js"]:
+    for script in ["game.js", "musicEngine.js", "platformProfile.js", "consentManager.js", "adManager.js"]:
         run(["node", "--check", script], f"JavaScript syntax valid: {script}")
 else:
     PASSES.append("Node unavailable; JavaScript parser gate skipped")

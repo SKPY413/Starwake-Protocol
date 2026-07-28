@@ -1,8 +1,8 @@
 {
   "name": "starwake-protocol",
   "private": true,
-  "version": "1.0.0",
-  "description": "Maintenance and release commands for Starwake Protocol 1.0.",
+  "version": "1.0.1",
+  "description": "Maintenance and release commands for Starwake Protocol 1.0.1.",
   "scripts": {
     "build": "python tools/update_source_manifest.py && python tools/build_game.py",
     "verify": "python tools/verify_project.py",

@@ -45,3 +45,8 @@ If Auto ads are tested later:
 - verify the European regulations message is published with consent, refusal, and manage-options choices.
 
 The current build intentionally contains no fabricated ad-slot ID and no ad unit inside gameplay.
+
+## Live manual placement (Version 1.0.1)
+
+The approved responsive display unit uses publisher `ca-pub-8843081403115565` and slot `6071429762`. It is mounted only inside the main menu. `adManager.js` waits for a measurable menu, requests the unit once, and collapses the placement when AdSense reports `unfilled` or the request is blocked/times out. Do not duplicate the unit or call `adsbygoogle.push()` elsewhere.
+

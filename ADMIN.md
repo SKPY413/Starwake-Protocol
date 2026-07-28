@@ -1,3 +1,12 @@
+
+## Version 1.0.1 — Controlled Main Menu Advertising
+
+- Added the approved responsive AdSense unit `6071429762` to the main menu only.
+- The placement initializes once, after the menu is visible, to avoid zero-width ad requests.
+- Unfilled, blocked, or timed-out requests collapse without leaving an empty rectangle.
+- Advertising remains absent from active gameplay, pause, upgrades, game over, privacy, and credits.
+- Added clear advertising disclosure and spacing to reduce accidental player interaction.
+
 # STARWAKE PROTOCOL — ADMIN
 
 This is the persistent handoff notebook between Brandon and ChatGPT.

@@ -163,7 +163,7 @@
         </div>
         <div class="splash-kicker">AI-Collaborative Arcade Study</div>
         <h1 class="splash-title">Starwake<br>Protocol</h1>
-        <div class="release-badge" aria-label="Version 1.0 release">VERSION 1.0</div>
+        <div class="release-badge" aria-label="Version 1.0.1 release">VERSION 1.0.1</div>
         <p class="splash-tagline">A Human–AI Collaborative Experiment in Emergent Game Design</p>
         <p class="splash-credit">Designed in collaboration with <strong>GPT-5.5 Thinking</strong></p>
         <div class="splash-actions">
@@ -177,7 +177,7 @@
 <div id="startMenu">
     <div class="menu-card">
         <h1 class="menu-title">Starwake Protocol</h1>
-        <div class="release-badge menu-release-badge" aria-label="Version 1.0 release">VERSION 1.0</div>
+        <div class="release-badge menu-release-badge" aria-label="Version 1.0.1 release">VERSION 1.0.1</div>
         <p class="menu-tagline">A Human–AI Collaborative Experiment in Emergent Game Design</p>
         <p class="menu-subtitle">A neon survival arena about human direction, machine iteration, and the strange future of creative work. Survive escalating waves, collect point orbs, upgrade your ship, and prepare for bosses every 10 waves. WASD / Arrow Keys move, mouse aims, shooting is automatic, P pauses.</p>
 
@@ -297,8 +297,26 @@
             <button id="startButton" type="button">Launch Protocol</button>
             <div id="startupStatus" hidden role="alert" style="margin-top:10px;color:#ffb0b0;font-size:13px;line-height:1.35;"></div>
         </div>
+
+        <!-- Manual AdSense unit: initialized once, only after the main menu is visible. -->
+        <aside id="mainMenuAd" class="main-menu-ad" hidden aria-label="Advertisement">
+            <div class="main-menu-ad-heading">
+                <span>Advertisement</span>
+                <small>Helps fund future Starwake updates while keeping the game free.</small>
+            </div>
+            <div class="main-menu-ad-slot">
+                <ins id="mainMenuAdUnit"
+                     class="adsbygoogle"
+                     style="display:block"
+                     data-ad-client="ca-pub-8843081403115565"
+                     data-ad-slot="6071429762"
+                     data-ad-format="auto"
+                     data-full-width-responsive="true"></ins>
+            </div>
+        </aside>
+
         <footer class="menu-version-footer">
-            <span>Starwake Protocol v1.0.0</span>
+            <span>Starwake Protocol v1.0.1</span>
             <strong id="developerModeStatus" hidden>Developer Mode Enabled</strong>
         </footer>
     </div>
@@ -498,8 +516,10 @@
 
 
 
-<!-- Consent bridge is inert until the official AdSense/CMP tag is installed. -->
+<!-- Consent bridge connects the public privacy controls to Google Privacy & Messaging. -->
 <script src="consentManager.js"></script>
+<!-- Manual ad manager waits for a visible menu, initializes once, and collapses unfilled inventory. -->
+<script src="adManager.js"></script>
 <!-- Platform profile must load first so audio/rendering allocate the correct budgets. -->
 <script src="platformProfile.js"></script>
 <!-- Script order matters: the optional music API is exposed before game.js attempts to use it. -->

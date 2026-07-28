@@ -109,7 +109,7 @@
     // Defensive, versioned persistence
     // -------------------------------------------------------------------------
     const SAVE_SCHEMA_VERSION = 2;
-    const SAVE_BUILD = "Starwake Protocol 1.0";
+    const SAVE_BUILD = "Starwake Protocol 1.0.1";
     const SAVE_KEYS = Object.freeze({
         main: "starwake_save_main",
         temp: "starwake_save_temp",
