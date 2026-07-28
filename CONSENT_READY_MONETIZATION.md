@@ -24,3 +24,24 @@ This build prepares Starwake Protocol for Google's AdSense Consent Management Pl
 ## Important boundary
 
 The repository cannot contain a working certified Google CMP before the publisher account, site, message configuration, and genuine Google tag exist. This build supplies the site-side bridge and disclosure surfaces; Google supplies and operates the actual consent message.
+
+## Version 1.0 AdSense integration
+
+Publisher ID: `pub-8843081403115565`
+
+The official AdSense site tag is installed once in the `<head>` of `index.html`, `credits.html`, and `privacy.html`. The root `ads.txt` authorizes this publisher account.
+
+### Player-experience launch settings
+
+For the initial launch, keep **Auto ads disabled** until the site is approved and a deliberate ad placement is created. This prevents Google from placing overlays or in-page ads over the canvas, menus, pause screen, or upgrade interface. When monetization is enabled, start with one responsive display ad outside active gameplay and test it on desktop and mobile.
+
+If Auto ads are tested later:
+
+- disable Anchor ads;
+- disable Vignette ads;
+- disable Ad intents;
+- use the AdSense preview to exclude the game canvas and interactive menu regions;
+- exclude `privacy.html` from Auto ads;
+- verify the European regulations message is published with consent, refusal, and manage-options choices.
+
+The current build intentionally contains no fabricated ad-slot ID and no ad unit inside gameplay.

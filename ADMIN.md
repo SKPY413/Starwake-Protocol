@@ -591,3 +591,11 @@ ENGINE CLEANUP — CONSOLIDATED PROJECT ROOT
 - Retained only active operational, design, testing, privacy, and maintenance documentation.
 - Rewrote README.txt as the single project map for runtime files, editable source, verification commands, and Vercel deployment settings.
 - No gameplay, save, asset, consent, credits, privacy, or control behavior changed in this cleanup.
+
+## Version 1.0 Commercial Foundation
+
+[✓] Promoted the public release label to Version 1.0.
+[✓] Installed the verified AdSense site tag for publisher `pub-8843081403115565` on all public pages.
+[✓] Added a root `ads.txt` authorization record.
+[✓] Preserved player experience by adding no manual ad unit or gameplay overlay.
+[✓] Retained Google-certified consent controls and privacy-policy disclosure.

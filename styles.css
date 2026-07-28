@@ -3302,3 +3302,22 @@ html.mobile-performance .splash-seal-wake {
     cursor: auto;
 }
 .consent-status-toast[hidden] { display: none; }
+
+/* Version 1.0 public release marker. */
+.release-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: fit-content;
+    margin: 10px auto 2px;
+    padding: 5px 11px;
+    border: 1px solid rgba(124, 255, 212, .46);
+    border-radius: 999px;
+    background: rgba(26, 103, 88, .18);
+    color: #bfffe9;
+    font: 700 11px/1 system-ui, sans-serif;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+}
+.menu-release-badge { margin-top: -2px; margin-bottom: 10px; }
+

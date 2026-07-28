@@ -30,13 +30,13 @@
     },
     {
       "path": "game.js",
-      "bytes": 462033,
-      "sha256": "77d9f353d973073bdf8ef55bf029336ac3caf34231ec4dcd5ff090aee7737f7c"
+      "bytes": 462032,
+      "sha256": "ebf868c1d4b127965d09f0909e63be0db0ba0dcefa5602e3204e28e95c66180e"
     },
     {
       "path": "index.html",
-      "bytes": 29961,
-      "sha256": "5ca1dfb45c96c441879aba3088ae0ceebdc4311dc15a99944914ca1097ca0e9f"
+      "bytes": 30136,
+      "sha256": "8c716d9f58956816cd68cd839c03e11f151f5b1a8ae310cd1bf691055255100c"
     },
     {
       "path": "musicEngine.js",
@@ -95,8 +95,8 @@
     },
     {
       "path": "src/09_events_persistence_startup.js",
-      "bytes": 48147,
-      "sha256": "f53bc10b928be4611aa45086a5b3d07d838841dc54102b25a49d742f4c2681da"
+      "bytes": 48146,
+      "sha256": "74a4e1d96a4f76d1c39ac5f9421abc2128a200252a7f2d09cb33b38062357f7e"
     },
     {
       "path": "src/manifest.json",
@@ -105,8 +105,8 @@
     },
     {
       "path": "styles.css",
-      "bytes": 107752,
-      "sha256": "3ef650e5060abf31e1b690e615740c2334e9737a4ca78479386a2e9bbade984d"
+      "bytes": 108267,
+      "sha256": "16ba1aba0034a86fdc83786ffe9f136abde6044cb8cbd8c580be0db6f322f9c3"
     }
   ]
 }
